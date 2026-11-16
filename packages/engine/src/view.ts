@@ -7,6 +7,7 @@ import {
   type MatchResult,
   type MatchState,
   opponent,
+  type PendingKind,
   type Phase,
   type Seat,
   type Uid,
@@ -73,6 +74,10 @@ export interface SeatView {
   opponent: OpponentSideView;
   board: { you: BoardSideView; opponent: BoardSideView };
   weather: CardRef[];
+  /** Your active Pending Choice; its options are your legal actions. */
+  pendingChoice: { kind: PendingKind } | null;
+  /** The opponent is making a Pending Choice (its options stay private). */
+  opponentChoosing: boolean;
   /**
    * Every action this Seat may take now, fully specified. Forfeit is always allowed while
    * the Match runs and is not listed.
@@ -85,6 +90,7 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
   const strengths = computeStrengths(state);
   const own = state.sides[seat];
   const opp = state.sides[other];
+  const pending = state.pending[0];
   return {
     seat,
     actionCount: state.actionCount,
@@ -116,6 +122,8 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
       opponent: boardSide(state, other, strengths),
     },
     weather: state.weather.map((uid) => ref(state, uid)),
+    pendingChoice: pending?.seat === seat ? { kind: pending.kind } : null,
+    opponentChoosing: pending?.seat === other,
     legalActions: legalActions(state, seat),
   };
 }

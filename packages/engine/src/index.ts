@@ -10,3 +10,4 @@ export * from "./round";
 export * from "./state";
 export * from "./strength";
 export * from "./view";
+export * from "./choice";
