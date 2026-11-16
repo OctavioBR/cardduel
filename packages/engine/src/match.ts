@@ -163,8 +163,38 @@ export function replay(setup: MatchSetup, log: readonly LoggedAction[]): MatchSt
   return state;
 }
 
+/**
+ * Copies everything a Turn can change. Card definitions and card instances never change
+ * during a Match, so they are shared; this keeps Play Previews cheap.
+ */
 export function cloneState(state: MatchState): MatchState {
-  return JSON.parse(JSON.stringify(state)) as MatchState;
+  return {
+    ...state,
+    sides: [cloneSide(state.sides[0]), cloneSide(state.sides[1])],
+    weather: [...state.weather],
+    pending: state.pending.map((p) => ({ ...p })),
+    result: state.result ? { ...state.result } : null,
+  };
+}
+
+function cloneSide(side: SideState): SideState {
+  return {
+    ...side,
+    deck: [...side.deck],
+    hand: [...side.hand],
+    discard: [...side.discard],
+    known: [...side.known],
+    redraw: { ...side.redraw },
+    rows: {
+      close: cloneRow(side.rows.close),
+      ranged: cloneRow(side.rows.ranged),
+      siege: cloneRow(side.rows.siege),
+    },
+  };
+}
+
+function cloneRow(row: RowState): RowState {
+  return { ...row, units: [...row.units] };
 }
 
 function validate(state: MatchState, seat: Seat, action: Action): Rejection | null {

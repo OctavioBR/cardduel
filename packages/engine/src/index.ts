@@ -6,6 +6,7 @@ export * from "./leader";
 export * from "./legal";
 export * from "./match";
 export * from "./play";
+export * from "./preview";
 export * from "./protocol";
 export * from "./rng";
 export * from "./round";

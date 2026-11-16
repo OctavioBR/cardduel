@@ -4,6 +4,7 @@ import type { CardRef, MatchEvent } from "./events";
 import { leaderAbility } from "./leader";
 import { legalActions } from "./legal";
 import { ref } from "./play";
+import { hasPreview, type PlayPreview, previewFor } from "./preview";
 import {
   type MatchResult,
   type MatchState,
@@ -14,6 +15,15 @@ import {
   type Uid,
 } from "./state";
 import { cardIdOf, computeStrengths, rowScore, totalScore } from "./strength";
+
+/** A legal action, with its Play Preview when it has one. */
+export type LegalAction = Action & { preview?: PlayPreview };
+
+/** The action itself, without its preview: what a client sends. */
+export function withoutPreview(action: LegalAction): Action {
+  const { preview: _preview, ...rest } = action as Action & { preview?: PlayPreview };
+  return rest as Action;
+}
 
 export interface UnitView extends CardRef {
   strength: number;
@@ -94,10 +104,11 @@ export interface SeatView {
   /** The opponent is making a Pending Choice (its options stay private). */
   opponentChoosing: boolean;
   /**
-   * Every action this Seat may take now, fully specified. Forfeit is always allowed while
-   * the Match runs and is not listed.
+   * Every action this Seat may take now, fully specified, each play, Leader ability and
+   * Pending Choice option with its Play Preview. Forfeit is always allowed while the Match
+   * runs and is not listed. Clients send the action without its preview.
    */
-  legalActions: Action[];
+  legalActions: LegalAction[];
 }
 
 export function viewFor(state: MatchState, seat: Seat): SeatView {
@@ -143,7 +154,9 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
     weather: state.weather.map((uid) => ref(state, uid)),
     pendingChoice: pending?.seat === seat ? { kind: pending.kind } : null,
     opponentChoosing: pending?.seat === other,
-    legalActions: legalActions(state, seat),
+    legalActions: legalActions(state, seat).map((action) =>
+      hasPreview(action) ? { ...action, preview: previewFor(state, seat, action) } : action,
+    ),
   };
 }
 

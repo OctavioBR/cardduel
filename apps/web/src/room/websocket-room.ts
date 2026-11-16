@@ -5,7 +5,7 @@ import {
   type ClientMessage,
   type ServerMessage,
 } from "@card-duel/engine";
-import { Emitter, type RoomConnection } from "./connection";
+import { bareAction, Emitter, type RoomConnection } from "./connection";
 
 export interface WebSocketRoomOptions {
   /** Absolute ws:// or wss:// URL of the Room socket, without the token. */
@@ -49,7 +49,11 @@ export class WebSocketRoom implements RoomConnection {
   send(action: Action): void {
     const view = this.emitter.state.view;
     if (!view || !this.socket || this.socket.readyState !== WebSocket.OPEN) return;
-    const message: ClientMessage = { type: "action", actionCount: view.actionCount, action };
+    const message: ClientMessage = {
+      type: "action",
+      actionCount: view.actionCount,
+      action: bareAction(action),
+    };
     this.socket.send(JSON.stringify(message));
   }
 

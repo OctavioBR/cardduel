@@ -9,7 +9,7 @@ import {
   type Seat,
   viewFor,
 } from "@card-duel/engine";
-import { Emitter, type RoomConnection } from "./connection";
+import { bareAction, Emitter, type RoomConnection } from "./connection";
 
 /**
  * Runs the engine in the browser and controls both Seats, for building and testing the
@@ -37,7 +37,7 @@ export class LocalRoom implements RoomConnection {
 
   /** Applies the action as the Seat currently being looked at. */
   send(action: Action): void {
-    const result = applyAction(this.state, this.viewing, action);
+    const result = applyAction(this.state, this.viewing, bareAction(action));
     if (!result.ok) {
       this.emitter.update({ error: { code: "rejected", message: result.rejection.message } });
       return;
