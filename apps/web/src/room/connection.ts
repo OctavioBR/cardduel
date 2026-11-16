@@ -59,3 +59,9 @@ export class Emitter {
     for (const listener of this.listeners) listener({ state: this.state, events });
   }
 }
+
+/** Strips a legal action's Play Preview: only the action itself is sent. */
+export function bareAction(action: Action & { preview?: unknown }): Action {
+  const { preview: _preview, ...rest } = action;
+  return rest as Action;
+}

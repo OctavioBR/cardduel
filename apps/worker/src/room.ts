@@ -15,6 +15,7 @@ import {
   type Seat,
   type ServerMessage,
   viewFor,
+  withoutPreview,
 } from "@card-duel/engine";
 
 interface Attachment {
@@ -102,12 +103,14 @@ export class Room extends DurableObject<Env> {
       this.sendCurrent(ws, seat);
       return;
     }
-    const result = applyAction(state, seat, message.action);
+    // Clients may echo an action with its Play Preview attached; only the action is logged.
+    const action = withoutPreview(message.action);
+    const result = applyAction(state, seat, action);
     if (!result.ok) {
       send(ws, { type: "error", code: "rejected", message: result.rejection.message });
       return;
     }
-    this.match.log.push({ seat, action: message.action });
+    this.match.log.push({ seat, action });
     this.match.state = result.state;
     await this.ctx.storage.put({ log: this.match.log, snapshot: result.state });
     this.broadcast(result.events);

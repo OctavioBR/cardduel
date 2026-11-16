@@ -5,6 +5,7 @@ import { legalActions } from "./legal";
 import { applyAction, createMatch } from "./match";
 import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
 import { deck, playCard, repeat, setup, startMatch, unit } from "./testing/fixtures";
+import { expectNoHiddenCards, uidsIn } from "./testing/hidden";
 import { playRandomMatch } from "./testing/random";
 import { filterEvents, viewFor } from "./view";
 
@@ -16,28 +17,6 @@ const CARDS = [
 ];
 const LIST = [...repeat("a", 6), ...repeat("b", 6), ...repeat("c", 6), ...repeat("d", 4)];
 const SETUP = setup(99, [deck(LIST), deck(LIST, "court")], CARDS);
-
-/** Uids a Seat must never see: the opponent's hand (except cards it saw) and both decks. */
-function hiddenFrom(state: MatchState, seat: Seat): Set<Uid> {
-  const known = new Set(state.sides[seat].known);
-  return new Set([
-    ...state.sides[opponent(seat)].hand.filter((uid) => !known.has(uid)),
-    ...state.sides[0].deck,
-    ...state.sides[1].deck,
-  ]);
-}
-
-/** Every `uid` field anywhere in a JSON value. */
-function uidsIn(value: unknown, out: Uid[] = []): Uid[] {
-  if (Array.isArray(value)) for (const v of value) uidsIn(v, out);
-  else if (value && typeof value === "object") {
-    for (const [k, v] of Object.entries(value)) {
-      if ((k === "uid" || k === "card" || k === "target") && typeof v === "number") out.push(v);
-      else uidsIn(v, out);
-    }
-  }
-  return out;
-}
 
 describe("viewFor", () => {
   it("shows your hand and deck counts, and only sizes for the opponent", () => {
@@ -103,27 +82,19 @@ describe("hidden information", () => {
       const s = { ...SETUP, seed };
       const { state, events } = createMatch(s);
       for (const seat of SEATS) {
-        const hidden = hiddenFrom(state, seat);
+        const hidden = new Set([
+          ...state.sides[opponent(seat)].hand,
+          ...state.sides[0].deck,
+          ...state.sides[1].deck,
+        ]);
         const seen = uidsIn([viewFor(state, seat), filterEvents(events, seat)]);
         expect(seen.filter((u) => hidden.has(u))).toEqual([]);
       }
-      playRandomMatch(s, seed + 1000, ({ after, events: stepEvents }) => {
-        for (const seat of SEATS) {
-          const hidden = hiddenFrom(after, seat);
-          // A Seat knows which card it just returned in Redraw; the deck is reshuffled after.
-          for (const e of stepEvents) {
-            if (e.type === "cardReturned" && e.seat === seat && e.card) hidden.delete(e.card.uid);
-          }
-          const seen = uidsIn([viewFor(after, seat), filterEvents(stepEvents, seat)]);
-          expect(seen.filter((u) => hidden.has(u))).toEqual([]);
-        }
-      });
+      expectNoHiddenCards(s, seed + 1000);
     }
   });
-});
 
-describe("hidden information with Leaders that look and draw", () => {
-  it("only cards a Seat has seen appear in its view", () => {
+  it("also holds with Leaders that look at the opponent's hand and draw chosen cards", () => {
     const look: CardDefinition = {
       id: "leader-look",
       kind: "leader",
@@ -146,18 +117,7 @@ describe("hidden information with Leaders that look and draw", () => {
       ] as typeof SETUP.decks,
       cards: [...SETUP.cards, look, pick],
     };
-    for (let seed = 0; seed < 40; seed++) {
-      playRandomMatch({ ...s, seed }, seed + 7, ({ after, events: stepEvents }) => {
-        for (const seat of SEATS) {
-          const hidden = hiddenFrom(after, seat);
-          for (const e of stepEvents) {
-            if (e.type === "cardReturned" && e.seat === seat && e.card) hidden.delete(e.card.uid);
-          }
-          const seen = uidsIn([viewFor(after, seat), filterEvents(stepEvents, seat)]);
-          expect(seen.filter((u) => hidden.has(u))).toEqual([]);
-        }
-      });
-    }
+    for (let seed = 0; seed < 40; seed++) expectNoHiddenCards({ ...s, seed }, seed + 7);
   });
 });
 
