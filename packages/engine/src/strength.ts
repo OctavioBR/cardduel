@@ -1,14 +1,66 @@
-import { ROWS, type RowId } from "./cards";
+import { type CardDefinition, ROWS, type RowId } from "./cards";
 import type { MatchState, Seat, Uid } from "./state";
 
-/** Current Strength of every Unit on the battlefield, keyed by uid. */
+export function cardIdOf(state: MatchState, uid: Uid): string {
+  const card = state.cards[uid];
+  if (!card) throw new Error(`Unknown card uid ${uid}`);
+  return card.cardId;
+}
+
+export function defOf(state: MatchState, uid: Uid): CardDefinition {
+  const def = state.defs[cardIdOf(state, uid)];
+  if (!def) throw new Error(`No definition for card uid ${uid}`);
+  return def;
+}
+
+/** Rows covered by the Weather cards currently in play. */
+export function weatheredRows(state: MatchState): Set<RowId> {
+  const rows = new Set<RowId>();
+  for (const uid of state.weather) {
+    const def = defOf(state, uid);
+    if (def.kind === "special" && def.effect.type === "weather") {
+      for (const row of def.effect.rows) rows.add(row);
+    }
+  }
+  return rows;
+}
+
+/**
+ * Current Strength of every card in a battlefield Row, keyed by uid. Recomputed from the
+ * battlefield in this order: Weather, Tight Bond, Morale Boost, Horn. Heroes ignore all of
+ * them; cards that are not Units (a Decoy) count 0.
+ */
 export function computeStrengths(state: MatchState): Map<Uid, number> {
   const result = new Map<Uid, number>();
+  const weathered = weatheredRows(state);
   for (const side of state.sides) {
     for (const row of ROWS) {
-      for (const uid of side.rows[row].units) {
-        const def = state.defs[cardIdOf(state, uid)];
-        result.set(uid, def?.kind === "unit" ? def.strength : 0);
+      const rowState = side.rows[row];
+      const units = rowState.units.map((uid) => ({ uid, def: defOf(state, uid) }));
+      const moraleSources = units.filter(
+        ({ def }) => def.kind === "unit" && def.abilities.includes("moraleBoost"),
+      );
+      const hornUnits = units.filter(
+        ({ def }) => def.kind === "unit" && def.abilities.includes("horn"),
+      );
+      const hornSlot = rowState.horn !== null || rowState.leaderHorn;
+      for (const { uid, def } of units) {
+        if (def.kind !== "unit") {
+          result.set(uid, 0);
+          continue;
+        }
+        if (def.hero) {
+          result.set(uid, def.strength);
+          continue;
+        }
+        let strength = weathered.has(row) ? 1 : def.strength;
+        if (def.abilities.includes("tightBond")) {
+          strength *= units.filter((u) => u.def.id === def.id).length;
+        }
+        strength += moraleSources.filter((m) => m.uid !== uid).length;
+        // A Row is doubled at most once. A Horn Unit is not doubled by its own Horn.
+        if (hornSlot || hornUnits.some((h) => h.uid !== uid)) strength *= 2;
+        result.set(uid, strength);
       }
     }
   }
@@ -32,10 +84,4 @@ export function totalScore(
   strengths = computeStrengths(state),
 ): number {
   return ROWS.reduce((sum, row) => sum + rowScore(state, seat, row, strengths), 0);
-}
-
-export function cardIdOf(state: MatchState, uid: Uid): string {
-  const card = state.cards[uid];
-  if (!card) throw new Error(`Unknown card uid ${uid}`);
-  return card.cardId;
 }

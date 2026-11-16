@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Action } from "./actions";
 import { ROWS } from "./cards";
+import { legalActions } from "./legal";
 import { applyAction, createMatch } from "./match";
 import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
 import { deck, playCard, repeat, setup, unit } from "./testing/fixtures";
 import { playRandomMatch } from "./testing/random";
-import { filterEvents, legalActions, viewFor } from "./view";
+import { filterEvents, viewFor } from "./view";
 
 const CARDS = [
   unit("a", 2, "close"),

@@ -7,6 +7,12 @@ export interface CardRef {
   cardId: CardId;
 }
 
+export interface StrengthChange {
+  uid: Uid;
+  from: number;
+  to: number;
+}
+
 /**
  * Everything that happens, in order. Events exist so the client can animate a change;
  * the view stays the truth (ADR-0002). Unfiltered events may contain hidden cards;
@@ -15,7 +21,18 @@ export interface CardRef {
 export type MatchEvent =
   | { type: "coinFlip"; starter: Seat }
   | DrewEvent
-  | { type: "cardPlayed"; seat: Seat; card: CardRef; row: RowId }
+  | {
+      type: "cardPlayed";
+      seat: Seat;
+      card: CardRef;
+      /** Where it landed: a Row for Units and Horn, "weather" for Weather cards. */
+      zone: RowId | "weather" | "none";
+      /** The Seat whose side the card sits on, when it is on the battlefield. */
+      side?: Seat;
+    }
+  | { type: "weatherCleared"; cards: CardRef[] }
+  /** Current Strength of Units on the battlefield changed. */
+  | { type: "strengthChanged"; changes: StrengthChange[] }
   | { type: "passed"; seat: Seat; auto: boolean }
   | {
       type: "roundEnded";
