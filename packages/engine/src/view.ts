@@ -32,6 +32,8 @@ export interface UnitView extends CardRef {
 export interface RowView {
   units: UnitView[];
   horn: CardRef | null;
+  /** The Horn slot is taken by a Leader's Horn ability. */
+  leaderHorn: boolean;
   score: number;
 }
 
@@ -179,6 +181,7 @@ function boardSide(state: MatchState, seat: Seat, strengths: Map<Uid, number>): 
         strength: strengths.get(uid) ?? 0,
       })),
       horn: rowState.horn === null ? null : ref(state, rowState.horn),
+      leaderHorn: rowState.leaderHorn,
       score: rowScore(state, seat, row, strengths),
     };
   }

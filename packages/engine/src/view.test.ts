@@ -29,7 +29,12 @@ describe("viewFor", () => {
     expect(view.opponent.deckSize).toBe(12);
     expect(view.opponent).not.toHaveProperty("hand");
     expect(view.opponent.faction).toBe("court");
-    expect(view.board.you.rows.close).toEqual({ units: [], horn: null, score: 0 });
+    expect(view.board.you.rows.close).toEqual({
+      units: [],
+      horn: null,
+      leaderHorn: false,
+      score: 0,
+    });
   });
 
   it("reports Scores per Row and in total, and whose Turn it is", () => {

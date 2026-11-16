@@ -1,4 +1,4 @@
-import { DEV_PLAIN_CARDS, devPlainDeck } from "@card-duel/catalog";
+import { DEV_PLAIN_CARDS, devPlainDeck, getCatalog } from "@card-duel/catalog";
 import type { Seat } from "@card-duel/engine";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
@@ -13,7 +13,18 @@ export function seedFromParams(params: URLSearchParams): number {
   return params.has("seed") && Number.isFinite(raw) ? raw : 1;
 }
 
-export function createDevLocalRoom(seed: number): LocalRoom {
+export type LocalDecks = "plain" | "starter";
+
+/** `?deck=starter` plays the v1 Starter Decks (Swarm against Court); the default is plain Units. */
+export function createDevLocalRoom(seed: number, decks: LocalDecks = "plain"): LocalRoom {
+  if (decks === "starter") {
+    const v1 = getCatalog("v1");
+    return new LocalRoom({
+      seed,
+      decks: [v1.starterDecks.swarm, v1.starterDecks.court],
+      cards: v1.cards,
+    });
+  }
   return new LocalRoom({
     seed,
     decks: [devPlainDeck("swarm"), devPlainDeck("court")],
@@ -25,7 +36,8 @@ export function createDevLocalRoom(seed: number): LocalRoom {
 export function LocalRoomPage() {
   const [params] = useSearchParams();
   const seed = seedFromParams(params);
-  const room = useMemo(() => createDevLocalRoom(seed), [seed]);
+  const decks: LocalDecks = params.get("deck") === "starter" ? "starter" : "plain";
+  const room = useMemo(() => createDevLocalRoom(seed, decks), [seed, decks]);
   const state = useRoom(room);
   const [seat, setSeat] = useState<Seat>(room.viewingSeat);
   const viewSeat = (s: Seat) => {
