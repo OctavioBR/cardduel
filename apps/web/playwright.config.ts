@@ -18,7 +18,7 @@ export default defineConfig({
   projects: [
     {
       name: "local-room",
-      testMatch: /(local-room|gallery)\.spec\.ts/,
+      testMatch: /(local-room|gallery|stage)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${VITE_PORT}` },
     },
     {

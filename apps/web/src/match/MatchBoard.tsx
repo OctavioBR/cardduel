@@ -1,9 +1,11 @@
-import type { Action, CardRef, RowId, SeatView, UnitView } from "@card-duel/engine";
+import type { Action, RowId, SeatView } from "@card-duel/engine";
 import { ROWS } from "@card-duel/engine";
 import { useEffect, useState } from "react";
+import { Card } from "../cards/Card";
 import { cardDef, cardName } from "../cards/strings";
-
-const ROW_LABEL: Record<RowId, string> = { close: "Close", ranged: "Ranged", siege: "Siege" };
+import { BoardRow } from "./BoardRow";
+import { Piles } from "./Piles";
+import { PlayerPanel } from "./PlayerPanel";
 
 export interface MatchBoardProps {
   view: SeatView;
@@ -21,6 +23,18 @@ export function playsFor(view: SeatView, uid: number): Map<RowId, Action> {
   return plays;
 }
 
+/** Rows covered by the Weather cards in the view. */
+export function weatheredRows(view: SeatView): Set<RowId> {
+  const rows = new Set<RowId>();
+  for (const w of view.weather) {
+    const def = cardDef(w.cardId);
+    if (def?.kind === "special" && def.effect.type === "weather")
+      for (const r of def.effect.rows) rows.add(r);
+  }
+  return rows;
+}
+
+/** The full Match stage (ADR-0006): every piece of the view is shown somewhere. */
 export function MatchBoard({ view, send, error }: MatchBoardProps) {
   // A selection belongs to one view: a new view (new action count) clears it.
   const [selection, setSelection] = useState<{ uid: number; at: number } | null>(null);
@@ -29,6 +43,8 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
     setSelection(uid === null ? null : { uid, at: view.actionCount });
   const plays = selected === null ? new Map<RowId, Action>() : playsFor(view, selected);
   const canPass = view.legalActions.some((a) => a.type === "pass");
+  const weathered = weatheredRows(view);
+  const seen = new Set(view.you.seenByOpponent);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -47,19 +63,34 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
 
   return (
     <div className="board" data-testid="board" data-action-count={view.actionCount}>
-      <aside className="side-panel">
+      <aside className="side">
         <PlayerPanel
-          who="Opponent"
+          who="opponent"
+          faction={view.opponent.faction}
+          leader={view.opponent.leader}
           gems={view.opponent.gems}
           score={view.board.opponent.score}
           passed={view.opponent.passed}
           handSize={view.opponent.handSize}
-          deckSize={view.opponent.deckSize}
           active={view.turn === "opponent"}
+          knownHand={view.opponent.knownHand}
         />
         <div className="round-info">
+          <section className="weather-zone" aria-label="Weather">
+            {view.weather.length === 0 ? <span className="empty">No Weather</span> : null}
+            {view.weather.map((w) => (
+              <Card key={w.uid} cardId={w.cardId} size="token" />
+            ))}
+          </section>
           <div>Round {view.round}</div>
           <TurnLabel view={view} />
+          {view.opponentChoosing ? <div className="notice">Your opponent is choosing…</div> : null}
+          {view.phase === "redraw" ? (
+            <div>
+              Opponent returned {view.opponent.redraw.returned} card
+              {view.opponent.redraw.returned === 1 ? "" : "s"}
+            </div>
+          ) : null}
           {error ? (
             <div className="error" role="alert">
               {error}
@@ -67,12 +98,13 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
           ) : null}
         </div>
         <PlayerPanel
-          who="You"
+          who="you"
+          faction={view.you.faction}
+          leader={view.you.leader}
           gems={view.you.gems}
           score={view.board.you.score}
           passed={view.you.passed}
           handSize={view.you.hand.length}
-          deckSize={view.you.deckSize}
           active={view.turn === "you"}
         />
         <button
@@ -85,14 +117,15 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
         </button>
       </aside>
 
-      <section className="battlefield" aria-label="Battlefield">
+      <section className="field" aria-label="Battlefield">
         {[...ROWS].reverse().map((row) => (
           <BoardRow
             key={`o-${row}`}
             side="opponent"
             row={row}
-            units={view.board.opponent.rows[row].units}
-            score={view.board.opponent.rows[row].score}
+            view={view.board.opponent.rows[row]}
+            leaderHorn={view.board.opponent.rows[row].leaderHorn}
+            weathered={weathered.has(row)}
           />
         ))}
         <div className="divider" />
@@ -101,38 +134,54 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
             key={`y-${row}`}
             side="you"
             row={row}
-            units={view.board.you.rows[row].units}
-            score={view.board.you.rows[row].score}
+            view={view.board.you.rows[row]}
+            leaderHorn={view.board.you.rows[row].leaderHorn}
+            weathered={weathered.has(row)}
             target={plays.has(row)}
             onPick={() => playTo(row)}
           />
         ))}
       </section>
 
+      <Piles
+        yourFaction={view.you.faction}
+        opponentFaction={view.opponent.faction}
+        yourDeck={view.you.deck}
+        yourDeckSize={view.you.deckSize}
+        yourDiscard={view.you.discard}
+        opponentDeckSize={view.opponent.deckSize}
+        opponentDiscard={view.opponent.discard}
+      />
+
       <section className="hand" aria-label="Your hand">
-        {view.you.hand.map((card) =>
-          view.phase === "redraw" ? (
-            <HandCard
+        {view.you.hand.map((card) => {
+          const redraw = view.phase === "redraw";
+          const playable = redraw
+            ? view.legalActions.some((a) => a.type === "redraw" && a.card === card.uid)
+            : playsFor(view, card.uid).size > 0;
+          return (
+            <button
               key={card.uid}
-              card={card}
-              selected={false}
-              playable={view.legalActions.some((a) => a.type === "redraw" && a.card === card.uid)}
-              onSelect={() => send({ type: "redraw", card: card.uid })}
-            />
-          ) : (
-            <HandCard
-              key={card.uid}
-              card={card}
-              selected={selected === card.uid}
-              playable={playsFor(view, card.uid).size > 0}
-              onSelect={() => setSelected(selected === card.uid ? null : card.uid)}
-            />
-          ),
-        )}
+              type="button"
+              className={`hand-card${selected === card.uid ? " selected" : ""}`}
+              disabled={!playable}
+              aria-pressed={redraw ? undefined : selected === card.uid}
+              aria-label={`${redraw ? "Return " : ""}${cardName(card.cardId)}${seen.has(card.uid) ? " (seen by opponent)" : ""}`}
+              onClick={() =>
+                redraw
+                  ? send({ type: "redraw", card: card.uid })
+                  : setSelected(selected === card.uid ? null : card.uid)
+              }
+              data-testid="hand-card"
+            >
+              <Card cardId={card.cardId} size="hand" />
+              {seen.has(card.uid) ? <span className="seen-badge">Seen</span> : null}
+            </button>
+          );
+        })}
       </section>
 
       {view.phase === "redraw" ? <RedrawPanel view={view} send={send} /> : null}
-
       {view.phase === "ended" && view.result ? <ResultBanner view={view} /> : null}
     </div>
   );
@@ -169,109 +218,6 @@ function TurnLabel({ view }: { view: SeatView }) {
     <div className="turn" data-testid="turn">
       {view.turn === "you" ? "Your Turn" : "Opponent's Turn"}
     </div>
-  );
-}
-
-function PlayerPanel(props: {
-  who: string;
-  gems: number;
-  score: number;
-  passed: boolean;
-  handSize: number;
-  deckSize: number;
-  active: boolean;
-}) {
-  return (
-    <div
-      className={`player-panel${props.active ? " active" : ""}`}
-      data-testid={`panel-${props.who.toLowerCase()}`}
-    >
-      <div className="player-name">{props.who}</div>
-      <div className="gems" role="img" aria-label={`${props.gems} Gems`}>
-        {[0, 1].map((i) => (
-          <span key={i} className={i < props.gems ? "gem" : "gem lost"} />
-        ))}
-      </div>
-      <div className="total-score" data-testid={`score-${props.who.toLowerCase()}`}>
-        {props.score}
-      </div>
-      <div className="counts">
-        Hand {props.handSize} · Deck {props.deckSize}
-      </div>
-      {props.passed ? <div className="passed">Passed</div> : null}
-    </div>
-  );
-}
-
-function BoardRow(props: {
-  side: "you" | "opponent";
-  row: RowId;
-  units: UnitView[];
-  score: number;
-  target?: boolean;
-  onPick?: () => void;
-}) {
-  const label = `${props.side === "you" ? "Your" : "Opponent's"} ${ROW_LABEL[props.row]} Row`;
-  const content = (
-    <>
-      <div className="row-label">
-        <span>{ROW_LABEL[props.row]}</span>
-        <span className="row-score">{props.score}</span>
-      </div>
-      <div className="row-units">
-        {props.units.map((unit) => (
-          <div key={unit.uid} className="unit-token" title={cardName(unit.cardId)}>
-            <span className="unit-strength">{unit.strength}</span>
-            <span className="unit-name">{cardName(unit.cardId)}</span>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-  if (props.target) {
-    return (
-      <button
-        type="button"
-        className="board-row target"
-        aria-label={`Play to ${label}`}
-        onClick={props.onPick}
-        data-testid={`row-${props.side}-${props.row}`}
-      >
-        {content}
-      </button>
-    );
-  }
-  return (
-    <section
-      className="board-row"
-      aria-label={label}
-      data-testid={`row-${props.side}-${props.row}`}
-    >
-      {content}
-    </section>
-  );
-}
-
-function HandCard(props: {
-  card: CardRef;
-  selected: boolean;
-  playable: boolean;
-  onSelect: () => void;
-}) {
-  const def = cardDef(props.card.cardId);
-  return (
-    <button
-      type="button"
-      className={`hand-card${props.selected ? " selected" : ""}`}
-      disabled={!props.playable}
-      aria-pressed={props.selected}
-      onClick={props.onSelect}
-      data-testid="hand-card"
-    >
-      <span className="hand-card-strength">{def?.kind === "unit" ? def.strength : ""}</span>
-      <span className="hand-card-name">{cardName(props.card.cardId)}</span>
-      <span className="hand-card-row">{def?.kind === "unit" ? ROW_LABEL[def.row] : ""}</span>
-    </button>
   );
 }
 
