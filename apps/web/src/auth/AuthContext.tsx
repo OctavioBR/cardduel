@@ -31,7 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
     fetch("/api/me", { credentials: "same-origin" })
-      .then(async (res) => (res.ok ? ((await res.json()) as { account: Account }).account : null))
+      .then(async (res) =>
+        res.ok ? (((await res.json()) as { account: Account | null }).account ?? null) : null,
+      )
       .catch(() => null)
       .then((a) => {
         if (alive) setAccount(a);
