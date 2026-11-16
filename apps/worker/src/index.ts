@@ -1,3 +1,4 @@
+import { me, signIn, signOut, signUp } from "./auth/routes";
 import { json } from "./http";
 import { generateRoomCode, normaliseRoomCode } from "./room-code";
 
@@ -18,6 +19,11 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (pathname === "/api/health" && request.method === "GET") {
     return json({ status: "ok" });
   }
+  if (request.method === "POST" && pathname === "/api/auth/signup") return signUp(request, env.DB);
+  if (request.method === "POST" && pathname === "/api/auth/signin") return signIn(request, env.DB);
+  if (request.method === "POST" && pathname === "/api/auth/signout")
+    return signOut(request, env.DB);
+  if (request.method === "GET" && pathname === "/api/me") return me(request, env.DB);
   if (pathname === "/api/rooms" && request.method === "POST") {
     return createRoom(env);
   }

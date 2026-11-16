@@ -18,7 +18,14 @@ async function account(id: string, username: string) {
 
 describe("D1 schema", () => {
   it("migrations create every table", async () => {
-    expect(await tables()).toEqual(["accounts", "decks", "match_results", "records", "sessions"]);
+    expect(await tables()).toEqual([
+      "accounts",
+      "decks",
+      "match_results",
+      "records",
+      "sessions",
+      "sign_in_failures",
+    ]);
   });
 
   it("usernames are unique ignoring case", async () => {
