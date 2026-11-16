@@ -1,6 +1,9 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
 import { AppShell } from "./app/AppShell";
+import { RequireAuth } from "./auth/RequireAuth";
 import { AuthPage } from "./pages/AuthPage";
+import { DeckEditorPage } from "./pages/DeckEditorPage";
+import { DecksPage } from "./pages/DecksPage";
 import { HomePage } from "./pages/HomePage";
 import { RoomPage } from "./pages/RoomPage";
 
@@ -11,6 +14,22 @@ export const routes: RouteObject[] = [
       { path: "/", element: <HomePage /> },
       { path: "/signin", element: <AuthPage mode="signin" /> },
       { path: "/signup", element: <AuthPage mode="signup" /> },
+      {
+        path: "/decks",
+        element: (
+          <RequireAuth>
+            <DecksPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "/decks/:id",
+        element: (
+          <RequireAuth>
+            <DeckEditorPage />
+          </RequireAuth>
+        ),
+      },
     ],
   },
   { path: "/r/:code", element: <RoomPage /> },
