@@ -17,3 +17,7 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 ### Cloudflare
 
 CLI `cf` can be used to manage the Cloudflare account.
+
+### Always keep CI green
+
+Run both `pnpm typecheck lint test e2e` locally before pushing
