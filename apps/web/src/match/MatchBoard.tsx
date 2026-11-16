@@ -11,6 +11,7 @@ import { Piles } from "./Piles";
 import { PlayerPanel } from "./PlayerPanel";
 import { previewEffects } from "./preview-effects";
 import { playableCards, type Target, targetsFor } from "./targets";
+import { useCardDrag } from "./useCardDrag";
 
 export interface MatchBoardProps {
   view: SeatView;
@@ -137,6 +138,26 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
     },
     disabled: locked,
   };
+
+  // Drag and tap coexist: a press without movement is a tap (#37).
+  const latest = useRef({ targets, play, cancel });
+  latest.current = { targets, play, cancel };
+  const dragging = useCardDrag({
+    boardRef,
+    onStart: (uid) => {
+      setSelection({ uid, at: view.actionCount });
+      setPreviewKey(null);
+    },
+    onOver: (key) => setPreviewKey(key),
+    onDrop: (key) => {
+      const target = latest.current.targets.find((t) => t.key === key);
+      if (target) latest.current.play(target);
+      else {
+        setSelection(null);
+        setPreviewKey(null);
+      }
+    },
+  });
 
   const pass = () => {
     if (!canPass || locked) return;
@@ -353,11 +374,13 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
               aria-pressed={redraw ? undefined : selected === card.uid}
               aria-label={`${redraw ? "Return " : ""}${cardName(card.cardId)}${seen.has(card.uid) ? " (seen by opponent)" : ""}`}
               data-hand-uid={card.uid}
-              onClick={(e: MouseEvent) =>
-                redraw
-                  ? send({ type: "redraw", card: card.uid })
-                  : selectCard(card.uid, e.detail === 0)
-              }
+              data-dragging={dragging.drag?.uid === card.uid ? "true" : undefined}
+              onPointerDown={redraw || locked || !legal ? undefined : dragging.start(card.uid)}
+              onClick={(e: MouseEvent) => {
+                if (dragging.shouldIgnoreClick()) return;
+                if (redraw) send({ type: "redraw", card: card.uid });
+                else selectCard(card.uid, e.detail === 0);
+              }}
               data-testid="hand-card"
             >
               <Card cardId={card.cardId} size="hand" />
@@ -367,6 +390,19 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
         })}
       </section>
 
+      {dragging.drag ? (
+        <div
+          className="drag-ghost"
+          style={{ left: dragging.drag.x, top: dragging.drag.y }}
+          aria-hidden="true"
+          data-testid="drag-ghost"
+        >
+          <Card
+            cardId={view.you.hand.find((c) => c.uid === dragging.drag?.uid)?.cardId ?? ""}
+            size="hand"
+          />
+        </div>
+      ) : null}
       {view.phase === "redraw" ? <RedrawPanel view={view} send={send} /> : null}
       {view.pendingChoice ? <ChoiceOverlay view={view} send={sendLocked} locked={locked} /> : null}
       {leaderOpen && !view.pendingChoice ? (
