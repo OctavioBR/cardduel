@@ -17,6 +17,7 @@ export async function matchOver(page: Page): Promise<boolean> {
  * fuller than `keep`, otherwise Passes. Waits for the next view.
  */
 export async function takeTurn(page: Page, keep: number): Promise<void> {
+  await settled(page);
   const before = await actionCount(page);
   const cards = page.locator('[data-testid="hand-card"]:enabled');
   if ((await cards.count()) > keep) {
@@ -40,6 +41,7 @@ export async function round(page: Page): Promise<number> {
 
 /** Keeps the opening hand if this page still has to Redraw. */
 export async function keepHand(page: Page): Promise<void> {
+  await settled(page);
   const keep = page.getByRole("button", { name: "Keep hand" });
   if (!(await keep.isVisible())) return;
   const before = await actionCount(page);
@@ -52,4 +54,11 @@ export async function passTurn(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Pass" }).click();
   const confirm = page.getByRole("button", { name: "Confirm Pass" });
   if (await confirm.isVisible()) await confirm.click();
+}
+
+/** Waits until event animations have finished (input is locked while they play). */
+export async function settled(page: Page): Promise<void> {
+  await expect(page.getByTestId("board")).not.toHaveAttribute("data-animating", "true", {
+    timeout: 15_000,
+  });
 }

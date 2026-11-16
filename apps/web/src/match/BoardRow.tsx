@@ -47,7 +47,11 @@ export function BoardRow(props: {
 
   const horn = (
     <>
-      {props.view.horn ? <Card cardId={props.view.horn.cardId} size="token" /> : null}
+      {props.view.horn ? (
+        <span data-anim-uid={props.view.horn.uid}>
+          <Card cardId={props.view.horn.cardId} size="token" />
+        </span>
+      ) : null}
       {!props.view.horn && props.view.leaderHorn ? <span>Leader Horn</span> : null}
     </>
   );
@@ -104,6 +108,7 @@ export function BoardRow(props: {
               className={`${cls} target`}
               aria-label={`Target ${cardName(unit.cardId)}`}
               data-uid={unit.uid}
+              data-anim-uid={unit.uid}
               data-doomed={doomed ? "true" : undefined}
               {...targetProps(unitTarget)}
             >
@@ -114,6 +119,7 @@ export function BoardRow(props: {
               key={unit.uid}
               className={cls}
               data-uid={unit.uid}
+              data-anim-uid={unit.uid}
               data-doomed={doomed ? "true" : undefined}
             >
               {token}

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { keepHand } from "./board";
+import { keepHand, settled } from "./board";
 
 test("every piece of the view is visible on the stage, and piles open their overlays", async ({
   page,
@@ -11,6 +11,7 @@ test("every piece of the view is visible on the stage, and piles open their over
     await radios.nth(seat).check();
     await keepHand(page);
   }
+  await settled(page);
   const stage = page.getByTestId("stage");
   await expect(stage).toHaveCSS("width", "1280px");
 
