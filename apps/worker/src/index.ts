@@ -1,4 +1,6 @@
 import { me, signIn, signOut, signUp } from "./auth/routes";
+import { readSession } from "./auth/session";
+import { handleDecks } from "./decks";
 import { json } from "./http";
 import { generateRoomCode, normaliseRoomCode } from "./room-code";
 
@@ -24,6 +26,18 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (request.method === "POST" && pathname === "/api/auth/signout")
     return signOut(request, env.DB);
   if (request.method === "GET" && pathname === "/api/me") return me(request, env.DB);
+  if (pathname === "/api/decks" || pathname.startsWith("/api/decks/")) {
+    const session = await readSession(env.DB, request);
+    if (!session) return json({ error: "signed_out", message: "Sign in first." }, { status: 401 });
+    const response = await handleDecks(
+      request,
+      env.DB,
+      session.account,
+      pathname.slice("/api/decks".length),
+    );
+    if (session.refreshedCookie) response.headers.append("Set-Cookie", session.refreshedCookie);
+    return response;
+  }
   if (pathname === "/api/rooms" && request.method === "POST") {
     return createRoom(env);
   }
