@@ -2,6 +2,7 @@ import { DEV_PLAIN_CARDS, devPlainDeck, getCatalog } from "@card-duel/catalog";
 import type { Seat } from "@card-duel/engine";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
+import { CardDetailProvider } from "../cards/CardDetail";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
 import { LocalRoom } from "../room/local-room";
@@ -66,11 +67,13 @@ export function LocalRoomPage() {
   return (
     <>
       <Stage>
-        <MatchBoard
-          view={state.view}
-          send={(a) => room.send(a)}
-          error={state.error?.message ?? null}
-        />
+        <CardDetailProvider>
+          <MatchBoard
+            view={state.view}
+            send={(a) => room.send(a)}
+            error={state.error?.message ?? null}
+          />
+        </CardDetailProvider>
       </Stage>
       <SeatToggle seat={seat} onChange={viewSeat} />
     </>

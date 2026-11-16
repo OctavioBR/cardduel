@@ -1,5 +1,6 @@
 import type { CardDefinition, RowId } from "@card-duel/engine";
 import { PlaceholderArt } from "./Art";
+import { useCardDetailTrigger } from "./CardDetail";
 import { AbilityIcon, abilityLabel, ROW_LABEL, RowIcon } from "./icons";
 import { cardDef, cardName, cardText } from "./strings";
 
@@ -12,6 +13,8 @@ export interface CardProps {
   strength?: number | undefined;
   /** Copies badge ("×N") for the Deck builder. */
   count?: number | undefined;
+  /** The card shown inside Card Detail itself does not open Card Detail. */
+  noDetail?: boolean;
 }
 
 /** Rows a card's icon shows: both for Agile. */
@@ -29,7 +32,9 @@ function strengthClass(def: CardDefinition, strength: number | undefined): strin
  * Renders any card from catalog data and strings (ADR-0004). The board token shows only
  * Strength and icons; the other sizes add name, short ability text and art.
  */
-export function Card({ cardId, size, strength, count }: CardProps) {
+export function Card({ cardId, size, strength, count, noDetail }: CardProps) {
+  const trigger = useCardDetailTrigger(cardId, strength);
+  const detail = noDetail ? {} : trigger;
   const def = cardDef(cardId);
   const name = cardName(cardId);
   if (!def) {
@@ -61,6 +66,7 @@ export function Card({ cardId, size, strength, count }: CardProps) {
       role="img"
       aria-label={label}
       data-card-id={cardId}
+      {...detail}
     >
       <div className="cd-top">
         {shown !== null ? (

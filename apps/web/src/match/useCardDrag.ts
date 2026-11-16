@@ -32,6 +32,8 @@ export function useCardDrag(opts: {
   onStart: (uid: number) => void;
   onOver: (key: string | null) => void;
   onDrop: (key: string | null) => void;
+  /** When true, a press must not become a drag (a long-press opened Card Detail). */
+  blocked?: () => boolean;
 }) {
   const [drag, setDrag] = useState<DragState | null>(null);
   const handlers = useRef(opts);
@@ -59,6 +61,10 @@ export function useCardDrag(opts: {
       if (!s) return;
       if (!s.active) {
         if (Math.hypot(e.clientX - s.startX, e.clientY - s.startY) < DRAG_THRESHOLD) return;
+        if (handlers.current.blocked?.()) {
+          session.current = null;
+          return;
+        }
         s.active = true;
         handlers.current.onStart(s.uid);
       }
