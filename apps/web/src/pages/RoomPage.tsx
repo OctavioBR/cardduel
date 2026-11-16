@@ -9,6 +9,8 @@ import { Stage } from "../match/Stage";
 import { useEventBatch, useRoom } from "../room/useRoom";
 import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
 
+import en from "../strings/home.en.json";
+
 export function RoomPage() {
   const { code = "" } = useParams();
   const { account } = useAuth();
@@ -45,6 +47,7 @@ function RoomConnectionPage({ code }: { code: string }) {
 
 function RoomScreen({ code, connection }: { code: string; connection: WebSocketRoom }) {
   const navigate = useNavigate();
+  const [copyStatus, setCopyStatus] = useState("");
   const state = useRoom(connection);
   const events = useEventBatch(connection);
   if (state.view) {
@@ -98,6 +101,20 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
         <p>
           <code data-testid="room-link">{link}</code>
         </p>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(link);
+              setCopyStatus(en.copied);
+            } catch {
+              setCopyStatus(en.copyError);
+            }
+          }}
+        >
+          {en.copyLink}
+        </button>
+        <p role="status">{copyStatus}</p>
       </main>
     );
   }

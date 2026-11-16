@@ -1,0 +1,23 @@
+{
+  "myDecks": "My Decks",
+  "deckHint": "Build a Deck or copy a Starter Deck to take a Seat.",
+  "record": "Your Record",
+  "wins": "Wins",
+  "losses": "Losses",
+  "draws": "Draws",
+  "disconnectWins": "Disconnect Wins",
+  "disconnectLosses": "Disconnect Losses",
+  "loadingRecord": "Loading Record\u2026",
+  "recordError": "Could not load your Record. Reload to try again.",
+  "copyLink": "Copy link",
+  "copied": "Link copied",
+  "copyError": "Could not copy the link. Select and copy it above.",
+  "title": "Card Duel",
+  "createHeading": "Create a Room",
+  "competitive": "Competitive Room",
+  "create": "Create Room",
+  "joinHeading": "Join a Room",
+  "roomCode": "Room code",
+  "join": "Join",
+  "createError": "Could not create a Room. Try again."
+}
