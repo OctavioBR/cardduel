@@ -1,0 +1,166 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`replay > matches a recorded fixture of events 1`] = `
+[
+  {
+    "starter": 0,
+    "type": "coinFlip",
+  },
+  {
+    "cards": [
+      {
+        "cardId": "five",
+        "uid": 5,
+      },
+      {
+        "cardId": "five",
+        "uid": 3,
+      },
+      {
+        "cardId": "five",
+        "uid": 4,
+      },
+      {
+        "cardId": "three",
+        "uid": 8,
+      },
+      {
+        "cardId": "five",
+        "uid": 7,
+      },
+      {
+        "cardId": "three",
+        "uid": 10,
+      },
+      {
+        "cardId": "five",
+        "uid": 2,
+      },
+      {
+        "cardId": "five",
+        "uid": 6,
+      },
+      {
+        "cardId": "three",
+        "uid": 13,
+      },
+      {
+        "cardId": "five",
+        "uid": 1,
+      },
+    ],
+    "seat": 0,
+    "type": "drew",
+  },
+  {
+    "cards": [
+      {
+        "cardId": "three",
+        "uid": 27,
+      },
+      {
+        "cardId": "three",
+        "uid": 22,
+      },
+      {
+        "cardId": "five",
+        "uid": 14,
+      },
+      {
+        "cardId": "five",
+        "uid": 16,
+      },
+      {
+        "cardId": "three",
+        "uid": 24,
+      },
+      {
+        "cardId": "three",
+        "uid": 25,
+      },
+      {
+        "cardId": "five",
+        "uid": 20,
+      },
+      {
+        "cardId": "five",
+        "uid": 18,
+      },
+      {
+        "cardId": "five",
+        "uid": 21,
+      },
+      {
+        "cardId": "three",
+        "uid": 23,
+      },
+    ],
+    "seat": 1,
+    "type": "drew",
+  },
+  {
+    "round": 1,
+    "starter": 0,
+    "type": "roundStarted",
+  },
+  {
+    "card": {
+      "cardId": "five",
+      "uid": 5,
+    },
+    "row": "close",
+    "seat": 0,
+    "type": "cardPlayed",
+  },
+  {
+    "card": {
+      "cardId": "three",
+      "uid": 27,
+    },
+    "row": "ranged",
+    "seat": 1,
+    "type": "cardPlayed",
+  },
+  {
+    "auto": false,
+    "seat": 0,
+    "type": "passed",
+  },
+  {
+    "auto": false,
+    "seat": 1,
+    "type": "passed",
+  },
+  {
+    "gems": [
+      2,
+      1,
+    ],
+    "round": 1,
+    "scores": [
+      5,
+      3,
+    ],
+    "type": "roundEnded",
+    "winner": 0,
+  },
+  {
+    "cards": [
+      {
+        "cardId": "five",
+        "uid": 5,
+      },
+      {
+        "cardId": "three",
+        "uid": 27,
+      },
+    ],
+    "type": "cardsDiscarded",
+  },
+  {
+    "round": 2,
+    "starter": 0,
+    "type": "roundStarted",
+  },
+]
+`;
