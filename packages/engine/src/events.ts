@@ -31,6 +31,8 @@ export type MatchEvent =
       side?: Seat;
     }
   | { type: "weatherCleared"; cards: CardRef[] }
+  /** Units destroyed (Scorch); each went to its Controller's Discard Pile. */
+  | { type: "destroyed"; cards: CardRef[] }
   /** A card left the battlefield for its player's hand (Decoy). */
   | { type: "returnedToHand"; seat: Seat; card: CardRef }
   /** Current Strength of Units on the battlefield changed. */
