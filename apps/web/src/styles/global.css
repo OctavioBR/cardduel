@@ -338,3 +338,17 @@ button:disabled {
     animation: none !important;
   }
 }
+
+/* Development card gallery */
+.gallery {
+  padding: 16px;
+  background: var(--cd-bg);
+}
+.gallery-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--cd-line);
+}

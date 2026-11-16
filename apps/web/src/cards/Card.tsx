@@ -1,0 +1,97 @@
+import type { CardDefinition, RowId } from "@card-duel/engine";
+import { PlaceholderArt } from "./Art";
+import { AbilityIcon, abilityLabel, ROW_LABEL, RowIcon } from "./icons";
+import { cardDef, cardName, cardText } from "./strings";
+
+export type CardSize = "token" | "hand" | "tile" | "detail";
+
+export interface CardProps {
+  cardId: string;
+  size: CardSize;
+  /** Current Strength on the battlefield; coloured against printed Strength when given. */
+  strength?: number | undefined;
+  /** Copies badge ("×N") for the Deck builder. */
+  count?: number | undefined;
+}
+
+/** Rows a card's icon shows: both for Agile. */
+function rowsOf(def: CardDefinition): RowId[] {
+  if (def.kind !== "unit") return [];
+  return def.abilities.includes("agile") ? ["close", "ranged"] : [def.row];
+}
+
+function strengthClass(def: CardDefinition, strength: number | undefined): string {
+  if (def.kind !== "unit" || strength === undefined || strength === def.strength) return "";
+  return strength > def.strength ? " cd-raised" : " cd-lowered";
+}
+
+/**
+ * Renders any card from catalog data and strings (ADR-0004). The board token shows only
+ * Strength and icons; the other sizes add name, short ability text and art.
+ */
+export function Card({ cardId, size, strength, count }: CardProps) {
+  const def = cardDef(cardId);
+  const name = cardName(cardId);
+  if (!def) {
+    return (
+      <div className={`cd-card cd-${size} cd-f-neutral`} role="img" aria-label={name}>
+        <span className="cd-name">{name}</span>
+      </div>
+    );
+  }
+  const shown = def.kind === "unit" ? (strength ?? def.strength) : null;
+  const hero = def.kind === "unit" && def.hero;
+  const abilities = def.kind === "unit" ? def.abilities.filter((a) => a !== "agile") : [];
+  const effect = def.kind === "special" ? def.effect.type : null;
+  const label = [
+    name,
+    shown !== null ? `Strength ${shown}` : null,
+    rowsOf(def)
+      .map((r) => ROW_LABEL[r])
+      .join(" or ") || null,
+    hero ? "Hero" : null,
+    ...abilities.map(abilityLabel),
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <div
+      className={`cd-card cd-${size} cd-f-${def.faction} cd-k-${def.kind}${hero ? " cd-hero" : ""}`}
+      role="img"
+      aria-label={label}
+      data-card-id={cardId}
+    >
+      <div className="cd-top">
+        {shown !== null ? (
+          <span className={`cd-strength${strengthClass(def, strength)}`}>{shown}</span>
+        ) : effect ? (
+          <span className="cd-strength cd-special-mark">
+            <AbilityIcon name={effect} size={size === "detail" ? 22 : 14} />
+          </span>
+        ) : null}
+        <span className="cd-rows">
+          {rowsOf(def).map((r) => (
+            <RowIcon key={r} row={r} size={size === "detail" ? 20 : size === "token" ? 11 : 14} />
+          ))}
+        </span>
+      </div>
+      {size !== "token" ? (
+        <div className="cd-art-box">
+          <PlaceholderArt cardId={cardId} image={def.image} />
+        </div>
+      ) : null}
+      <div className="cd-icons">
+        {hero ? <AbilityIcon name="hero" size={size === "detail" ? 18 : 11} /> : null}
+        {abilities.map((a) => (
+          <AbilityIcon key={a} name={a} size={size === "detail" ? 18 : 11} />
+        ))}
+      </div>
+      {size !== "token" ? <div className="cd-name">{name}</div> : null}
+      {size === "hand" || size === "tile" || size === "detail" ? (
+        <div className="cd-text">{cardText(cardId)}</div>
+      ) : null}
+      {count !== undefined ? <span className="cd-count">×{count}</span> : null}
+    </div>
+  );
+}

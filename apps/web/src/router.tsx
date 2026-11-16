@@ -14,6 +14,10 @@ if (import.meta.env.DEV) {
     path: "/dev/local",
     lazy: async () => ({ Component: (await import("./dev/LocalRoomPage")).LocalRoomPage }),
   });
+  routes.push({
+    path: "/dev/cards",
+    lazy: async () => ({ Component: (await import("./dev/CardGalleryPage")).CardGalleryPage }),
+  });
 }
 
 export const router = createBrowserRouter(routes);
