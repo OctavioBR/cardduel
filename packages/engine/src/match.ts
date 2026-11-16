@@ -175,7 +175,12 @@ export function draw(state: MatchState, seat: Seat, count: number, events: Match
   const drawn = side.deck.splice(0, count);
   if (drawn.length === 0) return;
   side.hand.push(...drawn);
-  events.push({ type: "drew", seat, cards: drawn.map((uid) => ref(state, uid)) });
+  events.push({
+    type: "drew",
+    seat,
+    count: drawn.length,
+    cards: drawn.map((uid) => ref(state, uid)),
+  });
 }
 
 export function removeFromHand(state: MatchState, seat: Seat, uid: Uid): void {
