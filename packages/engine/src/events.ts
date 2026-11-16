@@ -14,7 +14,7 @@ export interface CardRef {
  */
 export type MatchEvent =
   | { type: "coinFlip"; starter: Seat }
-  | { type: "drew"; seat: Seat; cards: CardRef[] }
+  | DrewEvent
   | { type: "cardPlayed"; seat: Seat; card: CardRef; row: RowId }
   | { type: "passed"; seat: Seat; auto: boolean }
   | {
@@ -28,3 +28,14 @@ export type MatchEvent =
   | { type: "roundStarted"; round: number; starter: Seat }
   | { type: "forfeited"; seat: Seat }
   | { type: "matchEnded"; result: MatchResult };
+
+/**
+ * Cards drawn from a deck. `cards` is present only for the Seat that drew; the opponent's
+ * filtered copy carries just the count.
+ */
+export interface DrewEvent {
+  type: "drew";
+  seat: Seat;
+  count: number;
+  cards?: CardRef[];
+}
