@@ -2,11 +2,16 @@
   "name": "@card-duel/worker",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
   "scripts": {
-    "typecheck": "tsc -p .",
-    "test": "vitest run"
+    "dev": "wrangler dev --port 8787",
+    "types": "wrangler types",
+    "typecheck": "wrangler types >/dev/null && tsc -p .",
+    "test": "vitest run",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.8.2",
+    "vitest": "4.1.12",
+    "wrangler": "4.162.0"
   }
 }
