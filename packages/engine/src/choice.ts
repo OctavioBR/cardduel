@@ -2,8 +2,8 @@ import type { Action, ChooseAction } from "./actions";
 import type { MatchEvent } from "./events";
 import { playableRows } from "./legal";
 import { medicTargets, playUnit } from "./play";
-import { defOf } from "./strength";
 import type { MatchState, PendingChoice } from "./state";
+import { defOf } from "./strength";
 
 /** Every option of a Pending Choice, as fully specified choose actions. */
 export function choiceOptions(state: MatchState, pending: PendingChoice): Action[] {
@@ -26,7 +26,8 @@ export function resolveChoice(
 ): void {
   switch (pending.kind) {
     case "medic": {
-      if (action.card === undefined || action.row === undefined) throw new Error("Medic needs a card and Row");
+      if (action.card === undefined || action.row === undefined)
+        throw new Error("Medic needs a card and Row");
       const discard = state.sides[pending.seat].discard;
       discard.splice(discard.indexOf(action.card), 1);
       playUnit(state, pending.seat, action.card, action.row, events);

@@ -60,7 +60,10 @@ describe("Medic", () => {
     const other = after.sides[a].hand[0] as Uid;
     expect(applyAction(after, a, { type: "pass" }).ok).toBe(false);
     expect(applyAction(after, a, { type: "play", card: other, row: "close" }).ok).toBe(false);
-    expect(applyAction(after, b, { type: "pass" })).toMatchObject({ ok: false, rejection: { code: "not_your_turn" } });
+    expect(applyAction(after, b, { type: "pass" })).toMatchObject({
+      ok: false,
+      rejection: { code: "not_your_turn" },
+    });
     expect(applyAction(after, a, { type: "choose", card: 999, row: "close" }).ok).toBe(false);
     expect(applyAction(after, b, { type: "forfeit" }).ok).toBe(true);
   });

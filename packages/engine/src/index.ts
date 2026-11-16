@@ -1,5 +1,6 @@
 export * from "./actions";
 export * from "./cards";
+export * from "./choice";
 export * from "./events";
 export * from "./legal";
 export * from "./match";
@@ -10,4 +11,3 @@ export * from "./round";
 export * from "./state";
 export * from "./strength";
 export * from "./view";
-export * from "./choice";

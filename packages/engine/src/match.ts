@@ -1,8 +1,8 @@
 import { type Action, actionKey, type LoggedAction, type Rejection } from "./actions";
 import { type CardDefinition, ROWS, type RowId } from "./cards";
+import { resolveChoice, settlePending } from "./choice";
 import type { MatchEvent } from "./events";
 import { legalActions } from "./legal";
-import { resolveChoice, settlePending } from "./choice";
 import { draw, resolvePlay, withStrengthEvents } from "./play";
 import { nextInt, shuffle, toSeed } from "./rng";
 import { afterTurn, beginTurn, endMatch } from "./round";

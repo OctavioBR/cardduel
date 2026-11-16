@@ -1,7 +1,7 @@
 import type { Action } from "./actions";
 import { ROWS, type RowId, type UnitDefinition } from "./cards";
-import type { MatchState, Seat, Uid } from "./state";
 import { choiceOptions } from "./choice";
+import type { MatchState, Seat, Uid } from "./state";
 import { defOf } from "./strength";
 
 /** Rows a Unit may be played to from the hand. */
