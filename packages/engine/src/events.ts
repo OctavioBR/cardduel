@@ -52,6 +52,9 @@ export type MatchEvent =
       winner: Seat | null;
       gems: [number, number];
     }
+  /** A Faction passive fired: Court won a Tie, or Swarm kept a Unit into the next Round. */
+  | { type: "factionPassive"; seat: Seat; faction: "court"; effect: "wonTie" }
+  | { type: "factionPassive"; seat: Seat; faction: "swarm"; effect: "keptUnit"; card: CardRef }
   | { type: "cardsDiscarded"; cards: CardRef[] }
   | { type: "roundStarted"; round: number; starter: Seat }
   | { type: "forfeited"; seat: Seat }

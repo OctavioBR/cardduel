@@ -16,10 +16,11 @@ import {
 
 const FIVE = unit("five", 5, "close");
 const THREE = unit("three", 3, "ranged");
+// Court against Court: neither Faction passive changes these base rules (a Tie costs both).
 const PLAIN = setup(
   42,
   [
-    deck([...repeat("five", 8), ...repeat("three", 6)]),
+    deck([...repeat("five", 8), ...repeat("three", 6)], "court"),
     deck([...repeat("five", 8), ...repeat("three", 6)], "court"),
   ],
   [FIVE, THREE],
