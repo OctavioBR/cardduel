@@ -494,3 +494,70 @@ button.pile:hover .pile-stack {
 .board.locked .field {
   cursor: progress;
 }
+
+/* Pending Choice and Leader (#36) */
+button.leader-chip {
+  cursor: pointer;
+  padding: 5px 3px;
+  font: inherit;
+  font-size: 10px;
+}
+button.leader-chip:hover {
+  outline: 1px solid var(--cd-muted);
+}
+button.known-hand {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.choice-options {
+  gap: 14px;
+}
+.choice-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: var(--cd-bg);
+  border: 1px solid var(--cd-line);
+  width: 180px;
+}
+.choice-option:hover:not(:disabled) {
+  outline: 2px solid var(--cd-text);
+}
+.choice-row {
+  font-size: 12px;
+  color: var(--cd-muted);
+}
+.preview-summary {
+  font-size: 11px;
+  color: var(--cd-muted);
+  text-align: center;
+  line-height: 1.35;
+}
+.leader-dialog {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+.leader-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.leader-body p {
+  margin: 0;
+}
+.leader-use {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.muted {
+  color: var(--cd-muted);
+}
