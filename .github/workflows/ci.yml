@@ -23,3 +23,75 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+
+  deploy-gate:
+    # Deploys need the Cloudflare secrets from #6. Until they exist, merges skip the deploy
+    # instead of failing main.
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.gate.outputs.enabled }}
+    steps:
+      - id: gate
+        env:
+          HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+          HAS_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          if [ "$HAS_TOKEN" = true ] && [ "$HAS_ACCOUNT" = true ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Cloudflare secrets are not set (see #6); skipping deploy."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    # Production deploy on merge to main, after every check passes. No per-PR previews:
+    # they would share production's D1 and Room state.
+    needs: deploy-gate
+    if: needs.deploy-gate.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the client
+        run: pnpm build
+      - name: Apply D1 migrations
+        working-directory: apps/worker
+        run: |
+          if compgen -G "migrations/*.sql" > /dev/null; then
+            pnpm wrangler d1 migrations apply DB --remote
+          else
+            echo "No migrations yet; nothing to apply."
+          fi
+      - name: Deploy the Worker
+        working-directory: apps/worker
+        run: pnpm wrangler deploy
+      - name: Check the deployed health route
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+          if [ -z "$PRODUCTION_URL" ]; then
+            echo "::warning::Repository variable PRODUCTION_URL is not set; skipping the health check."
+            exit 0
+          fi
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS "$PRODUCTION_URL/api/health"; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::$PRODUCTION_URL/api/health did not respond"
+          exit 1
