@@ -108,3 +108,51 @@ test("sign in, and sign out from the account menu", async ({ page }) => {
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("alert")).toHaveText("Wrong username or password.");
 });
+
+test("Rematch offer, acceptance with last Deck selected, and leaving decline", async ({
+  browser,
+}) => {
+  const alice = await (await browser.newContext()).newPage();
+  const bob = await (await browser.newContext()).newPage();
+  await signUpVia(alice, uniqueName("rematcha"));
+  await copyStarter(alice, "swarm");
+  await alice.getByRole("button", { name: "Create Room" }).click();
+  await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
+  const url = alice.url();
+  await alice.getByRole("button", { name: /Swarm Starter/ }).click();
+  await signUpVia(bob, uniqueName("rematchb"));
+  await copyStarter(bob, "court");
+  await bob.goto(url);
+  await bob.getByRole("button", { name: /Court Starter/ }).click();
+  async function forfeit() {
+    await keepHand(alice);
+    await keepHand(bob);
+    await alice.getByRole("button", { name: "Menu", exact: true }).click();
+    await alice
+      .getByRole("dialog", { name: "Menu", exact: true })
+      .getByRole("button", { name: "Forfeit" })
+      .click();
+    await alice
+      .getByRole("dialog", { name: "Forfeit this Match?" })
+      .getByRole("button", { name: "Forfeit" })
+      .click();
+    await expect(bob.getByRole("button", { name: "Rematch", exact: true })).toBeVisible();
+  }
+  await forfeit();
+  await alice.getByRole("button", { name: "Rematch", exact: true }).click();
+  await expect(bob.getByTestId("rematch-status")).toContainText("offered a Rematch");
+  await bob.getByRole("button", { name: "Rematch", exact: true }).click();
+  const aDeck = alice.getByRole("button", { name: /Swarm Starter/ });
+  const bDeck = bob.getByRole("button", { name: /Court Starter/ });
+  await expect(aDeck).toHaveAttribute("aria-pressed", "true");
+  await expect(bDeck).toHaveAttribute("aria-pressed", "true");
+  expect(alice.url()).toBe(url);
+  expect(bob.url()).toBe(url);
+  await aDeck.click();
+  await bDeck.click();
+  await forfeit();
+  await alice.getByRole("button", { name: "Rematch", exact: true }).click();
+  await bob.getByRole("button", { name: "Leave", exact: true }).click();
+  await expect(alice.getByTestId("rematch-status")).toContainText("Rematch declined");
+  await expect(alice.getByRole("button", { name: "Rematch", exact: true })).toBeDisabled();
+});

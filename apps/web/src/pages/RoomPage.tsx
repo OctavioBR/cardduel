@@ -6,6 +6,7 @@ import { CardDetailProvider } from "../cards/CardDetail";
 import { type Deck, deckApi } from "../decks/api";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
+import roomStrings from "../room/strings/en.json";
 import { useEventBatch, useRoom } from "../room/useRoom";
 import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
 
@@ -56,9 +57,27 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
             send={(a) => connection.send(a)}
             error={state.error?.message ?? null}
             events={events}
-            onLeave={() => navigate("/")}
+            onRematch={
+              state.rematch?.accepted || state.rematch?.declined
+                ? undefined
+                : () => connection.rematch()
+            }
+            onLeave={() => {
+              connection.close();
+              navigate("/");
+            }}
           />
         </CardDetailProvider>
+        {state.rematch &&
+        (state.rematch.accepted || state.rematch.opponentAccepted || state.rematch.declined) ? (
+          <p role="status" data-testid="rematch-status" className="result-banner">
+            {state.rematch.declined
+              ? roomStrings.rematchDeclined
+              : state.rematch.accepted
+                ? roomStrings.rematchWaiting
+                : roomStrings.rematchOffer}
+          </p>
+        ) : null}
         {state.status === "reconnecting" ? (
           <div className="result-banner">Reconnecting…</div>
         ) : null}
@@ -83,6 +102,7 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
           <p>You chose {state.lobby.you.deckName}. Waiting for your opponent to choose a Deck.</p>
         ) : (
           <DeckPicker
+            lastDeckId={state.lobby?.you.lastDeckId ?? null}
             competitive={state.lobby?.competitive ?? false}
             onChoose={(id) => connection.takeSeat(id)}
           />
@@ -109,9 +129,11 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
 }
 
 function DeckPicker({
+  lastDeckId,
   competitive,
   onChoose,
 }: {
+  lastDeckId: string | null;
   competitive: boolean;
   onChoose: (id: string) => void;
 }) {
@@ -142,7 +164,11 @@ function DeckPicker({
             )
             .map((deck) => (
               <li key={deck.id}>
-                <button type="button" onClick={() => onChoose(deck.id)}>
+                <button
+                  type="button"
+                  aria-pressed={deck.id === lastDeckId}
+                  onClick={() => onChoose(deck.id)}
+                >
                   {deck.name} — {deck.faction}
                 </button>
               </li>

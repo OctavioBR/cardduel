@@ -103,6 +103,42 @@ describe("Room", () => {
     closeAll(room);
   });
 
+  it("offers a Rematch, persists acceptance through eviction, and returns both to Deck choice", async () => {
+    const room = await seatBoth(true);
+    room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+    expect(await room.sockets[0].next()).toMatchObject({ type: "error", code: "rejected" });
+    await play(room, 0, { type: "forfeit" });
+    room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+    expect(await room.sockets[0].next()).toMatchObject({ type: "rematch", accepted: true });
+    expect(await room.sockets[1].next()).toMatchObject({ type: "rematch", opponentAccepted: true });
+    await evictDurableObject(env.ROOMS.getByName(room.code));
+    room.sockets[1].ws.send(JSON.stringify({ type: "rematch" }));
+    const lobbies = await Promise.all(room.sockets.map((socket) => socket.nextLobby()));
+    for (const lobby of lobbies) {
+      expect(lobby).toMatchObject({ code: room.code, competitive: true, you: { seated: false } });
+      expect(lobby.you.lastDeckId).toBeTypeOf("string");
+    }
+    room.sockets[0].takeSeat(lobbies[0]?.you.lastDeckId as string);
+    await Promise.all(room.sockets.map((socket) => socket.nextLobby()));
+    room.sockets[1].takeSeat(lobbies[1]?.you.lastDeckId as string);
+    const next = await Promise.all(room.sockets.map((socket) => socket.nextView()));
+    expect(next[0]?.view).toMatchObject({ phase: "redraw", actionCount: 0 });
+    closeAll(room);
+  });
+
+  it("leaving after a Match declines a Rematch for both players", async () => {
+    const room = await seatBoth();
+    await play(room, 0, { type: "forfeit" });
+    room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+    await Promise.all(room.sockets.map((socket) => socket.next()));
+    room.sockets[1].ws.send(JSON.stringify({ type: "leave" }));
+    for (const message of await Promise.all(room.sockets.map((socket) => socket.next())))
+      expect(message).toMatchObject({ type: "rematch", declined: true, accepted: false });
+    room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+    expect(await room.sockets[0].next()).toMatchObject({ type: "error", code: "rejected" });
+    closeAll(room);
+  });
+
   it("neither player sees the other's Deck, Faction or Leader before both take a Seat", async () => {
     const cookies = [await newPlayer(), await newPlayer()];
     const deck = await starterDeck(cookies[0] as string, "swarm");
@@ -113,7 +149,7 @@ describe("Room", () => {
     await Promise.all([a.nextLobby(), b.nextLobby()]);
     a.takeSeat(deck);
     const [la, lb] = await Promise.all([a.nextLobby(), b.nextLobby()]);
-    expect(la.you).toEqual({ seated: true, deckName: "Swarm Starter" });
+    expect(la.you).toEqual({ seated: true, deckName: "Swarm Starter", lastDeckId: deck });
     expect(lb.opponent).toMatchObject({ present: true, seated: true });
     const text = JSON.stringify(lb);
     expect(text).not.toContain("swarm");

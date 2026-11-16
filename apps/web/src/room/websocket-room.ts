@@ -61,7 +61,14 @@ export class WebSocketRoom implements RoomConnection {
       this.socket.send(JSON.stringify({ type: "takeSeat", deckId } satisfies ClientMessage));
   }
 
+  rematch(): void {
+    if (this.socket?.readyState === WebSocket.OPEN)
+      this.socket.send(JSON.stringify({ type: "rematch" }));
+  }
+
   close(): void {
+    if (this.socket?.readyState === WebSocket.OPEN)
+      this.socket.send(JSON.stringify({ type: "leave" }));
     this.closedByUser = true;
     if (this.timer !== null) this.clearTimer(this.timer);
     this.socket?.close(1000, "Left the Room");
@@ -88,8 +95,13 @@ export class WebSocketRoom implements RoomConnection {
       return;
     }
     switch (message.type) {
+      case "rematch":
+        this.emitter.update({ rematch: message });
+        break;
       case "lobby":
         this.emitter.update({
+          view: null,
+          rematch: null,
           seat: message.lobby.seat,
           lobby: message.lobby,
           waitingCode: message.lobby.code,

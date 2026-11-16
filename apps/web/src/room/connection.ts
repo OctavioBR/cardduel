@@ -16,6 +16,7 @@ export interface RoomError {
 
 /** What the UI renders. Everything about the Match comes from `view` (ADR-0002). */
 export interface RoomClientState {
+  rematch?: { accepted: boolean; opponentAccepted: boolean; declined: boolean } | null;
   status: ConnectionStatus;
   seat: Seat | null;
   /** The Room code while waiting for the opponent to take their Seat. */
