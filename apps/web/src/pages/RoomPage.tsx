@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { CardDetailProvider } from "../cards/CardDetail";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
 import { playerToken } from "../room/token";
@@ -23,11 +24,13 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
   if (state.view) {
     return (
       <Stage>
-        <MatchBoard
-          view={state.view}
-          send={(a) => connection.send(a)}
-          error={state.error?.message ?? null}
-        />
+        <CardDetailProvider>
+          <MatchBoard
+            view={state.view}
+            send={(a) => connection.send(a)}
+            error={state.error?.message ?? null}
+          />
+        </CardDetailProvider>
         {state.status === "reconnecting" ? (
           <div className="result-banner">Reconnecting…</div>
         ) : null}

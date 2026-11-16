@@ -2,6 +2,7 @@ import type { Action, RowId, SeatView } from "@card-duel/engine";
 import { ROWS } from "@card-duel/engine";
 import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { Card } from "../cards/Card";
+import { useCardDetailPress } from "../cards/CardDetail";
 import { cardDef, cardName } from "../cards/strings";
 import { BoardRow, type TargetHandlers } from "./BoardRow";
 import { ChoiceOverlay } from "./ChoiceOverlay";
@@ -142,8 +143,10 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
   // Drag and tap coexist: a press without movement is a tap (#37).
   const latest = useRef({ targets, play, cancel });
   latest.current = { targets, play, cancel };
+  const longPress = useCardDetailPress();
   const dragging = useCardDrag({
     boardRef,
+    blocked: longPress,
     onStart: (uid) => {
       setSelection({ uid, at: view.actionCount });
       setPreviewKey(null);
