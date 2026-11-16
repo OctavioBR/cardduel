@@ -1,5 +1,6 @@
 export * from "./actions";
 export * from "./cards";
+export * from "./choice";
 export * from "./events";
 export * from "./legal";
 export * from "./match";

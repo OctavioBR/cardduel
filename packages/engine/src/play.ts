@@ -98,8 +98,19 @@ export function playUnit(
   state.sides[side].rows[row].units.push(uid);
   events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: row, side });
   if (spy) draw(state, seat, 2, events);
-  if (def.kind === "unit" && def.abilities.includes("scorch"))
-    scorchRow(state, opponent(seat), row, events);
+  if (def.kind !== "unit") return;
+  if (def.abilities.includes("scorch")) scorchRow(state, opponent(seat), row, events);
+  if (def.abilities.includes("medic") && medicTargets(state, seat).length > 0) {
+    state.pending.push({ seat, kind: "medic" });
+  }
+}
+
+/** Non-Hero Units in the Seat's Discard Pile: what a Medic may Play. */
+export function medicTargets(state: MatchState, seat: Seat): Uid[] {
+  return state.sides[seat].discard.filter((uid) => {
+    const def = defOf(state, uid);
+    return def.kind === "unit" && !def.hero;
+  });
 }
 
 /** Minimum current Score of a Row for a Row Scorch (Unit or Leader) to fire. */

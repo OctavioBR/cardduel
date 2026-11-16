@@ -1,5 +1,6 @@
 import { type Action, actionKey, type LoggedAction, type Rejection } from "./actions";
 import { type CardDefinition, ROWS, type RowId } from "./cards";
+import { resolveChoice, settlePending } from "./choice";
 import type { MatchEvent } from "./events";
 import { legalActions } from "./legal";
 import { draw, resolvePlay, withStrengthEvents } from "./play";
@@ -34,6 +35,7 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
     cards: [],
     sides: [emptySide(setup, 0), emptySide(setup, 1)],
     weather: [],
+    pending: [],
     phase: "turns",
     round: 1,
     roundStarter: 0,
@@ -81,7 +83,8 @@ export function applyAction(state: MatchState, seat: Seat, action: Action): Appl
     endMatch(next, { outcome: "win", winner: opponent(seat), reason: "forfeit" }, events);
   } else {
     resolve(next, seat, action, events);
-    afterTurn(next, seat, events);
+    // The Turn ends only once every Pending Choice it raised has been made.
+    if (next.pending.length === 0) afterTurn(next, seat, events);
   }
   next.actionCount += 1;
   return { ok: true, state: next, events };
@@ -99,7 +102,20 @@ export function resolve(state: MatchState, seat: Seat, action: Action, events: M
       return;
     case "play":
       withStrengthEvents(state, events, () => resolvePlay(state, seat, action, events));
+      settlePending(state, events);
       return;
+    case "choose": {
+      // Choices raised while resolving this one are made before the rest of the queue.
+      const rest = state.pending.slice(1);
+      const current = state.pending[0];
+      state.pending = [];
+      if (current) {
+        withStrengthEvents(state, events, () => resolveChoice(state, current, action, events));
+      }
+      state.pending = [...state.pending, ...rest];
+      settlePending(state, events);
+      return;
+    }
     case "forfeit":
       return;
   }

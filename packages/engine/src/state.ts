@@ -44,6 +44,17 @@ export type MatchResult =
 
 export type Phase = "turns" | "ended";
 
+export type PendingKind = "medic";
+
+/**
+ * A decision a Seat must make after a play has resolved (GLOSSARY.md: Pending Choice).
+ * Its options are computed from the current state when it becomes active.
+ */
+export interface PendingChoice {
+  seat: Seat;
+  kind: PendingKind;
+}
+
 /** Plain JSON data: the Room snapshots it (ADR-0003). */
 export interface MatchState {
   version: 1;
@@ -59,6 +70,8 @@ export interface MatchState {
   round: number;
   /** The Seat that took the first Turn of the current Round. */
   roundStarter: Seat;
+  /** Pending Choices waiting to be made; the first is active. */
+  pending: PendingChoice[];
   /** The Seat to move, or null when nobody can act (Match over). */
   turn: Seat | null;
   /** Number of accepted actions. Clients echo it so the Room can reject stale actions. */

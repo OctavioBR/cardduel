@@ -1,5 +1,6 @@
 import type { Action } from "./actions";
 import { ROWS, type RowId, type UnitDefinition } from "./cards";
+import { choiceOptions } from "./choice";
 import type { MatchState, Seat, Uid } from "./state";
 import { defOf } from "./strength";
 
@@ -15,6 +16,8 @@ export function playableRows(def: UnitDefinition): RowId[] {
  */
 export function legalActions(state: MatchState, seat: Seat): Action[] {
   if (state.phase !== "turns" || state.turn !== seat) return [];
+  const pending = state.pending[0];
+  if (pending) return pending.seat === seat ? choiceOptions(state, pending) : [];
   const side = state.sides[seat];
   if (side.passed) return [];
   const actions: Action[] = [];

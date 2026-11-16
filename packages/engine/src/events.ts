@@ -1,5 +1,5 @@
 import type { CardId, RowId } from "./cards";
-import type { MatchResult, Seat, Uid } from "./state";
+import type { MatchResult, PendingKind, Seat, Uid } from "./state";
 
 /** A card made visible by an event: its instance id plus what it is. */
 export interface CardRef {
@@ -38,6 +38,8 @@ export type MatchEvent =
   /** Current Strength of Units on the battlefield changed. */
   | { type: "strengthChanged"; changes: StrengthChange[] }
   | { type: "passed"; seat: Seat; auto: boolean }
+  /** A Seat must now make a Pending Choice. */
+  | { type: "choiceRequired"; seat: Seat; kind: PendingKind }
   | {
       type: "roundEnded";
       round: number;
