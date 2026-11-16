@@ -14,6 +14,16 @@
   "durable_objects": {
     "bindings": [{ "name": "ROOMS", "class_name": "Room" }]
   },
+  // Accounts, Decks, Match results and Records (ADR-0005). The production database id comes
+  // from the provisioning issue (#6); local development and tests use a local D1.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "card-duel",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
   // The Free plan only offers SQLite-backed Durable Objects.
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
   "observability": { "enabled": true }
