@@ -29,6 +29,8 @@ export type MatchEvent =
       zone: RowId | "weather" | "none";
       /** The Seat whose side the card sits on, when it is on the battlefield. */
       side?: Seat;
+      /** Set when something other than the hand Played it. */
+      via?: PlayedVia;
     }
   | { type: "weatherCleared"; cards: CardRef[] }
   /** Units destroyed (Scorch); each went to its Controller's Discard Pile. */
@@ -62,3 +64,6 @@ export interface DrewEvent {
   count: number;
   cards?: CardRef[];
 }
+
+/** What Played a card onto the battlefield. */
+export type PlayedVia = "hand" | "medic" | "muster";

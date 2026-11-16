@@ -30,7 +30,7 @@ export function resolveChoice(
         throw new Error("Medic needs a card and Row");
       const discard = state.sides[pending.seat].discard;
       discard.splice(discard.indexOf(action.card), 1);
-      playUnit(state, pending.seat, action.card, action.row, events);
+      playUnit(state, pending.seat, action.card, action.row, events, "medic");
       return;
     }
   }

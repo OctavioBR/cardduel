@@ -1,6 +1,7 @@
 import type { PlayAction } from "./actions";
 import { ROWS, type RowId } from "./cards";
-import type { CardRef, MatchEvent } from "./events";
+import type { CardRef, MatchEvent, PlayedVia } from "./events";
+import { shuffle } from "./rng";
 import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
 import { cardIdOf, computeStrengths, defOf, rowScore } from "./strength";
 
@@ -83,7 +84,8 @@ export function resolvePlay(
 
 /**
  * Plays a Unit to a Row and fires its on-play abilities. A Spy goes to the opponent's
- * matching Row (they become its Controller) and its player draws 2.
+ * matching Row (they become its Controller) and its player draws 2. `via` says what Played
+ * it; a card Played by Muster does not Muster again.
  */
 export function playUnit(
   state: MatchState,
@@ -91,18 +93,59 @@ export function playUnit(
   uid: Uid,
   row: RowId,
   events: MatchEvent[],
+  via: PlayedVia = "hand",
 ): void {
   const def = defOf(state, uid);
-  const spy = def.kind === "unit" && def.abilities.includes("spy");
+  if (def.kind !== "unit") throw new Error(`Card ${def.id} is not a Unit`);
+  const spy = def.abilities.includes("spy");
   const side = spy ? opponent(seat) : seat;
   state.sides[side].rows[row].units.push(uid);
-  events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: row, side });
+  events.push({
+    type: "cardPlayed",
+    seat,
+    card: ref(state, uid),
+    zone: row,
+    side,
+    ...(via === "hand" ? {} : { via }),
+  });
   if (spy) draw(state, seat, 2, events);
-  if (def.kind !== "unit") return;
   if (def.abilities.includes("scorch")) scorchRow(state, opponent(seat), row, events);
   if (def.abilities.includes("medic") && medicTargets(state, seat).length > 0) {
     state.pending.push({ seat, kind: "medic" });
   }
+  if (def.abilities.includes("muster") && def.musterGroup && via !== "muster") {
+    muster(state, seat, uid, def.musterGroup, events);
+  }
+}
+
+/**
+ * Plays every other card of the Muster group from the Seat's hand and deck, then shuffles
+ * the deck. Cards are taken in uid order, never deck order, so events reveal nothing about
+ * where they sat in the deck.
+ */
+function muster(
+  state: MatchState,
+  seat: Seat,
+  source: Uid,
+  group: string,
+  events: MatchEvent[],
+): void {
+  const side = state.sides[seat];
+  const inGroup = (uid: Uid) => {
+    const def = defOf(state, uid);
+    return uid !== source && def.kind === "unit" && def.musterGroup === group;
+  };
+  const members = [...side.hand.filter(inGroup), ...side.deck.filter(inGroup)].sort(
+    (x, y) => x - y,
+  );
+  if (members.length === 0) return;
+  side.hand = side.hand.filter((uid) => !members.includes(uid));
+  side.deck = side.deck.filter((uid) => !members.includes(uid));
+  for (const uid of members) {
+    const def = defOf(state, uid);
+    if (def.kind === "unit") playUnit(state, seat, uid, def.row, events, "muster");
+  }
+  shuffle(state, side.deck);
 }
 
 /** Non-Hero Units in the Seat's Discard Pile: what a Medic may Play. */
