@@ -1,6 +1,7 @@
 import { env, evictDurableObject, runInDurableObject, SELF } from "cloudflare:test";
 import { CLOSE_ROOM_FULL, CLOSE_SIGNED_OUT, type SeatView } from "@card-duel/engine";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { DISCONNECT_GRACE_MS, ROOM_IDLE_MS } from "../src/room";
 import { ROOM_CODE_ALPHABET } from "../src/room-code";
 import {
   BASE,
@@ -285,4 +286,86 @@ describe("Room", () => {
     for (const c of va.you.hand) expect(messageB).not.toContain(`"uid":${c.uid},`);
     closeAll(room);
   });
+});
+
+describe("Room disconnect lifecycle", () => {
+  async function disconnected(room: Seated, seat: 0 | 1) {
+    room.sockets[seat].close();
+    await expect
+      .poll(async () =>
+        runInDurableObject(env.ROOMS.getByName(room.code), async (_room, ctx) => {
+          const times = await ctx.storage.get<[number | null, number | null]>("disconnectedAt");
+          return times?.[seat] ?? null;
+        }),
+      )
+      .not.toBeNull();
+  }
+
+  async function stored(room: Seated) {
+    return env.DB.prepare("SELECT * FROM match_results WHERE room_code = ?").bind(room.code).all();
+  }
+
+  it("reconnect within grace cancels a claim, including after eviction", async () => {
+    const room = await seatBoth();
+    await disconnected(room, 1);
+    room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
+    expect(await room.sockets[0].next()).toMatchObject({ code: "rejected" });
+    await evictDurableObject(env.ROOMS.getByName(room.code));
+    const again = await TestSocket.open(room.code, room.cookies[1]);
+    expect((await again.nextView()).view.phase).toBe("turns");
+    room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
+    expect(await room.sockets[0].next()).toMatchObject({ code: "rejected" });
+    expect((await stored(room)).results).toHaveLength(0);
+    again.close();
+    closeAll(room);
+  });
+
+  it("alarm after grace makes a win claimable but never automatically awards it", async () => {
+    const room = await seatBoth();
+    await disconnected(room, 1);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + DISCONNECT_GRACE_MS + 1);
+    try {
+      await runInDurableObject(env.ROOMS.getByName(room.code), async (instance) =>
+        instance.alarm(),
+      );
+      expect((await stored(room)).results).toHaveLength(0);
+      room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
+      const { view } = await room.sockets[0].nextView();
+      expect(view.result).toEqual({ outcome: "win", winner: 0, reason: "disconnect" });
+      expect((await stored(room)).results).toHaveLength(1);
+      await evictDurableObject(env.ROOMS.getByName(room.code));
+      const again = await TestSocket.open(room.code, room.cookies[1]);
+      expect((await again.nextView()).view.result).toEqual(view.result);
+      again.close();
+    } finally {
+      clock.mockRestore();
+      closeAll(room);
+    }
+  });
+
+  it.each([1, 2])(
+    "24-hour expiry with %s absent players awards a Disconnect Win or voids and deletes storage",
+    async (absent) => {
+      const room = await seatBoth();
+      await disconnected(room, 1);
+      if (absent === 2) await disconnected(room, 0);
+      const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + ROOM_IDLE_MS + 1);
+      try {
+        const size = await runInDurableObject(
+          env.ROOMS.getByName(room.code),
+          async (instance, ctx) => {
+            await instance.alarm();
+            return (await ctx.storage.list()).size;
+          },
+        );
+        expect(size).toBe(0);
+        const rows = (await stored(room)).results;
+        expect(rows).toHaveLength(absent === 1 ? 1 : 0);
+        if (absent === 1) expect(rows[0]).toMatchObject({ ended_by: "disconnect", winner_seat: 0 });
+      } finally {
+        clock.mockRestore();
+        closeAll(room);
+      }
+    },
+  );
 });

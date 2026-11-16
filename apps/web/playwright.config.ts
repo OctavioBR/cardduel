@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const VITE_PORT = 5173;
-const WORKER_PORT = 8787;
+const VITE_PORT = Number(process.env.E2E_VITE_PORT ?? 5173);
+const WORKER_PORT = Number(process.env.E2E_WORKER_PORT ?? 8787);
 
 /**
  * Two kinds of end-to-end tests:
@@ -24,7 +24,7 @@ export default defineConfig({
     },
     {
       name: "online",
-      testMatch: /(online|deck-builder)\.spec\.ts/,
+      testMatch: /(online|deck-builder|disconnect)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${WORKER_PORT}` },
     },
   ],

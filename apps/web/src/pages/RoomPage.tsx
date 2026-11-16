@@ -6,6 +6,8 @@ import { CardDetailProvider } from "../cards/CardDetail";
 import { type Deck, deckApi } from "../decks/api";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
+import { DisconnectBanner } from "../room/DisconnectBanner";
+import roomStrings from "../room/strings/en.json";
 import { useEventBatch, useRoom } from "../room/useRoom";
 import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
 
@@ -50,17 +52,24 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
   if (state.view) {
     return (
       <Stage>
-        <CardDetailProvider>
-          <MatchBoard
-            view={state.view}
-            send={(a) => connection.send(a)}
-            error={state.error?.message ?? null}
-            events={events}
-            onLeave={() => navigate("/")}
-          />
-        </CardDetailProvider>
+        <div style={{ display: "contents" }} inert={state.status !== "open"}>
+          <CardDetailProvider>
+            <MatchBoard
+              view={state.view}
+              send={(a) => connection.send(a)}
+              error={state.error?.message ?? null}
+              events={events}
+              onLeave={() => navigate("/")}
+            />
+          </CardDetailProvider>
+        </div>
+        {state.status === "open" && state.view.phase !== "ended" ? (
+          <DisconnectBanner disconnect={state.disconnect} onClaim={() => connection.claimWin()} />
+        ) : null}
         {state.status === "reconnecting" ? (
-          <div className="result-banner">Reconnecting…</div>
+          <div className="reconnecting-overlay" role="status">
+            {roomStrings.reconnecting}
+          </div>
         ) : null}
       </Stage>
     );

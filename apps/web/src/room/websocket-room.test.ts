@@ -93,6 +93,18 @@ describe("WebSocketRoom", () => {
     });
   });
 
+  it("tracks server disconnect deadlines and sends a claim without an engine action", () => {
+    const { room, sockets } = harness();
+    const socket = sockets[0] as FakeSocket;
+    socket.open();
+    socket.receive({ type: "presence", disconnect: { claimAt: 123000, serverNow: 3000 } });
+    expect(room.getState().disconnect).toEqual({ claimAt: 123000, serverNow: 3000 });
+    room.claimWin();
+    expect(JSON.parse(socket.sent[0] as string)).toEqual({ type: "claimWin" });
+    socket.receive({ type: "presence", disconnect: { claimAt: null, serverNow: 4000 } });
+    expect(room.getState().disconnect?.claimAt).toBeNull();
+  });
+
   it("commits a Deck to take a Seat", () => {
     const { room, sockets } = harness();
     const socket = sockets[0] as FakeSocket;

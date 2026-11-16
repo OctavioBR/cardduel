@@ -1,5 +1,6 @@
 import type {
   Action,
+  DisconnectInfo,
   LobbyInfo,
   MatchEvent,
   Seat,
@@ -24,6 +25,7 @@ export interface RoomClientState {
   view: SeatView | null;
   /** The last error, cleared by the next view. */
   error: RoomError | null;
+  disconnect: DisconnectInfo | null;
 }
 
 export interface RoomUpdate {
@@ -52,6 +54,7 @@ export const INITIAL_STATE: RoomClientState = {
   lobby: null,
   view: null,
   error: null,
+  disconnect: null,
 };
 
 /** Shared listener bookkeeping for connection implementations. */

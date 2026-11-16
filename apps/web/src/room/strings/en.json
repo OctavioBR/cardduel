@@ -1,0 +1,8 @@
+{
+  "reconnecting": "Reconnecting…",
+  "opponentDisconnected": "Your opponent disconnected.",
+  "graceCountdown": "You can claim a Disconnect Win in {seconds}s.",
+  "claimWin": "Claim win",
+  "disconnectWon": "You won because your opponent stayed disconnected.",
+  "disconnectLost": "You lost because you stayed disconnected."
+}
