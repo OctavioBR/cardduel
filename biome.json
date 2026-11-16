@@ -47,6 +47,32 @@
           }
         }
       }
+    },
+    {
+      "includes": [
+        "apps/web/src/**",
+        "!apps/web/src/room/local-room.ts",
+        "!apps/web/src/**/*.test.ts",
+        "!apps/web/src/**/*.test.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@card-duel/engine"],
+                    "importNamePattern": "[a-z].*",
+                    "message": "UI renders only the view and its legal actions (ADR-0002). Only the Local Room may import engine logic; types and constants are fine."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
