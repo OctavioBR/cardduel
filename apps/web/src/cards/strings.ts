@@ -1,5 +1,5 @@
 import {
-  type CatalogData,
+  type Catalog,
   CURRENT_CATALOG_VERSION,
   cardName as catalogName,
   cardText as catalogText,
@@ -10,7 +10,7 @@ import {
 import type { CardDefinition } from "@card-duel/engine";
 
 /** The catalog version the client shows (ADR-0004). Matches pin theirs on the server. */
-export const catalog: CatalogData | null = CURRENT_CATALOG_VERSION
+export const catalog: Catalog | null = CURRENT_CATALOG_VERSION
   ? getCatalog(CURRENT_CATALOG_VERSION)
   : null;
 

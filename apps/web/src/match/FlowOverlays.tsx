@@ -103,7 +103,7 @@ export interface RoundSummary {
 /** Builds the Round result from a batch of events, from the Seat's point of view. */
 export function roundSummary(events: readonly MatchEvent[], seat: Seat): RoundSummary | null {
   const ended = events.find((e) => e.type === "roundEnded");
-  if (!ended || ended.type !== "roundEnded") return null;
+  if (ended?.type !== "roundEnded") return null;
   const other: Seat = seat === 0 ? 1 : 0;
   const who = (s: Seat) => (s === seat ? "you" : "opponent");
   const passives: string[] = [];

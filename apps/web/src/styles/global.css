@@ -204,3 +204,226 @@ button.link {
   color: var(--cd-text);
   text-decoration: underline;
 }
+
+/* Decks and the Deck builder (#46) */
+.page.wide {
+  max-width: 80rem;
+}
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.tab[aria-selected="true"] {
+  background: var(--cd-text);
+  color: #111;
+  font-weight: 700;
+}
+.deck-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.deck-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.deck-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+  background: var(--cd-panel);
+  border-radius: var(--cd-radius);
+}
+.deck-list a {
+  color: var(--cd-text);
+  font-weight: 700;
+  flex: 1;
+}
+.status {
+  font-size: 0.8rem;
+  color: var(--cd-muted);
+}
+.status.ok {
+  color: var(--cd-raised);
+}
+.editor-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.editor-head a {
+  color: var(--cd-text);
+}
+.deck-name input {
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--cd-radius);
+  border: 1px solid var(--cd-line);
+  background: var(--cd-panel);
+  color: var(--cd-text);
+  max-width: 100%;
+}
+.faction-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #111;
+}
+.faction-badge.f-swarm {
+  background: var(--cd-swarm);
+}
+.faction-badge.f-court {
+  background: var(--cd-court);
+  color: #fff;
+}
+.save-state {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--cd-muted);
+}
+.editor-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.pool {
+  flex: 999 1 30rem;
+  min-width: 0;
+}
+.deck-panel {
+  flex: 1 1 22rem;
+  min-width: 0;
+  background: var(--cd-panel);
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.filters select {
+  font: inherit;
+  background: var(--cd-panel);
+  color: var(--cd-text);
+  border: 1px solid var(--cd-line);
+  border-radius: var(--cd-radius);
+  padding: 0.25rem;
+}
+.tile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.tile {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: var(--cd-radius);
+  touch-action: none;
+}
+.tile:hover:not(:disabled) {
+  outline: 2px solid var(--cd-text);
+}
+.tile.spent {
+  filter: grayscale(1) brightness(0.6);
+}
+.leader-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border: 1px solid var(--cd-line);
+  border-radius: var(--cd-radius);
+}
+.leader-picker label {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--cd-radius);
+}
+.leader-picker label.chosen {
+  background: #ffffff14;
+}
+.counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+.counters div {
+  background: var(--cd-bg);
+  border-radius: var(--cd-radius);
+  padding: 0.4rem 0.6rem;
+}
+.counters dt {
+  font-size: 0.75rem;
+  color: var(--cd-muted);
+}
+.counters dd {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+.counters .short dd {
+  color: var(--cd-lowered);
+}
+.deck-status p {
+  margin: 0.15rem 0;
+  font-size: 0.9rem;
+}
+.deck-status .ok {
+  color: var(--cd-raised);
+  font-weight: 700;
+}
+.deck-status .problem {
+  color: var(--cd-lowered);
+}
+.deck-status .warning {
+  color: #fbbf24;
+}
+.deck-group h3 {
+  margin: 0.5rem 0 0.4rem;
+  font-size: 0.9rem;
+  color: var(--cd-muted);
+}
+.tile-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 50;
+  transform: translate(-50%, -60%) rotate(-3deg);
+  filter: drop-shadow(0 10px 18px #000a);
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.account-menu {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+.nav-link {
+  color: var(--cd-text);
+}

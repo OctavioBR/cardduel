@@ -50,6 +50,9 @@ function AccountMenu() {
   }
   return (
     <div className="account-menu" ref={ref}>
+      <Link to="/decks" className="nav-link">
+        My Decks
+      </Link>
       <button
         type="button"
         aria-haspopup="menu"

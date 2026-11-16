@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { actionCount, settled } from "./board";
+import { actionCount } from "./board";
 
 async function unitsOnBoard(page: Page): Promise<string[]> {
   return page
