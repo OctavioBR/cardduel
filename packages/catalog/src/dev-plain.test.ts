@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEV_PLAIN_CARDS, DEV_PLAIN_NAMES, devPlainDeck } from "./index";
+import { DEV_PLAIN_CARDS, DEV_PLAIN_NAMES, devPlainDeck } from "./dev-plain";
 
 describe("dev plain Deck", () => {
   it("names every card and uses only defined cards", () => {
