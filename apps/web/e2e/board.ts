@@ -9,7 +9,8 @@ export async function isMyTurn(page: Page): Promise<boolean> {
 }
 
 export async function matchOver(page: Page): Promise<boolean> {
-  return page.getByTestId("result").isVisible();
+  if (await page.getByTestId("result").isVisible()) return true;
+  return (await page.getByTestId("turn").textContent()) === "Match over";
 }
 
 /**
@@ -61,4 +62,17 @@ export async function settled(page: Page): Promise<void> {
   await expect(page.getByTestId("board")).not.toHaveAttribute("data-animating", "true", {
     timeout: 15_000,
   });
+  // Between Rounds, the Round result waits for Continue. It renders just after the queue ends.
+  if (await roundResultShown(page)) {
+    await page.getByTestId("round-result").getByRole("button", { name: "Continue" }).click();
+  }
+}
+
+/** Whether the Round result overlay is up, allowing a moment for it to render. */
+export async function roundResultShown(page: Page): Promise<boolean> {
+  return page
+    .getByTestId("round-result")
+    .waitFor({ state: "visible", timeout: 400 })
+    .then(() => true)
+    .catch(() => false);
 }

@@ -6,6 +6,14 @@ import { useCardDetailPress } from "../cards/CardDetail";
 import { cardDef, cardName } from "../cards/strings";
 import { BoardRow, type TargetHandlers } from "./BoardRow";
 import { ChoiceOverlay } from "./ChoiceOverlay";
+import {
+  MatchEndOverlay,
+  MatchMenu,
+  OpeningOverlay,
+  RoundResultOverlay,
+  type RoundSummary,
+  roundSummary,
+} from "./FlowOverlays";
 import { LeaderDialog } from "./LeaderDialog";
 import { Overlay } from "./Overlay";
 import { Piles } from "./Piles";
@@ -21,6 +29,9 @@ export interface MatchBoardProps {
   error?: string | null;
   /** The filtered events that produced this view, to animate (#38). */
   events?: EventBatch | undefined;
+  onLeave?: () => void;
+  /** Offer a Rematch (wired with Rooms in Milestone 7). */
+  onRematch?: (() => void) | undefined;
 }
 
 /** How long "Confirm Pass" waits for the second press. */
@@ -42,7 +53,7 @@ export function weatheredRows(view: SeatView): Set<RowId> {
  * shows the server's Play Preview; tapping a target plays it. Targets and outcomes come
  * only from the view (ADR-0002); there are no optimistic updates.
  */
-export function MatchBoard({ view, send, error, events }: MatchBoardProps) {
+export function MatchBoard({ view, send, error, events, onLeave, onRematch }: MatchBoardProps) {
   // A selection belongs to one view: a new view (new action count) clears it.
   const [selection, setSelection] = useState<{ uid: number; at: number } | null>(null);
   const selected = selection?.at === view.actionCount ? selection.uid : null;
@@ -56,6 +67,14 @@ export function MatchBoard({ view, send, error, events }: MatchBoardProps) {
   const [passConfirm, setPassConfirm] = useState<{ at: number } | null>(null);
   const confirmingPass = passConfirm?.at === view.actionCount;
   const [leaderOpen, setLeaderOpen] = useState(false);
+  const [roundResult, setRoundResult] = useState<RoundSummary | null>(null);
+  const shownBatch = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (!events || events.seq === shownBatch.current) return;
+    shownBatch.current = events.seq;
+    const summary = roundSummary(events.events, view.seat);
+    if (summary) setRoundResult(summary);
+  }, [events, view.seat]);
   const [knownOpen, setKnownOpen] = useState(false);
   const pointerType = useRef<string>("mouse");
 
@@ -264,6 +283,9 @@ export function MatchBoard({ view, send, error, events }: MatchBoardProps) {
       }}
     >
       <div className="anim-layer" aria-hidden="true" />
+      {view.phase !== "ended" ? (
+        <MatchMenu onForfeit={() => sendLocked({ type: "forfeit" })} disabled={false} />
+      ) : null}
       <aside className="side">
         <PlayerPanel
           who="opponent"
@@ -290,6 +312,11 @@ export function MatchBoard({ view, send, error, events }: MatchBoardProps) {
           <div>Round {view.round}</div>
           <TurnLabel view={view} />
           {view.opponentChoosing ? <div className="notice">Your opponent is choosing…</div> : null}
+          {view.phase === "turns" && view.opponent.passed ? (
+            <div className="opponent-passed" role="status" data-testid="opponent-passed">
+              Your opponent Passed
+            </div>
+          ) : null}
           {view.phase === "redraw" ? (
             <div>
               Opponent returned {view.opponent.redraw.returned} card
@@ -431,7 +458,12 @@ export function MatchBoard({ view, send, error, events }: MatchBoardProps) {
           />
         </div>
       ) : null}
-      {view.phase === "redraw" ? <RedrawPanel view={view} send={send} /> : null}
+      {view.phase === "redraw" ? (
+        <OpeningOverlay view={view} send={sendLocked} locked={locked} />
+      ) : null}
+      {roundResult && !animating && view.phase !== "ended" ? (
+        <RoundResultOverlay summary={roundResult} onContinue={() => setRoundResult(null)} />
+      ) : null}
       {view.pendingChoice ? <ChoiceOverlay view={view} send={sendLocked} locked={locked} /> : null}
       {leaderOpen && !view.pendingChoice ? (
         <LeaderDialog
@@ -453,33 +485,20 @@ export function MatchBoard({ view, send, error, events }: MatchBoardProps) {
           </div>
         </Overlay>
       ) : null}
-      {view.phase === "ended" && view.result ? <ResultBanner view={view} /> : null}
-    </div>
-  );
-}
-
-/** Minimal Redraw controls; the full Redraw overlay arrives with the Match flow overlays. */
-function RedrawPanel({ view, send }: { view: SeatView; send: (action: Action) => void }) {
-  const { returned, done } = view.you.redraw;
-  return (
-    <div className="redraw-panel" role="dialog" aria-label="Redraw" data-testid="redraw">
-      {done ? (
-        <p>Waiting for your opponent to Redraw…</p>
-      ) : (
-        <>
-          <p>Redraw: tap up to 2 cards to return them ({returned}/2 returned).</p>
-          {/* biome-ignore lint/a11y/noAutofocus: the only action during Redraw, so keyboard players keep their hand with Enter */}
-          <button type="button" autoFocus onClick={() => send({ type: "confirmRedraw" })}>
-            Keep hand
-          </button>
-        </>
-      )}
+      {view.phase === "ended" && view.result && !animating ? (
+        <MatchEndOverlay view={view} onRematch={onRematch} onLeave={onLeave ?? (() => {})} />
+      ) : null}
     </div>
   );
 }
 
 function TurnLabel({ view }: { view: SeatView }) {
-  if (view.phase === "ended") return <div className="turn">Match over</div>;
+  if (view.phase === "ended")
+    return (
+      <div className="turn" data-testid="turn">
+        Match over
+      </div>
+    );
   if (view.phase === "redraw")
     return (
       <div className="turn" data-testid="turn">
@@ -489,22 +508,6 @@ function TurnLabel({ view }: { view: SeatView }) {
   return (
     <div className="turn" data-testid="turn">
       {view.turn === "you" ? "Your Turn" : "Opponent's Turn"}
-    </div>
-  );
-}
-
-function ResultBanner({ view }: { view: SeatView }) {
-  const result = view.result;
-  if (!result) return null;
-  const text =
-    result.outcome === "draw"
-      ? "Draw"
-      : result.winner === view.seat
-        ? "You won the Match"
-        : "You lost the Match";
-  return (
-    <div className="result-banner" role="status" data-testid="result">
-      {text}
     </div>
   );
 }

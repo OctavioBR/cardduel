@@ -1,7 +1,7 @@
 import { DEV_PLAIN_CARDS, devPlainDeck, getCatalog } from "@card-duel/catalog";
 import type { Seat } from "@card-duel/engine";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { CardDetailProvider } from "../cards/CardDetail";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
@@ -37,6 +37,7 @@ export function createDevLocalRoom(seed: number, decks: LocalDecks = "plain"): L
 /** Development-only page at /dev/local. Not linked from the app, absent from production builds. */
 export function LocalRoomPage() {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const seed = seedFromParams(params);
   const decks: LocalDecks = params.get("deck") === "starter" ? "starter" : "plain";
   const scenario = params.get("scenario");
@@ -74,6 +75,7 @@ export function LocalRoomPage() {
             send={(a) => room.send(a)}
             error={state.error?.message ?? null}
             events={events}
+            onLeave={() => navigate("/")}
           />
         </CardDetailProvider>
       </Stage>

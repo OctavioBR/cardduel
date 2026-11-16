@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { CardDetailProvider } from "../cards/CardDetail";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
@@ -20,6 +20,7 @@ export function RoomPage() {
 }
 
 function RoomScreen({ code, connection }: { code: string; connection: WebSocketRoom }) {
+  const navigate = useNavigate();
   const state = useRoom(connection);
   const events = useEventBatch(connection);
   if (state.view) {
@@ -31,6 +32,7 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
             send={(a) => connection.send(a)}
             error={state.error?.message ?? null}
             events={events}
+            onLeave={() => navigate("/")}
           />
         </CardDetailProvider>
         {state.status === "reconnecting" ? (
