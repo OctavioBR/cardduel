@@ -1,0 +1,3 @@
+`Date` where {
+  register_diagnostic(span=$match, message="The engine must be deterministic: do not read the clock with Date (ADR-0003).")
+}
