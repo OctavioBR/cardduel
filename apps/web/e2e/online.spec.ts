@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { isMyTurn, keepForRound, matchOver, round, takeTurn } from "./board";
+import { isMyTurn, keepForRound, keepHand, matchOver, round, takeTurn } from "./board";
 
 test("two players create, join and finish a Match", async ({ browser }) => {
   const alice = await (await browser.newContext()).newPage();
@@ -18,6 +18,9 @@ test("two players create, join and finish a Match", async ({ browser }) => {
 
   await expect(alice.getByTestId("board")).toBeVisible();
   await expect(bob.getByTestId("board")).toBeVisible();
+  await keepHand(alice);
+  await keepHand(bob);
+  await expect(alice.getByTestId("turn")).toHaveText(/Your Turn|Opponent's Turn/);
 
   for (let i = 0; i < 80 && !(await matchOver(alice)); i++) {
     const mover: Page = (await isMyTurn(alice)) ? alice : bob;

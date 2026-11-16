@@ -4,7 +4,7 @@ import { ROWS } from "./cards";
 import { legalActions } from "./legal";
 import { applyAction, createMatch } from "./match";
 import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
-import { deck, playCard, repeat, setup, unit } from "./testing/fixtures";
+import { deck, playCard, repeat, setup, startMatch, unit } from "./testing/fixtures";
 import { playRandomMatch } from "./testing/random";
 import { filterEvents, viewFor } from "./view";
 
@@ -53,7 +53,7 @@ describe("viewFor", () => {
   });
 
   it("reports Scores per Row and in total, and whose Turn it is", () => {
-    let { state } = createMatch(SETUP);
+    let { state } = startMatch(SETUP);
     const a = state.turn as Seat;
     ({ state } = playCard(state, a, "d"));
     ({ state } = playCard(state, opponent(a), "b"));
@@ -69,7 +69,7 @@ describe("viewFor", () => {
   });
 
   it("lists no legal actions for the Seat not to move", () => {
-    const { state } = createMatch(SETUP);
+    const { state } = startMatch(SETUP);
     expect(viewFor(state, opponent(state.turn as Seat)).legalActions).toEqual([]);
   });
 
@@ -109,6 +109,10 @@ describe("hidden information", () => {
       playRandomMatch(s, seed + 1000, ({ after, events: stepEvents }) => {
         for (const seat of SEATS) {
           const hidden = hiddenFrom(after, seat);
+          // A Seat knows which card it just returned in Redraw; the deck is reshuffled after.
+          for (const e of stepEvents) {
+            if (e.type === "cardReturned" && e.seat === seat && e.card) hidden.delete(e.card.uid);
+          }
           const seen = uidsIn([viewFor(after, seat), filterEvents(stepEvents, seat)]);
           expect(seen.filter((u) => hidden.has(u))).toEqual([]);
         }

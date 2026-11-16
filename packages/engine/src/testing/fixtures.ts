@@ -2,7 +2,7 @@ import { expect } from "vitest";
 import type { Action } from "../actions";
 import type { CardDefinition, RowId, SpecialEffect, UnitAbility } from "../cards";
 import type { MatchEvent } from "../events";
-import { applyAction } from "../match";
+import { applyAction, createMatch } from "../match";
 import type { DeckSpec, MatchSetup, MatchState, Seat, Uid } from "../state";
 
 /** Fixture cards for engine tests. Never the real catalog. */
@@ -127,4 +127,17 @@ export function toHand(state: MatchState, seat: Seat, cardId: string): Uid {
   const [uid] = side.deck.splice(i, 1) as [Uid];
   side.hand.push(uid);
   return uid;
+}
+
+/** Creates a Match and confirms both Redraws without returning cards. */
+export function startMatch(s: MatchSetup): { state: MatchState; events: MatchEvent[] } {
+  const created = createMatch(s);
+  let state = created.state;
+  const events = [...created.events];
+  for (const seat of [0, 1] as const) {
+    const result = act(state, seat, { type: "confirmRedraw" });
+    state = result.state;
+    events.push(...result.events);
+  }
+  return { state, events };
 }

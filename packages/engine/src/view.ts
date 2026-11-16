@@ -39,6 +39,11 @@ export interface DeckCount {
   count: number;
 }
 
+export interface RedrawView {
+  returned: number;
+  done: boolean;
+}
+
 export interface OwnSideView {
   faction: MatchState["sides"][0]["faction"];
   leader: LeaderView;
@@ -49,6 +54,7 @@ export interface OwnSideView {
   discard: CardRef[];
   gems: number;
   passed: boolean;
+  redraw: RedrawView;
 }
 
 export interface OpponentSideView {
@@ -59,6 +65,8 @@ export interface OpponentSideView {
   discard: CardRef[];
   gems: number;
   passed: boolean;
+  /** Only how many cards the opponent returned, never which. */
+  redraw: RedrawView;
 }
 
 /** Everything one Seat may see and do. The client renders only this (ADR-0002). */
@@ -107,6 +115,7 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
       discard: own.discard.map((uid) => ref(state, uid)),
       gems: own.gems,
       passed: own.passed,
+      redraw: { ...own.redraw },
     },
     opponent: {
       faction: opp.faction,
@@ -116,6 +125,7 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
       discard: opp.discard.map((uid) => ref(state, uid)),
       gems: opp.gems,
       passed: opp.passed,
+      redraw: { ...opp.redraw },
     },
     board: {
       you: boardSide(state, seat, strengths),
@@ -161,6 +171,9 @@ export function filterEvents(events: readonly MatchEvent[], seat: Seat): MatchEv
   return events.map((event) => {
     if (event.type === "drew" && event.seat !== seat) {
       return { type: "drew", seat: event.seat, count: event.count };
+    }
+    if (event.type === "cardReturned" && event.seat !== seat) {
+      return { type: "cardReturned", seat: event.seat };
     }
     return event;
   });

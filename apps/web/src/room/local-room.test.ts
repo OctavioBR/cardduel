@@ -19,6 +19,8 @@ const SETUP: MatchSetup = {
 function pick(room: LocalRoom, i: number): Action {
   const view = room.getState().view;
   if (!view) throw new Error("no view");
+  if (view.phase === "redraw")
+    return i === 0 ? (view.legalActions[0] as Action) : { type: "confirmRedraw" };
   const plays = view.legalActions.filter((a) => a.type === "play");
   return i % 4 === 3 || plays.length === 0 ? { type: "pass" } : (plays[i % plays.length] as Action);
 }
@@ -28,7 +30,8 @@ describe("LocalRoom", () => {
     const room = new LocalRoom(SETUP);
     let engine = createMatch(SETUP).state;
     for (let i = 0; i < 60 && engine.phase !== "ended"; i++) {
-      const seat = engine.turn as Seat;
+      const seat: Seat =
+        engine.phase === "redraw" ? (engine.sides[0].redraw.done ? 1 : 0) : (engine.turn as Seat);
       room.viewSeat(seat);
       const action = pick(room, i);
       room.send(action);
@@ -59,17 +62,16 @@ describe("LocalRoom", () => {
     const room = new LocalRoom(SETUP);
     const seen: unknown[] = [];
     room.subscribe(({ events }) => seen.push(...events));
-    const seat = room.matchState.turn as Seat;
-    room.viewSeat(seat);
+    room.viewSeat(0);
     room.send(pick(room, 0));
     expect(seen.length).toBeGreaterThan(0);
   });
 
   it("reports a rejected action without changing the view", () => {
     const room = new LocalRoom(SETUP);
-    const waiting = room.matchState.turn === 0 ? 1 : 0;
-    room.viewSeat(waiting);
+    room.viewSeat(0);
     const before = room.getState().view;
+    // Passing is not allowed during Redraw.
     room.send({ type: "pass" });
     expect(room.getState().error).toMatchObject({ code: "rejected" });
     expect(room.getState().view).toBe(before);

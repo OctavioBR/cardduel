@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { MatchEvent } from "./events";
 import { legalActions } from "./legal";
-import { createMatch } from "./match";
 import type { MatchState, Seat, Uid } from "./state";
 import { computeStrengths, rowScore } from "./strength";
-import { act, deck, place, repeat, setup, special, toHand, unit } from "./testing/fixtures";
+import {
+  act,
+  deck,
+  place,
+  repeat,
+  setup,
+  special,
+  startMatch,
+  toHand,
+  unit,
+} from "./testing/fixtures";
 
 const CARDS = [
   unit("knight", 6, "close"),
@@ -40,7 +49,7 @@ const LIST = [
 
 /** An empty board; returns the state with the Seat to move as `a`. */
 function board(): { state: MatchState; a: Seat; b: Seat } {
-  const { state } = createMatch(setup(11, [deck(LIST), deck(LIST, "court")], CARDS));
+  const { state } = startMatch(setup(11, [deck(LIST), deck(LIST, "court")], CARDS));
   const a = state.turn as Seat;
   return { state, a, b: a === 0 ? 1 : 0 };
 }

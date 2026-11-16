@@ -2,7 +2,17 @@ import { describe, expect, it } from "vitest";
 import type { LoggedAction } from "./actions";
 import { applyAction, createMatch, HAND_SIZE, replay } from "./match";
 import { type MatchState, opponent, type Seat } from "./state";
-import { act, deck, inHand, ownRow, playCard, repeat, setup, unit } from "./testing/fixtures";
+import {
+  act,
+  deck,
+  inHand,
+  ownRow,
+  playCard,
+  repeat,
+  setup,
+  startMatch,
+  unit,
+} from "./testing/fixtures";
 
 const FIVE = unit("five", 5, "close");
 const THREE = unit("three", 3, "ranged");
@@ -16,18 +26,33 @@ const PLAIN = setup(
 );
 
 function started(seed = 42): MatchState {
-  return createMatch({ ...PLAIN, seed }).state;
+  return startMatch({ ...PLAIN, seed }).state;
 }
 
 describe("createMatch", () => {
-  it("flips a coin, shuffles and deals 10 cards each", () => {
+  it("flips a coin, shuffles and deals 10 cards each, then waits for Redraw", () => {
     const { state, events } = createMatch(PLAIN);
     expect(state.sides[0].hand).toHaveLength(HAND_SIZE);
     expect(state.sides[1].hand).toHaveLength(HAND_SIZE);
     expect(state.sides[0].deck).toHaveLength(4);
-    expect(state.turn).toBe(state.roundStarter);
-    expect(events.map((e) => e.type)).toEqual(["coinFlip", "drew", "drew", "roundStarted"]);
+    expect(state.phase).toBe("redraw");
+    expect(state.turn).toBeNull();
+    expect(events.map((e) => e.type)).toEqual(["coinFlip", "drew", "drew"]);
     expect(state.actionCount).toBe(0);
+  });
+
+  it("starts the first Turn with the coin-flip winner once both have Redrawn", () => {
+    const { state, events } = startMatch(PLAIN);
+    expect(state.phase).toBe("turns");
+    expect(state.turn).toBe(state.roundStarter);
+    expect(events.map((e) => e.type)).toEqual([
+      "coinFlip",
+      "drew",
+      "drew",
+      "redrawDone",
+      "redrawDone",
+      "roundStarted",
+    ]);
   });
 
   it("is deterministic for a seed and gives different deals for different seeds", () => {
@@ -63,7 +88,8 @@ describe("Turns", () => {
     expect(state.turn).toBe(a);
     ({ state } = playCard(state, a, "five"));
     expect(state.turn).toBe(a);
-    expect(state.actionCount).toBe(3);
+    // Two Redraw confirmations plus three Turns.
+    expect(state.actionCount).toBe(5);
   });
 
   it("rejects illegal actions without changing state", () => {
@@ -108,7 +134,7 @@ describe("Turns", () => {
 
   it("Passes a Seat automatically when its hand is empty", () => {
     const s = setup(7, [deck(repeat("five", 10)), deck(repeat("five", 10))], [FIVE]);
-    let { state } = createMatch(s);
+    let { state } = startMatch(s);
     const a = state.turn as Seat;
     const b = opponent(a);
     ({ state } = playCard(state, a));
@@ -229,7 +255,10 @@ describe("Forfeit", () => {
 describe("replay", () => {
   it("rebuilds the same state from seed plus action log", () => {
     let state = started();
-    const log: LoggedAction[] = [];
+    const log: LoggedAction[] = [
+      { seat: 0, action: { type: "confirmRedraw" } },
+      { seat: 1, action: { type: "confirmRedraw" } },
+    ];
     for (let i = 0; i < 40 && state.phase !== "ended"; i++) {
       const seat = state.turn as Seat;
       const hand = state.sides[seat].hand;
@@ -248,7 +277,7 @@ describe("replay", () => {
   });
 
   it("matches a recorded fixture of events", () => {
-    let { state, events } = createMatch({ ...PLAIN, seed: 1234 });
+    let { state, events } = startMatch({ ...PLAIN, seed: 1234 });
     const all = [...events];
     for (const step of [
       (s: MatchState) => playCard(s, s.turn as Seat, "five"),

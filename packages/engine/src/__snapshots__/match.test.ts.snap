@@ -101,6 +101,16 @@ exports[`replay > matches a recorded fixture of events 1`] = `
     "type": "drew",
   },
   {
+    "returned": 0,
+    "seat": 0,
+    "type": "redrawDone",
+  },
+  {
+    "returned": 0,
+    "seat": 1,
+    "type": "redrawDone",
+  },
+  {
     "round": 1,
     "starter": 0,
     "type": "roundStarted",

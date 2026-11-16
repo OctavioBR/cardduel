@@ -2,8 +2,8 @@ import { type Action, actionKey, type LoggedAction, type Rejection } from "./act
 import { type CardDefinition, ROWS, type RowId } from "./cards";
 import { resolveChoice, settlePending } from "./choice";
 import type { MatchEvent } from "./events";
-import { legalActions } from "./legal";
-import { draw, resolvePlay, withStrengthEvents } from "./play";
+import { legalActions, MAX_REDRAW } from "./legal";
+import { draw, ref, resolvePlay, withStrengthEvents } from "./play";
 import { nextInt, shuffle, toSeed } from "./rng";
 import { afterTurn, beginTurn, endMatch } from "./round";
 import {
@@ -36,7 +36,7 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
     sides: [emptySide(setup, 0), emptySide(setup, 1)],
     weather: [],
     pending: [],
-    phase: "turns",
+    phase: "redraw",
     round: 1,
     roundStarter: 0,
     turn: null,
@@ -65,9 +65,7 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
     shuffle(state, state.sides[seat].deck);
     draw(state, seat, HAND_SIZE, events);
   }
-
-  events.push({ type: "roundStarted", round: 1, starter });
-  beginTurn(state, starter, events);
+  // Both Seats now Redraw privately; the first Turn starts when both have confirmed.
   return { state, events };
 }
 
@@ -81,6 +79,8 @@ export function applyAction(state: MatchState, seat: Seat, action: Action): Appl
   if (action.type === "forfeit") {
     events.push({ type: "forfeited", seat });
     endMatch(next, { outcome: "win", winner: opponent(seat), reason: "forfeit" }, events);
+  } else if (action.type === "redraw" || action.type === "confirmRedraw") {
+    applyRedraw(next, seat, action, events);
   } else {
     resolve(next, seat, action, events);
     // The Turn ends only once every Pending Choice it raised has been made.
@@ -116,8 +116,34 @@ export function resolve(state: MatchState, seat: Seat, action: Action, events: M
       settlePending(state, events);
       return;
     }
-    case "forfeit":
+    default:
       return;
+  }
+}
+
+function applyRedraw(
+  state: MatchState,
+  seat: Seat,
+  action: Extract<Action, { type: "redraw" | "confirmRedraw" }>,
+  events: MatchEvent[],
+): void {
+  const side = state.sides[seat];
+  if (action.type === "redraw") {
+    side.hand.splice(side.hand.indexOf(action.card), 1);
+    side.deck.push(action.card);
+    shuffle(state, side.deck);
+    side.redraw.returned += 1;
+    events.push({ type: "cardReturned", seat, card: ref(state, action.card) });
+    draw(state, seat, 1, events);
+  }
+  if (action.type === "confirmRedraw" || side.redraw.returned >= MAX_REDRAW) {
+    side.redraw.done = true;
+    events.push({ type: "redrawDone", seat, returned: side.redraw.returned });
+  }
+  if (state.sides[0].redraw.done && state.sides[1].redraw.done) {
+    state.phase = "turns";
+    events.push({ type: "roundStarted", round: 1, starter: state.roundStarter });
+    beginTurn(state, state.roundStarter, events);
   }
 }
 
@@ -139,6 +165,11 @@ export function cloneState(state: MatchState): MatchState {
 function validate(state: MatchState, seat: Seat, action: Action): Rejection | null {
   if (state.phase === "ended") return reject("match_over", "The Match is over.");
   if (action.type === "forfeit") return null;
+  if (state.phase === "redraw") {
+    const key = actionKey(action);
+    if (legalActions(state, seat).some((legal) => actionKey(legal) === key)) return null;
+    return reject("invalid_action", "Finish your Redraw first.");
+  }
   if (state.turn !== seat) return reject("not_your_turn", "It is not your Turn.");
   const side = state.sides[seat];
   if (side.passed) return reject("already_passed", "You have Passed this Round.");
@@ -173,5 +204,6 @@ function emptySide(setup: MatchSetup, seat: Seat): SideState {
     rows,
     gems: STARTING_GEMS,
     passed: false,
+    redraw: { returned: 0, done: false },
   };
 }

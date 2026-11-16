@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { createMatch } from "./match";
 import { type MatchState, opponent, type Seat, type Uid } from "./state";
-import { act, deck, place, repeat, setup, special, toHand, unit } from "./testing/fixtures";
+import {
+  act,
+  deck,
+  place,
+  repeat,
+  setup,
+  special,
+  startMatch,
+  toHand,
+  unit,
+} from "./testing/fixtures";
 
 const CARDS = [
   unit("u3", 3, "close"),
@@ -29,7 +38,7 @@ const LIST = [
 ];
 
 function board(): { state: MatchState; a: Seat; b: Seat } {
-  const { state } = createMatch(setup(31, [deck(LIST), deck(LIST, "court")], CARDS));
+  const { state } = startMatch(setup(31, [deck(LIST), deck(LIST, "court")], CARDS));
   const a = state.turn as Seat;
   return { state, a, b: opponent(a) };
 }

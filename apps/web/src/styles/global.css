@@ -299,6 +299,25 @@ button:disabled {
   border-radius: 12px;
 }
 
+.redraw-panel {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 32px;
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+}
+
+.redraw-panel p {
+  margin: 0;
+}
+
 .seat-toggle {
   position: fixed;
   top: 8px;
