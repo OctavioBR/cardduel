@@ -31,6 +31,8 @@ export type MatchEvent =
       side?: Seat;
     }
   | { type: "weatherCleared"; cards: CardRef[] }
+  /** A card left the battlefield for its player's hand (Decoy). */
+  | { type: "returnedToHand"; seat: Seat; card: CardRef }
   /** Current Strength of Units on the battlefield changed. */
   | { type: "strengthChanged"; changes: StrengthChange[] }
   | { type: "passed"; seat: Seat; auto: boolean }
