@@ -13,7 +13,8 @@ export function Overlay({
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    ref.current?.focus();
+    // Keep focus inside the dialog, but do not steal it from an autofocused control.
+    if (!ref.current?.contains(document.activeElement)) ref.current?.focus();
     if (!onClose) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();

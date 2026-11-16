@@ -94,6 +94,8 @@ export interface SeatView {
   actionCount: number;
   phase: Phase;
   round: number;
+  /** Who takes the first Turn of the current Round (the coin flip, in Round 1). */
+  roundStarter: "you" | "opponent";
   /** Whose Turn it is, as "you" or "opponent", or null when nobody can act. */
   turn: "you" | "opponent" | null;
   result: MatchResult | null;
@@ -124,6 +126,7 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
     actionCount: state.actionCount,
     phase: state.phase,
     round: state.round,
+    roundStarter: state.roundStarter === seat ? "you" : "opponent",
     turn: state.turn === null ? null : state.turn === seat ? "you" : "opponent",
     result: state.result,
     you: {
