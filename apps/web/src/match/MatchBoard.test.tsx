@@ -2,7 +2,8 @@ import { DEV_PLAIN_CARDS, devPlainDeck } from "@card-duel/catalog";
 import { applyAction, createMatch, type MatchState, type Seat, viewFor } from "@card-duel/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { MatchBoard, playsFor } from "./MatchBoard";
+import { MatchBoard } from "./MatchBoard";
+import { targetsFor } from "./targets";
 
 const created = createMatch({
   seed: 5,
@@ -36,9 +37,11 @@ describe("MatchBoard", () => {
     const view = viewFor(state, state.turn as Seat);
     const card = view.you.hand[0];
     if (!card) throw new Error("empty hand");
-    const rows = [...playsFor(view, card.uid).keys()];
-    expect(rows).toHaveLength(1);
+    const targets = targetsFor(view, card.uid);
+    expect(targets).toHaveLength(1);
+    expect(targets[0]).toMatchObject({ kind: "row", side: "you" });
+    expect(targets[0]?.action.preview).toBeDefined();
     const waiting = viewFor(state, state.turn === 0 ? 1 : 0);
-    expect(playsFor(waiting, waiting.you.hand[0]?.uid ?? -1).size).toBe(0);
+    expect(targetsFor(waiting, waiting.you.hand[0]?.uid ?? -1)).toEqual([]);
   });
 });

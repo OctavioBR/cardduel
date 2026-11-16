@@ -23,7 +23,7 @@ export async function takeTurn(page: Page, keep: number): Promise<void> {
     await cards.first().click();
     await page.locator("button.board-row.target").first().click();
   } else {
-    await page.getByRole("button", { name: "Pass" }).click();
+    await passTurn(page);
   }
   await expect.poll(() => actionCount(page)).toBeGreaterThan(before);
 }
@@ -45,4 +45,11 @@ export async function keepHand(page: Page): Promise<void> {
   const before = await actionCount(page);
   await keep.click();
   await expect.poll(() => actionCount(page)).toBeGreaterThan(before);
+}
+
+/** Passes: while the hand is not empty, Pass takes two presses ("Confirm Pass"). */
+export async function passTurn(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Pass" }).click();
+  const confirm = page.getByRole("button", { name: "Confirm Pass" });
+  if (await confirm.isVisible()) await confirm.click();
 }

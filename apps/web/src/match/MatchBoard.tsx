@@ -1,11 +1,13 @@
 import type { Action, RowId, SeatView } from "@card-duel/engine";
 import { ROWS } from "@card-duel/engine";
-import { useEffect, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { Card } from "../cards/Card";
 import { cardDef, cardName } from "../cards/strings";
-import { BoardRow } from "./BoardRow";
+import { BoardRow, type TargetHandlers } from "./BoardRow";
 import { Piles } from "./Piles";
 import { PlayerPanel } from "./PlayerPanel";
+import { previewEffects } from "./preview-effects";
+import { playableCards, type Target, targetsFor } from "./targets";
 
 export interface MatchBoardProps {
   view: SeatView;
@@ -13,15 +15,8 @@ export interface MatchBoardProps {
   error?: string | null;
 }
 
-/** Legal play actions for one hand card, keyed by Row. Uses only the view (ADR-0002). */
-export function playsFor(view: SeatView, uid: number): Map<RowId, Action> {
-  const plays = new Map<RowId, Action>();
-  for (const action of view.legalActions) {
-    // Row-less plays (Weather, Scorch) and Decoy targets arrive with tap-to-play (#35).
-    if (action.type === "play" && action.card === uid && action.row) plays.set(action.row, action);
-  }
-  return plays;
-}
+/** How long "Confirm Pass" waits for the second press. */
+export const PASS_CONFIRM_MS = 3000;
 
 /** Rows covered by the Weather cards in the view. */
 export function weatheredRows(view: SeatView): Set<RowId> {
@@ -34,35 +29,185 @@ export function weatheredRows(view: SeatView): Set<RowId> {
   return rows;
 }
 
-/** The full Match stage (ADR-0006): every piece of the view is shown somewhere. */
+/**
+ * The full Match stage (ADR-0006). Selecting a hand card highlights its legal targets and
+ * shows the server's Play Preview; tapping a target plays it. Targets and outcomes come
+ * only from the view (ADR-0002); there are no optimistic updates.
+ */
 export function MatchBoard({ view, send, error }: MatchBoardProps) {
   // A selection belongs to one view: a new view (new action count) clears it.
   const [selection, setSelection] = useState<{ uid: number; at: number } | null>(null);
   const selected = selection?.at === view.actionCount ? selection.uid : null;
-  const setSelected = (uid: number | null) =>
-    setSelection(uid === null ? null : { uid, at: view.actionCount });
-  const plays = selected === null ? new Map<RowId, Action>() : playsFor(view, selected);
+  const [previewKey, setPreviewKey] = useState<string | null>(null);
+  // After sending, input stays locked until the next view (or an error) arrives.
+  const [lockedAt, setLockedAt] = useState<number | null>(null);
+  const locked = lockedAt === view.actionCount;
+  const [passConfirm, setPassConfirm] = useState<{ at: number } | null>(null);
+  const confirmingPass = passConfirm?.at === view.actionCount;
+  const pointerType = useRef<string>("mouse");
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error) setLockedAt(null);
+  }, [error]);
+
+  useEffect(() => {
+    if (!confirmingPass) return;
+    const timer = setTimeout(() => setPassConfirm(null), PASS_CONFIRM_MS);
+    return () => clearTimeout(timer);
+  }, [confirmingPass]);
+
+  const targets = selected === null ? [] : targetsFor(view, selected);
+  const activeTarget =
+    targets.find((t) => t.key === previewKey) ??
+    (targets.length === 1 ? targets[0] : undefined) ??
+    null;
+  const effects = previewEffects(view, activeTarget?.action ?? null);
+  const playable = playableCards(view);
   const canPass = view.legalActions.some((a) => a.type === "pass");
   const weathered = weatheredRows(view);
   const seen = new Set(view.you.seenByOpponent);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelection(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const playTo = (row: RowId) => {
-    const action = plays.get(row);
-    if (!action) return;
-    setSelected(null);
-    send(action);
+  const focusTarget = (key: string | undefined) => {
+    if (!key) return;
+    requestAnimationFrame(() =>
+      boardRef.current
+        ?.querySelector<HTMLElement>(`[data-target-key="${CSS.escape(key)}"]`)
+        ?.focus(),
+    );
   };
 
+  const cancel = () => {
+    const uid = selected;
+    setSelection(null);
+    setPreviewKey(null);
+    if (uid !== null) {
+      requestAnimationFrame(() =>
+        boardRef.current?.querySelector<HTMLElement>(`[data-hand-uid="${uid}"]`)?.focus(),
+      );
+    }
+  };
+
+  const selectCard = (uid: number, viaKeyboard: boolean) => {
+    if (locked) return;
+    if (selected === uid) {
+      cancel();
+      return;
+    }
+    setSelection({ uid, at: view.actionCount });
+    const cardTargets = targetsFor(view, uid);
+    const first = cardTargets[0];
+    setPreviewKey(cardTargets.length === 1 || viaKeyboard ? (first?.key ?? null) : null);
+    if (viaKeyboard) focusTarget(first?.key);
+  };
+
+  const play = (target: Target) => {
+    setSelection(null);
+    setPreviewKey(null);
+    setLockedAt(view.actionCount);
+    send(target.action);
+  };
+
+  const handlers: TargetHandlers = {
+    onActivate: (target) => {
+      if (locked) return;
+      // Touch: the first tap on one of several targets previews it, the second plays.
+      if (pointerType.current === "touch" && targets.length > 1 && previewKey !== target.key) {
+        setPreviewKey(target.key);
+        return;
+      }
+      play(target);
+    },
+    onHover: (target) => {
+      if (target) setPreviewKey(target.key);
+      else if (targets.length > 1) setPreviewKey(null);
+    },
+    onPointerDown: (e) => {
+      pointerType.current = e.pointerType;
+    },
+    disabled: locked,
+  };
+
+  const pass = () => {
+    if (!canPass || locked) return;
+    // Two steps while the hand is not empty: the button becomes "Confirm Pass" for 3 seconds.
+    if (view.you.hand.length > 0 && !confirmingPass) {
+      setPassConfirm({ at: view.actionCount });
+      return;
+    }
+    setPassConfirm(null);
+    setLockedAt(view.actionCount);
+    send({ type: "pass" });
+  };
+
+  const onKey = (e: {
+    key: string;
+    target: EventTarget | null;
+    ctrlKey: boolean;
+    metaKey: boolean;
+    altKey: boolean;
+    preventDefault: () => void;
+    defaultPrevented: boolean;
+  }) => {
+    if (e.target instanceof HTMLInputElement || e.defaultPrevented) return;
+    if (e.key === "Escape") {
+      if (confirmingPass) setPassConfirm(null);
+      if (selected !== null) cancel();
+      return;
+    }
+    if ((e.key === "p" || e.key === "P") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      pass();
+      return;
+    }
+    const forward = e.key === "ArrowRight" || e.key === "ArrowDown";
+    const back = e.key === "ArrowLeft" || e.key === "ArrowUp";
+    if (!forward && !back) return;
+    const step = forward ? 1 : -1;
+    e.preventDefault();
+    if (selected !== null && targets.length > 0) {
+      const i = targets.findIndex((t) => t.key === previewKey);
+      const next = targets[(i + step + targets.length) % targets.length] as Target;
+      setPreviewKey(next.key);
+      focusTarget(next.key);
+      return;
+    }
+    const cards = [
+      ...(boardRef.current?.querySelectorAll<HTMLElement>(".hand-card:not(:disabled)") ?? []),
+    ];
+    if (cards.length === 0) return;
+    const i = cards.indexOf(document.activeElement as HTMLElement);
+    (cards[(i + step + cards.length) % cards.length] as HTMLElement).focus();
+  };
+
+  // Keyboard play works wherever focus is on the page, as long as no dialog is open.
+  useEffect(() => {
+    const onWindowKey = (e: KeyboardEvent) => {
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+      onKey(e);
+    };
+    window.addEventListener("keydown", onWindowKey);
+    return () => window.removeEventListener("keydown", onWindowKey);
+  });
+
+  const rowTarget = (side: "you" | "opponent", row: RowId) =>
+    targets.find((t) => t.kind === "row" && t.side === side && t.row === row);
+  const hornTarget = (row: RowId) => targets.find((t) => t.kind === "horn" && t.row === row);
+  const unitTargets = new Map(
+    targets.flatMap((t) => (t.kind === "unit" ? [[t.uid, t] as const] : [])),
+  );
+  const battlefield = targets.find((t) => t.kind === "battlefield");
+  const selectedName =
+    selected === null ? "" : cardName(view.you.hand.find((c) => c.uid === selected)?.cardId ?? "");
+  const noUnitTargets = new Map<number, Target>();
+
   return (
-    <div className="board" data-testid="board" data-action-count={view.actionCount}>
+    <div
+      className={`board${locked ? " locked" : ""}`}
+      data-testid="board"
+      data-action-count={view.actionCount}
+      ref={boardRef}
+    >
       <aside className="side">
         <PlayerPanel
           who="opponent"
@@ -70,6 +215,7 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
           leader={view.opponent.leader}
           gems={view.opponent.gems}
           score={view.board.opponent.score}
+          scoreDelta={effects?.totalDelta.opponent ?? 0}
           passed={view.opponent.passed}
           handSize={view.opponent.handSize}
           active={view.turn === "opponent"}
@@ -103,17 +249,19 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
           leader={view.you.leader}
           gems={view.you.gems}
           score={view.board.you.score}
+          scoreDelta={effects?.totalDelta.you ?? 0}
           passed={view.you.passed}
           handSize={view.you.hand.length}
           active={view.turn === "you"}
         />
         <button
           type="button"
-          className="pass-button"
-          disabled={!canPass}
-          onClick={() => send({ type: "pass" })}
+          className={`pass-button${confirmingPass ? " confirming" : ""}`}
+          disabled={!canPass || locked}
+          onClick={pass}
+          aria-keyshortcuts="P"
         >
-          Pass
+          {confirmingPass ? "Confirm Pass" : "Pass"}
         </button>
       </aside>
 
@@ -124,8 +272,12 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
             side="opponent"
             row={row}
             view={view.board.opponent.rows[row]}
-            leaderHorn={view.board.opponent.rows[row].leaderHorn}
             weathered={weathered.has(row)}
+            rowTarget={rowTarget("opponent", row)}
+            unitTargets={noUnitTargets}
+            previewKey={activeTarget?.key ?? null}
+            effects={effects}
+            handlers={handlers}
           />
         ))}
         <div className="divider" />
@@ -135,12 +287,28 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
             side="you"
             row={row}
             view={view.board.you.rows[row]}
-            leaderHorn={view.board.you.rows[row].leaderHorn}
             weathered={weathered.has(row)}
-            target={plays.has(row)}
-            onPick={() => playTo(row)}
+            rowTarget={rowTarget("you", row)}
+            hornTarget={hornTarget(row)}
+            unitTargets={unitTargets}
+            previewKey={activeTarget?.key ?? null}
+            effects={effects}
+            handlers={handlers}
           />
         ))}
+        {battlefield ? (
+          <button
+            type="button"
+            className="battlefield-target"
+            aria-label={`Play ${selectedName} on the battlefield`}
+            data-target-key={battlefield.key}
+            disabled={locked}
+            onPointerDown={handlers.onPointerDown}
+            onClick={() => handlers.onActivate(battlefield)}
+          >
+            <span>Play {selectedName}</span>
+          </button>
+        ) : null}
       </section>
 
       <Piles
@@ -154,23 +322,29 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
       />
 
       <section className="hand" aria-label="Your hand">
+        {effects && effects.drawn > 0 ? (
+          <span className="draw-preview" data-testid="draw-preview">
+            +{effects.drawn} cards
+          </span>
+        ) : null}
         {view.you.hand.map((card) => {
           const redraw = view.phase === "redraw";
-          const playable = redraw
+          const legal = redraw
             ? view.legalActions.some((a) => a.type === "redraw" && a.card === card.uid)
-            : playsFor(view, card.uid).size > 0;
+            : playable.has(card.uid);
           return (
             <button
               key={card.uid}
               type="button"
               className={`hand-card${selected === card.uid ? " selected" : ""}`}
-              disabled={!playable}
+              disabled={locked || !legal}
               aria-pressed={redraw ? undefined : selected === card.uid}
               aria-label={`${redraw ? "Return " : ""}${cardName(card.cardId)}${seen.has(card.uid) ? " (seen by opponent)" : ""}`}
-              onClick={() =>
+              data-hand-uid={card.uid}
+              onClick={(e: MouseEvent) =>
                 redraw
                   ? send({ type: "redraw", card: card.uid })
-                  : setSelected(selected === card.uid ? null : card.uid)
+                  : selectCard(card.uid, e.detail === 0)
               }
               data-testid="hand-card"
             >
@@ -197,7 +371,8 @@ function RedrawPanel({ view, send }: { view: SeatView; send: (action: Action) =>
       ) : (
         <>
           <p>Redraw: tap up to 2 cards to return them ({returned}/2 returned).</p>
-          <button type="button" onClick={() => send({ type: "confirmRedraw" })}>
+          {/* biome-ignore lint/a11y/noAutofocus: the only action during Redraw, so keyboard players keep their hand with Enter */}
+          <button type="button" autoFocus onClick={() => send({ type: "confirmRedraw" })}>
             Keep hand
           </button>
         </>

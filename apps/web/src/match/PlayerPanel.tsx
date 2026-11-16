@@ -19,6 +19,7 @@ export function PlayerPanel(props: {
   handSize: number;
   active: boolean;
   knownHand?: CardRef[];
+  scoreDelta?: number;
 }) {
   const state = leaderState(props.leader);
   const name = props.who === "you" ? "You" : "Opponent";
@@ -59,6 +60,14 @@ export function PlayerPanel(props: {
         aria-label={`Score ${props.score}`}
       >
         {props.score}
+        {props.scoreDelta ? (
+          <span
+            className={`delta total ${props.scoreDelta > 0 ? "up" : "down"}`}
+            data-testid={`total-delta-${props.who}`}
+          >
+            {props.scoreDelta > 0 ? `+${props.scoreDelta}` : props.scoreDelta}
+          </span>
+        ) : null}
       </div>
     </section>
   );

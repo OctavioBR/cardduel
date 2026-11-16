@@ -1,10 +1,11 @@
 import { DEV_PLAIN_CARDS, devPlainDeck, getCatalog } from "@card-duel/catalog";
 import type { Seat } from "@card-duel/engine";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
 import { LocalRoom } from "../room/local-room";
+import { SCENARIOS, type ScenarioName } from "../room/local-scenarios";
 import { useRoom } from "../room/useRoom";
 
 /** Parses `?seed=` so a Local Room Match is reproducible. */
@@ -37,13 +38,32 @@ export function LocalRoomPage() {
   const [params] = useSearchParams();
   const seed = seedFromParams(params);
   const decks: LocalDecks = params.get("deck") === "starter" ? "starter" : "plain";
-  const room = useMemo(() => createDevLocalRoom(seed, decks), [seed, decks]);
+  const scenario = params.get("scenario");
+  const room = useMemo(() => {
+    if (scenario && scenario in SCENARIOS) {
+      const { setup, prepare } = SCENARIOS[scenario as ScenarioName];
+      return new LocalRoom(setup, prepare);
+    }
+    return createDevLocalRoom(seed, decks);
+  }, [seed, decks, scenario]);
   const state = useRoom(room);
   const [seat, setSeat] = useState<Seat>(room.viewingSeat);
   const viewSeat = (s: Seat) => {
     room.viewSeat(s);
     setSeat(s);
   };
+  // "S" switches Seat, so a whole Local Room Match can be played from the keyboard.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key === "s" || e.key === "S") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const next: Seat = room.viewingSeat === 0 ? 1 : 0;
+        room.viewSeat(next);
+        setSeat(next);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [room]);
   if (!state.view) return null;
   return (
     <>

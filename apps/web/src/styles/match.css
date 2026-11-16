@@ -395,3 +395,102 @@ button.pile:hover .pile-stack {
 .redraw-panel p {
   margin: 0;
 }
+
+/* Tap to play with Play Previews (#35) */
+.field {
+  position: relative;
+}
+.board-row.target,
+.horn-slot.target,
+.unit.target {
+  cursor: pointer;
+}
+.horn-slot.target {
+  outline: 2px solid var(--cd-text);
+  border: 0;
+  padding: 0;
+  color: var(--cd-muted);
+}
+.unit {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: var(--cd-radius);
+}
+.unit.target {
+  outline: 2px dashed var(--cd-text);
+  outline-offset: 1px;
+}
+.unit.doomed .cd-card {
+  box-shadow: inset 0 0 0 3px var(--cd-lowered);
+  background: color-mix(in srgb, var(--cd-lowered) 30%, var(--cd-card));
+}
+.unit.ghost {
+  opacity: 0.55;
+  outline: 1px dashed var(--cd-muted);
+}
+.board [data-previewing="true"] {
+  outline: 3px solid var(--cd-text);
+}
+.delta {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: var(--cd-muted);
+  color: #111;
+}
+.delta.up {
+  background: var(--cd-raised);
+}
+.delta.down {
+  background: var(--cd-lowered);
+}
+.delta.badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  z-index: 1;
+}
+.delta.total {
+  font-size: 14px;
+  display: block;
+  text-align: center;
+  letter-spacing: 0;
+}
+.battlefield-target {
+  position: absolute;
+  inset: 6px;
+  background: #ffffff08;
+  border: 2px dashed var(--cd-text);
+  border-radius: 10px;
+  display: grid;
+  place-items: end center;
+  padding-bottom: 12px;
+  color: var(--cd-text);
+  font-weight: 800;
+}
+.battlefield-target span {
+  background: var(--cd-panel);
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+.draw-preview {
+  flex: none;
+  align-self: center;
+  font-weight: 800;
+  color: #111;
+  background: var(--cd-raised);
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+.pass-button.confirming {
+  background: var(--cd-lowered);
+  color: #111;
+}
+.board.locked .hand,
+.board.locked .field {
+  cursor: progress;
+}

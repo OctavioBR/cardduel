@@ -20,8 +20,14 @@ export class LocalRoom implements RoomConnection {
   private state: MatchState;
   private viewing: Seat = 0;
 
-  constructor(setup: MatchSetup) {
-    const { state, events } = createMatch(setup);
+  /**
+   * `prepare` may rearrange the freshly created Match (development scenarios only), for
+   * example to put chosen cards on the battlefield.
+   */
+  constructor(setup: MatchSetup, prepare?: (state: MatchState) => MatchState) {
+    const created = createMatch(setup);
+    const state = prepare ? prepare(created.state) : created.state;
+    const events = prepare ? [] : created.events;
     this.state = state;
     this.viewing = state.turn ?? 0;
     this.publish(events);
