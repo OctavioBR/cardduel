@@ -6,12 +6,17 @@ export function HomePage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [competitive, setCompetitive] = useState(false);
 
   const create = async () => {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch("/api/rooms", { method: "POST" });
+      const res = await fetch("/api/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ competitive }),
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = (await res.json()) as { code: string };
       navigate(`/r/${body.code}`);
@@ -33,6 +38,14 @@ export function HomePage() {
       <h1>Card Duel</h1>
       <section>
         <h2>Create a Room</h2>
+        <label>
+          <input
+            type="checkbox"
+            checked={competitive}
+            onChange={(e) => setCompetitive(e.target.checked)}
+          />{" "}
+          Competitive Room
+        </label>
         <button type="button" onClick={create} disabled={creating}>
           Create Room
         </button>

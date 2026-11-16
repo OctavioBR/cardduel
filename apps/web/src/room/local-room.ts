@@ -52,6 +52,8 @@ export class LocalRoom implements RoomConnection {
     this.publish(result.events);
   }
 
+  takeSeat(_deckId: string): void {}
+
   close(): void {
     this.emitter.update({ status: "closed" });
   }
@@ -77,6 +79,7 @@ export class LocalRoom implements RoomConnection {
         status: "open",
         seat: this.viewing,
         waitingCode: null,
+        lobby: null,
         view: viewFor(this.state, this.viewing),
         error: null,
       },

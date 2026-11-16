@@ -33,7 +33,6 @@ function harness() {
   const timers: Array<{ fn: () => void; ms: number }> = [];
   const room = new WebSocketRoom({
     url: "ws://localhost/api/rooms/ABC234/ws",
-    token: "t 1",
     createSocket: (url) => {
       const s = new FakeSocket(url);
       sockets.push(s);
@@ -55,13 +54,22 @@ const VIEW = viewFor(
 );
 
 describe("WebSocketRoom", () => {
-  it("connects with the token and tracks waiting, views and errors", () => {
+  it("connects with the session cookie and tracks lobby, views and errors", () => {
     const { room, sockets } = harness();
     const socket = sockets[0] as FakeSocket;
-    expect(socket.url).toBe("ws://localhost/api/rooms/ABC234/ws?token=t%201");
+    expect(socket.url).toBe("ws://localhost/api/rooms/ABC234/ws");
     expect(room.getState().status).toBe("connecting");
     socket.open();
-    socket.receive({ type: "waiting", seat: 0, code: "ABC234" });
+    socket.receive({
+      type: "lobby",
+      lobby: {
+        code: "ABC234",
+        competitive: false,
+        seat: 0,
+        you: { seated: false, deckName: null },
+        opponent: { present: false, seated: false, username: null },
+      },
+    });
     expect(room.getState()).toMatchObject({ status: "open", seat: 0, waitingCode: "ABC234" });
     const updates: unknown[] = [];
     room.subscribe((u) => updates.push(u.events));
@@ -83,6 +91,14 @@ describe("WebSocketRoom", () => {
       actionCount: 7,
       action: { type: "pass" },
     });
+  });
+
+  it("commits a Deck to take a Seat", () => {
+    const { room, sockets } = harness();
+    const socket = sockets[0] as FakeSocket;
+    socket.open();
+    room.takeSeat("deck-1");
+    expect(JSON.parse(socket.sent[0] as string)).toEqual({ type: "takeSeat", deckId: "deck-1" });
   });
 
   it("reconnects with growing backoff, and resets it after a successful open", () => {

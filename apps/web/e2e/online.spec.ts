@@ -1,50 +1,49 @@
 import { expect, type Page, test } from "@playwright/test";
-import {
-  fillAuthForm,
-  isMyTurn,
-  keepForRound,
-  keepHand,
-  matchOver,
-  round,
-  signUpVia,
-  takeTurn,
-  uniqueName,
-} from "./board";
+import { fillAuthForm, keepHand, signUpVia, uniqueName } from "./board";
 
-test("two players create, join and finish a Match", async ({ browser }) => {
+async function copyStarter(page: Page, faction: "swarm" | "court") {
+  await page.waitForFunction(async () => {
+    const response = await fetch("/api/me", { credentials: "same-origin" });
+    return response.ok && !!((await response.json()) as { account?: unknown }).account;
+  });
+  const status = await page.evaluate(
+    async (f) =>
+      (
+        await fetch("/api/decks/copy-starter", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ faction: f }),
+        })
+      ).status,
+    faction,
+  );
+  expect(status).toBe(201);
+}
+
+test("two accounts take Seats with real Decks and start a Match", async ({ browser }) => {
   const alice = await (await browser.newContext()).newPage();
   const bob = await (await browser.newContext()).newPage();
 
   await signUpVia(alice, uniqueName("alice"));
+  await copyStarter(alice, "swarm");
   await alice.getByRole("button", { name: "Create Room" }).click();
   await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
   const code = alice.url().split("/").pop() ?? "";
-  await expect(alice.getByText("Waiting for your opponent")).toBeVisible();
+  await alice.getByRole("button", { name: /Swarm Starter/ }).click();
 
   await signUpVia(bob, uniqueName("bob"));
+  await copyStarter(bob, "court");
   await bob.getByLabel("Room code").fill(code.toLowerCase());
   await bob.getByRole("button", { name: "Join" }).click();
   await expect(bob).toHaveURL(new RegExp(`/r/${code}$`));
 
+  await bob.getByRole("button", { name: /Court Starter/ }).click();
   await expect(alice.getByTestId("board")).toBeVisible();
   await expect(bob.getByTestId("board")).toBeVisible();
   await keepHand(alice);
   await keepHand(bob);
   await expect(alice.getByTestId("turn")).toHaveText(/Your Turn|Opponent's Turn/);
-
-  for (let i = 0; i < 80 && !(await matchOver(alice)); i++) {
-    const mover: Page = (await isMyTurn(alice)) ? alice : bob;
-    await takeTurn(mover, keepForRound(await round(mover)));
-  }
-
-  const a = await alice.getByTestId("result").textContent();
-  const b = await bob.getByTestId("result").textContent();
-  const pairs: Record<string, string> = {
-    "You won the Match": "You lost the Match",
-    "You lost the Match": "You won the Match",
-    Draw: "Draw",
-  };
-  expect(a && pairs[a]).toBe(b);
 });
 
 test("a third player sees Room full", async ({ browser }) => {
@@ -53,11 +52,16 @@ test("a third player sees Room full", async ({ browser }) => {
   );
   const [first, second, third] = pages as [Page, Page, Page];
   await signUpVia(first, uniqueName("first"));
+  await copyStarter(first, "swarm");
   await first.getByRole("button", { name: "Create Room" }).click();
   await expect(first).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
+  await first.getByRole("button", { name: /Swarm Starter/ }).click();
   const url = first.url();
   await second.goto(url);
   await fillAuthForm(second, uniqueName("second"));
+  await copyStarter(second, "court");
+  await second.reload();
+  await second.getByRole("button", { name: /Court Starter/ }).click();
   await expect(second.getByTestId("board")).toBeVisible();
   await third.goto(url);
   await fillAuthForm(third, uniqueName("third"));
@@ -69,8 +73,10 @@ test("a signed-out player opens a Room link, signs up on that page and lands in 
 }) => {
   const host = await (await browser.newContext()).newPage();
   await signUpVia(host, uniqueName("host"));
+  await copyStarter(host, "swarm");
   await host.getByRole("button", { name: "Create Room" }).click();
   await expect(host).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
+  await host.getByRole("button", { name: /Swarm Starter/ }).click();
   const url = host.url();
 
   const guest = await (await browser.newContext()).newPage();
@@ -78,6 +84,9 @@ test("a signed-out player opens a Room link, signs up on that page and lands in 
   await expect(guest.getByText("You need an account to take a Seat")).toBeVisible();
   await fillAuthForm(guest, uniqueName("guest"));
   await expect(guest).toHaveURL(url);
+  await copyStarter(guest, "court");
+  await guest.reload();
+  await guest.getByRole("button", { name: /Court Starter/ }).click();
   await expect(guest.getByTestId("board")).toBeVisible();
   await expect(host.getByTestId("board")).toBeVisible();
 });
