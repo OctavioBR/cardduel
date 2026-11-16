@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
 import { LocalRoom } from "../room/local-room";
-import { SCENARIOS, type ScenarioName } from "../room/local-scenarios";
+import { SCENARIOS } from "../room/local-scenarios";
 import { useRoom } from "../room/useRoom";
 
 /** Parses `?seed=` so a Local Room Match is reproducible. */
@@ -40,10 +40,8 @@ export function LocalRoomPage() {
   const decks: LocalDecks = params.get("deck") === "starter" ? "starter" : "plain";
   const scenario = params.get("scenario");
   const room = useMemo(() => {
-    if (scenario && scenario in SCENARIOS) {
-      const { setup, prepare } = SCENARIOS[scenario as ScenarioName];
-      return new LocalRoom(setup, prepare);
-    }
+    const chosen = scenario ? SCENARIOS[scenario] : undefined;
+    if (chosen) return new LocalRoom(chosen.setup, chosen.prepare);
     return createDevLocalRoom(seed, decks);
   }, [seed, decks, scenario]);
   const state = useRoom(room);

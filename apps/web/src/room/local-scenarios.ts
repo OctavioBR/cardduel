@@ -1,6 +1,8 @@
 import { getCatalog } from "@card-duel/catalog";
 import {
   applyAction,
+  type CardDefinition,
+  type LeaderAbility,
   type MatchSetup,
   type MatchState,
   ROWS,
@@ -10,15 +12,47 @@ import {
 } from "@card-duel/engine";
 
 /**
- * Development-only Local Room scenarios: fixed boards for building and testing the Play
- * Preview UI. They rearrange a fresh Match directly; never used outside /dev routes.
+ * Development-only Local Room scenarios: fixed boards for building and testing the Match
+ * UI. They rearrange a fresh Match directly; never used outside /dev routes. Seat 0 (the
+ * Swarm Deck) always has the Turn.
  */
-export type ScenarioName = "scorch" | "horn";
+export interface Scenario {
+  setup: MatchSetup;
+  prepare: (s: MatchState) => MatchState;
+}
 
-export const SCENARIOS: Record<
-  ScenarioName,
-  { setup: MatchSetup; prepare: (s: MatchState) => MatchState }
-> = {
+interface Arrangement {
+  you?: Partial<Record<RowId, string[]>>;
+  opponent?: Partial<Record<RowId, string[]>>;
+  /** Cards that must be in your hand. */
+  hand?: string[];
+  /** Cards put in your Discard Pile. */
+  discard?: string[];
+  /** Cards that must stay in your deck (moved there from the hand if dealt). */
+  deck?: string[];
+  weather?: string[];
+}
+
+/** Leader kinds a scenario can give Seat 0; v1 Leaders where they exist, else a dev Leader. */
+export const LEADER_KINDS: LeaderAbility["type"][] = [
+  "playWeatherFromDeck",
+  "clearWeather",
+  "hornRow",
+  "scorchRow",
+  "returnFromDiscard",
+  "drawChosenFromDeck",
+  "lookAtOpponentHand",
+];
+
+const DEV_CLEAR_LEADER: CardDefinition = {
+  id: "dev-leader-clear-weather",
+  kind: "leader",
+  faction: "swarm",
+  maxCopies: 1,
+  ability: { type: "clearWeather" },
+};
+
+export const SCENARIOS: Record<string, Scenario> = {
   scorch: {
     setup: starterSetup(11),
     prepare: (state) =>
@@ -46,9 +80,46 @@ export const SCENARIOS: Record<
         hand: ["neutral-war-drum"],
       }),
   },
+  medic: {
+    setup: starterSetup(13, [
+      "swarm-brood-tender",
+      "swarm-brood-tender",
+      "swarm-thornback-crawler",
+    ]),
+    prepare: (state) =>
+      arrange(state, {
+        you: { close: ["swarm-carapace-guard"] },
+        hand: ["swarm-brood-tender"],
+        discard: ["swarm-brood-tender", "swarm-thornback-crawler"],
+      }),
+  },
+  ...Object.fromEntries(LEADER_KINDS.map((kind) => [`leader-${kind}`, leaderScenario(kind)])),
 };
 
-function starterSetup(seed: number): MatchSetup {
+function leaderScenario(kind: LeaderAbility["type"]): Scenario {
+  const v1 = getCatalog("v1");
+  const leader =
+    v1.cards.find((c) => c.kind === "leader" && c.ability.type === kind) ?? DEV_CLEAR_LEADER;
+  const base = starterSetup(20 + LEADER_KINDS.indexOf(kind), ["swarm-thornback-crawler"]);
+  const setup: MatchSetup = {
+    ...base,
+    decks: [{ ...base.decks[0], leader: leader.id }, base.decks[1]],
+    cards: [...base.cards, DEV_CLEAR_LEADER],
+  };
+  return {
+    setup,
+    prepare: (state) =>
+      arrange(state, {
+        you: { close: ["swarm-carapace-guard"] },
+        opponent: { close: ["court-palace-champion", "court-halberd-guard"] },
+        discard: ["swarm-thornback-crawler"],
+        deck: kind === "clearWeather" ? [] : ["neutral-black-ice"],
+        weather: kind === "clearWeather" ? ["neutral-black-ice"] : [],
+      }),
+  };
+}
+
+function starterSetup(seed: number, extraSwarm: string[] = []): MatchSetup {
   const v1 = getCatalog("v1");
   const swarm = {
     ...v1.starterDecks.swarm,
@@ -57,6 +128,7 @@ function starterSetup(seed: number): MatchSetup {
       "neutral-wildfire",
       "swarm-thornback-crawler",
       "swarm-siege-grub",
+      ...extraSwarm,
     ],
   };
   const court = {
@@ -66,21 +138,13 @@ function starterSetup(seed: number): MatchSetup {
   return { seed, decks: [swarm, court], cards: v1.cards };
 }
 
-interface Arrangement {
-  you: Partial<Record<RowId, string[]>>;
-  opponent: Partial<Record<RowId, string[]>>;
-  /** Cards that must be in the hand of the Seat to move. */
-  hand: string[];
-}
-
-/** Confirms both Redraws, then moves named cards onto the battlefield and into the hand. */
+/** Confirms both Redraws, then moves named cards onto the battlefield, hand, deck and Discard Pile. */
 function arrange(initial: MatchState, plan: Arrangement): MatchState {
   let state = initial;
   for (const seat of [0, 1] as const) {
     const result = applyAction(state, seat, { type: "confirmRedraw" });
     if (result.ok) state = result.state;
   }
-  // Scenarios always give Seat 0 (the Swarm Deck) the Turn.
   const you: Seat = 0;
   const opponent: Seat = 1;
   state.turn = you;
@@ -94,13 +158,20 @@ function arrange(initial: MatchState, plan: Arrangement): MatchState {
     throw new Error(`Scenario needs ${cardId} for Seat ${seat}`);
   };
   for (const [seat, rows] of [
-    [you, plan.you],
-    [opponent, plan.opponent],
+    [you, plan.you ?? {}],
+    [opponent, plan.opponent ?? {}],
   ] as const) {
     for (const row of ROWS)
       for (const id of rows[row] ?? []) state.sides[seat].rows[row].units.push(take(seat, id));
   }
-  for (const id of plan.hand) {
+  for (const id of plan.discard ?? []) state.sides[you].discard.push(take(you, id));
+  for (const id of plan.weather ?? []) state.weather.push(take(you, id));
+  for (const id of plan.deck ?? []) {
+    const hand = state.sides[you].hand;
+    const i = hand.findIndex((uid) => state.cards[uid]?.cardId === id);
+    if (i >= 0) state.sides[you].deck.push(...hand.splice(i, 1));
+  }
+  for (const id of plan.hand ?? []) {
     if (!state.sides[you].hand.some((uid) => state.cards[uid]?.cardId === id)) {
       state.sides[you].hand.unshift(take(you, id));
     }

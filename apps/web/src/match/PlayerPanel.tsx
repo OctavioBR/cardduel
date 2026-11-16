@@ -20,6 +20,10 @@ export function PlayerPanel(props: {
   active: boolean;
   knownHand?: CardRef[];
   scoreDelta?: number;
+  /** Opens the Leader dialog (your own panel only). */
+  onLeader?: () => void;
+  /** Opens the cards seen in the opponent's hand. */
+  onKnownHand?: () => void;
 }) {
   const state = leaderState(props.leader);
   const name = props.who === "you" ? "You" : "Opponent";
@@ -29,14 +33,27 @@ export function PlayerPanel(props: {
       aria-label={`${name}: ${FACTION_NAME[props.faction]}`}
       data-testid={`panel-${props.who}`}
     >
-      <div
-        className={`leader-chip f-${props.faction}`}
-        role="img"
-        aria-label={`Leader ${cardName(props.leader.cardId)}, ${state.text}`}
-      >
-        <span>{cardName(props.leader.cardId)}</span>
-        <span className={`leader-state${state.ready ? " ready" : ""}`}>{state.text}</span>
-      </div>
+      {props.onLeader ? (
+        <button
+          type="button"
+          className={`leader-chip f-${props.faction}`}
+          onClick={props.onLeader}
+          aria-label={`Leader ${cardName(props.leader.cardId)}, ${state.text}`}
+          data-testid="your-leader"
+        >
+          <span>{cardName(props.leader.cardId)}</span>
+          <span className={`leader-state${state.ready ? " ready" : ""}`}>{state.text}</span>
+        </button>
+      ) : (
+        <div
+          className={`leader-chip f-${props.faction}`}
+          role="img"
+          aria-label={`Leader ${cardName(props.leader.cardId)}, ${state.text}`}
+        >
+          <span>{cardName(props.leader.cardId)}</span>
+          <span className={`leader-state${state.ready ? " ready" : ""}`}>{state.text}</span>
+        </div>
+      )}
       <div className="player-info">
         <span className="player-name">{name}</span>
         <span>{FACTION_NAME[props.faction]}</span>
@@ -48,9 +65,9 @@ export function PlayerPanel(props: {
         <span>Hand {props.handSize}</span>
         {props.passed ? <span className="passed">Passed</span> : null}
         {props.knownHand && props.knownHand.length > 0 ? (
-          <span className="known-hand">
+          <button type="button" className="known-hand" onClick={props.onKnownHand}>
             Seen in hand: {props.knownHand.map((c) => cardName(c.cardId)).join(", ")}
-          </span>
+          </button>
         ) : null}
       </div>
       <div

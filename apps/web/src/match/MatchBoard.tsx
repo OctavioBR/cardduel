@@ -4,6 +4,9 @@ import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { Card } from "../cards/Card";
 import { cardDef, cardName } from "../cards/strings";
 import { BoardRow, type TargetHandlers } from "./BoardRow";
+import { ChoiceOverlay } from "./ChoiceOverlay";
+import { LeaderDialog } from "./LeaderDialog";
+import { Overlay } from "./Overlay";
 import { Piles } from "./Piles";
 import { PlayerPanel } from "./PlayerPanel";
 import { previewEffects } from "./preview-effects";
@@ -44,6 +47,8 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
   const locked = lockedAt === view.actionCount;
   const [passConfirm, setPassConfirm] = useState<{ at: number } | null>(null);
   const confirmingPass = passConfirm?.at === view.actionCount;
+  const [leaderOpen, setLeaderOpen] = useState(false);
+  const [knownOpen, setKnownOpen] = useState(false);
   const pointerType = useRef<string>("mouse");
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -101,11 +106,16 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
     if (viaKeyboard) focusTarget(first?.key);
   };
 
+  /** Sends an action and locks input until the next view arrives. */
+  const sendLocked = (action: Action) => {
+    setLockedAt(view.actionCount);
+    send(action);
+  };
+
   const play = (target: Target) => {
     setSelection(null);
     setPreviewKey(null);
-    setLockedAt(view.actionCount);
-    send(target.action);
+    sendLocked(target.action);
   };
 
   const handlers: TargetHandlers = {
@@ -220,6 +230,7 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
           handSize={view.opponent.handSize}
           active={view.turn === "opponent"}
           knownHand={view.opponent.knownHand}
+          onKnownHand={() => setKnownOpen(true)}
         />
         <div className="round-info">
           <section className="weather-zone" aria-label="Weather">
@@ -253,6 +264,7 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
           passed={view.you.passed}
           handSize={view.you.hand.length}
           active={view.turn === "you"}
+          onLeader={() => setLeaderOpen(true)}
         />
         <button
           type="button"
@@ -356,6 +368,27 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
       </section>
 
       {view.phase === "redraw" ? <RedrawPanel view={view} send={send} /> : null}
+      {view.pendingChoice ? <ChoiceOverlay view={view} send={sendLocked} locked={locked} /> : null}
+      {leaderOpen && !view.pendingChoice ? (
+        <LeaderDialog
+          view={view}
+          send={sendLocked}
+          locked={locked}
+          onClose={() => setLeaderOpen(false)}
+        />
+      ) : null}
+      {knownOpen ? (
+        <Overlay title="Cards seen in your opponent's hand" onClose={() => setKnownOpen(false)}>
+          <div className="overlay-cards">
+            {view.opponent.knownHand.length === 0 ? (
+              <p className="overlay-empty">None are left in their hand.</p>
+            ) : null}
+            {view.opponent.knownHand.map((c) => (
+              <Card key={c.uid} cardId={c.cardId} size="tile" />
+            ))}
+          </div>
+        </Overlay>
+      ) : null}
       {view.phase === "ended" && view.result ? <ResultBanner view={view} /> : null}
     </div>
   );
