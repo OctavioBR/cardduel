@@ -312,8 +312,10 @@ export class Room extends DurableObject<Env> {
           holder.deckName = null;
         }
       this.rematch = { accepted: [false, false], declined: false };
-      await this.ctx.storage.delete(["setup", "catalogVersion", "log", "snapshot"]);
-      await this.ctx.storage.put({ seats: this.seats, rematch: this.rematch });
+      await this.ctx.storage.transaction(async (storage) => {
+        await storage.delete(["setup", "catalogVersion", "log", "snapshot"]);
+        await storage.put({ seats: this.seats, rematch: this.rematch });
+      });
       this.broadcastLobby();
     } else {
       await this.ctx.storage.put("rematch", this.rematch);

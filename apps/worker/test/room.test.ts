@@ -118,6 +118,10 @@ describe("Room", () => {
       expect(lobby).toMatchObject({ code: room.code, competitive: true, you: { seated: false } });
       expect(lobby.you.lastDeckId).toBeTypeOf("string");
     }
+    await evictDurableObject(env.ROOMS.getByName(room.code));
+    const reconnect = await TestSocket.open(room.code, room.cookies[0]);
+    expect(await reconnect.nextLobby()).toEqual(lobbies[0]);
+    room.sockets[0] = reconnect;
     room.sockets[0].takeSeat(lobbies[0]?.you.lastDeckId as string);
     await Promise.all(room.sockets.map((socket) => socket.nextLobby()));
     room.sockets[1].takeSeat(lobbies[1]?.you.lastDeckId as string);
