@@ -38,7 +38,7 @@ export default defineConfig({
       ? []
       : [
           {
-            command: `pnpm exec vite build && pnpm --filter @card-duel/worker exec wrangler dev --port ${WORKER_PORT}`,
+            command: `pnpm exec vite build && pnpm --filter @card-duel/worker exec wrangler d1 migrations apply DB --local && pnpm --filter @card-duel/worker exec wrangler dev --port ${WORKER_PORT}`,
             url: `http://localhost:${WORKER_PORT}/api/health`,
             reuseExistingServer: !process.env.CI,
             timeout: 120_000,
