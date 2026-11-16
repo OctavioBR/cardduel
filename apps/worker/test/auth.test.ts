@@ -118,12 +118,14 @@ describe("sign in and sign out", () => {
     const { cookie } = await signUp("Noether");
     const res = await post("/api/auth/signout", {}, cookie);
     expect(res.headers.get("Set-Cookie")).toContain("Max-Age=0");
-    expect((await meWith(cookie)).status).toBe(401);
+    expect(await (await meWith(cookie)).json()).toEqual({ account: null });
   });
 
-  it("/api/me without a session is 401", async () => {
-    expect((await SELF.fetch(`${BASE}/api/me`)).status).toBe(401);
-    expect((await meWith(`${SESSION_COOKIE}=forged`)).status).toBe(401);
+  it("/api/me without a valid session answers with no account", async () => {
+    const res = await SELF.fetch(`${BASE}/api/me`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ account: null });
+    expect(await (await meWith(`${SESSION_COOKIE}=forged`)).json()).toEqual({ account: null });
   });
 });
 
@@ -187,7 +189,7 @@ describe("sessions", () => {
     const { cookie } = await signUp("Kovalevskaya");
     const mine = "account_id = (SELECT id FROM accounts WHERE username_key = 'kovalevskaya')";
     await env.DB.prepare(`UPDATE sessions SET expires_at = 1 WHERE ${mine}`).run();
-    expect((await meWith(cookie)).status).toBe(401);
+    expect(await (await meWith(cookie)).json()).toEqual({ account: null });
     expect(
       await env.DB.prepare(`SELECT COUNT(*) AS n FROM sessions WHERE ${mine}`).first(),
     ).toEqual({ n: 0 });

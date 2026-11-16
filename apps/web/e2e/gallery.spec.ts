@@ -7,7 +7,9 @@ for (const scale of [1, 2]) {
     test("the gallery renders every catalog card at every size", async ({ page }) => {
       const errors: string[] = [];
       page.on("console", (m) => {
-        if (m.type() === "error") errors.push(m.text());
+        // Resource loads can fail when no Worker runs behind Vite; only app errors count.
+        if (m.type() === "error" && !m.text().startsWith("Failed to load resource"))
+          errors.push(m.text());
       });
       await page.goto("/dev/cards");
       const rows = page.getByTestId("gallery-card");

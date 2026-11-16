@@ -76,3 +76,26 @@ export async function roundResultShown(page: Page): Promise<boolean> {
     .then(() => true)
     .catch(() => false);
 }
+
+/** A username unique to this test run (the local D1 persists between runs). */
+export function uniqueName(prefix: string): string {
+  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** Signs up through the /signup page and returns to the given path. */
+export async function signUpVia(page: Page, username: string, next = "/"): Promise<void> {
+  await page.goto(`/signup?next=${encodeURIComponent(next)}`);
+  await fillAuthForm(page, username);
+  await expect(page).toHaveURL(new RegExp(`${next.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
+}
+
+/** Fills and submits the sign-up form that is on the page. */
+export async function fillAuthForm(
+  page: Page,
+  username: string,
+  password = "correct horse battery",
+): Promise<void> {
+  await page.getByLabel("Username").fill(username);
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Sign up" }).click();
+}

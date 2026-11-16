@@ -165,7 +165,8 @@ export async function signOut(request: Request, db: D1Database): Promise<Respons
 
 export async function me(request: Request, db: D1Database): Promise<Response> {
   const session = await readSession(db, request);
-  if (!session) return json({ error: "signed_out", message: "Not signed in." }, { status: 401 });
+  // Signed out is a normal state, not an error: answer 200 with no account.
+  if (!session) return json({ account: null });
   const response = json({ account: session.account });
   return session.refreshedCookie ? withCookie(response, session.refreshedCookie) : response;
 }

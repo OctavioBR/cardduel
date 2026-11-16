@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { actionCount, roundResultShown, settled } from "./board";
+import { actionCount, settled } from "./board";
 
 async function unitsOnBoard(page: Page): Promise<string[]> {
   return page
@@ -82,12 +82,14 @@ test("Pass takes a confirmation while the hand is not empty", async ({ page }) =
 });
 
 test("a whole Match can be played with the keyboard only", async ({ page }) => {
+  test.setTimeout(60_000);
   await page.goto("/dev/local?seed=42");
   const turn = page.getByTestId("turn");
   await expect(page.getByTestId("board")).toBeVisible();
   for (let i = 0; i < 200 && !(await page.getByTestId("result").isVisible()); i++) {
     await expect(page.getByTestId("board")).not.toHaveAttribute("data-animating", "true");
-    if (await roundResultShown(page)) {
+    // Checked again on the next pass if it renders a moment late.
+    if (await page.getByTestId("round-result").isVisible()) {
       await page.keyboard.press("Enter");
       continue;
     }

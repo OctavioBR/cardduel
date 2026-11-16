@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { useAuth } from "../auth/AuthContext";
+import { AuthForm } from "../auth/AuthForm";
 import { CardDetailProvider } from "../cards/CardDetail";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
@@ -9,6 +11,28 @@ import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
 
 export function RoomPage() {
   const { code = "" } = useParams();
+  const { account } = useAuth();
+  if (account === undefined) {
+    return (
+      <main className="page">
+        <p>Loading…</p>
+      </main>
+    );
+  }
+  if (account === null) {
+    // A shared Room link while signed out: sign up (or in) right here, then go on to the Seat.
+    return (
+      <main className="page narrow">
+        <h1>Room {code.toUpperCase()}</h1>
+        <p>You need an account to take a Seat. It takes a moment.</p>
+        <AuthForm initialMode="signup" />
+      </main>
+    );
+  }
+  return <RoomConnectionPage code={code} />;
+}
+
+function RoomConnectionPage({ code }: { code: string }) {
   const [connection, setConnection] = useState<WebSocketRoom | null>(null);
   useEffect(() => {
     const room = new WebSocketRoom({ url: roomSocketUrl(code), token: playerToken() });
