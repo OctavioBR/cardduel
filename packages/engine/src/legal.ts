@@ -1,6 +1,7 @@
 import type { Action } from "./actions";
 import { ROWS, type RowId, type UnitDefinition } from "./cards";
 import { choiceOptions } from "./choice";
+import { leaderActions } from "./leader";
 import type { MatchState, Seat, Uid } from "./state";
 import { defOf } from "./strength";
 
@@ -49,6 +50,7 @@ export function legalActions(state: MatchState, seat: Seat): Action[] {
         break;
     }
   }
+  actions.push(...leaderActions(state, seat));
   actions.push({ type: "pass" });
   return actions;
 }

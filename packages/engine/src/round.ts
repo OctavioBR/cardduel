@@ -1,14 +1,10 @@
 import { ROWS } from "./cards";
 import type { CardRef, MatchEvent } from "./events";
+import { leaderUsable } from "./leader";
 import { discardToOwner, ref } from "./play";
 import { nextInt } from "./rng";
 import { type MatchResult, type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
 import { computeStrengths, defOf, totalScore } from "./strength";
-
-/** Whether the Seat could still use an active Leader ability. Wired up with Leader abilities. */
-export function leaderUsable(_state: MatchState, _seat: Seat): boolean {
-  return false;
-}
 
 /** Hands the Turn on after `actor` has acted, ending the Round when both have Passed. */
 export function afterTurn(state: MatchState, actor: Seat, events: MatchEvent[]): void {

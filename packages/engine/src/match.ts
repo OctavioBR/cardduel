@@ -2,6 +2,7 @@ import { type Action, actionKey, type LoggedAction, type Rejection } from "./act
 import { type CardDefinition, ROWS, type RowId } from "./cards";
 import { resolveChoice, settlePending } from "./choice";
 import type { MatchEvent } from "./events";
+import { useLeader } from "./leader";
 import { legalActions, MAX_REDRAW } from "./legal";
 import { draw, ref, resolvePlay, withStrengthEvents } from "./play";
 import { nextInt, shuffle, toSeed } from "./rng";
@@ -104,6 +105,10 @@ export function resolve(state: MatchState, seat: Seat, action: Action, events: M
       withStrengthEvents(state, events, () => resolvePlay(state, seat, action, events));
       settlePending(state, events);
       return;
+    case "leader":
+      withStrengthEvents(state, events, () => useLeader(state, seat, action, events));
+      settlePending(state, events);
+      return;
     case "choose": {
       // Choices raised while resolving this one are made before the rest of the queue.
       const rest = state.pending.slice(1);
@@ -204,6 +209,7 @@ function emptySide(setup: MatchSetup, seat: Seat): SideState {
     rows,
     gems: STARTING_GEMS,
     passed: false,
+    known: [],
     redraw: { returned: 0, done: false },
   };
 }

@@ -1,7 +1,9 @@
 import type { Action, ChooseAction } from "./actions";
 import type { MatchEvent } from "./events";
+import { distinctIds, takeFromDeck, weatherInDeck } from "./leader";
 import { playableRows } from "./legal";
-import { medicTargets, playUnit } from "./play";
+import { medicTargets, playUnit, ref } from "./play";
+import { shuffle } from "./rng";
 import type { MatchState, PendingChoice } from "./state";
 import { defOf } from "./strength";
 
@@ -14,6 +16,18 @@ export function choiceOptions(state: MatchState, pending: PendingChoice): Action
         if (def.kind !== "unit") return [];
         return playableRows(def).map((row): ChooseAction => ({ type: "choose", card, row }));
       });
+    case "leaderWeather":
+      return weatherInDeck(state, pending.seat).map(
+        (cardId): ChooseAction => ({ type: "choose", cardId }),
+      );
+    case "leaderReturn":
+      return state.sides[pending.seat].discard.map(
+        (card): ChooseAction => ({ type: "choose", card }),
+      );
+    case "leaderDraw":
+      return distinctIds(state, state.sides[pending.seat].deck).map(
+        (cardId): ChooseAction => ({ type: "choose", cardId }),
+      );
   }
 }
 
@@ -31,6 +45,35 @@ export function resolveChoice(
       const discard = state.sides[pending.seat].discard;
       discard.splice(discard.indexOf(action.card), 1);
       playUnit(state, pending.seat, action.card, action.row, events, "medic");
+      return;
+    }
+    case "leaderWeather": {
+      if (action.cardId === undefined) throw new Error("Needs a card id");
+      const uid = takeFromDeck(state, pending.seat, action.cardId);
+      state.weather.push(uid);
+      events.push({
+        type: "cardPlayed",
+        seat: pending.seat,
+        card: ref(state, uid),
+        zone: "weather",
+        via: "leader",
+      });
+      return;
+    }
+    case "leaderReturn": {
+      if (action.card === undefined) throw new Error("Needs a card");
+      const side = state.sides[pending.seat];
+      side.discard.splice(side.discard.indexOf(action.card), 1);
+      side.hand.push(action.card);
+      events.push({ type: "returnedToHand", seat: pending.seat, card: ref(state, action.card) });
+      return;
+    }
+    case "leaderDraw": {
+      if (action.cardId === undefined) throw new Error("Needs a card id");
+      const uid = takeFromDeck(state, pending.seat, action.cardId);
+      state.sides[pending.seat].hand.push(uid);
+      shuffle(state, state.sides[pending.seat].deck);
+      events.push({ type: "drew", seat: pending.seat, count: 1, cards: [ref(state, uid)] });
       return;
     }
   }

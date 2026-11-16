@@ -1,4 +1,4 @@
-import type { CardId, RowId } from "./cards";
+import type { CardId, LeaderAbility, RowId } from "./cards";
 import type { MatchResult, PendingKind, Seat, Uid } from "./state";
 
 /** A card made visible by an event: its instance id plus what it is. */
@@ -33,6 +33,10 @@ export type MatchEvent =
       via?: PlayedVia;
     }
   | { type: "weatherCleared"; cards: CardRef[] }
+  /** A Leader's active ability was used. */
+  | { type: "leaderUsed"; seat: Seat; ability: LeaderAbility["type"]; row?: RowId }
+  /** Cards in `seat`'s opponent's hand were revealed to `seat` (both may see which). */
+  | { type: "handRevealed"; seat: Seat; cards: CardRef[] }
   /** Units destroyed (Scorch); each went to its Controller's Discard Pile. */
   | { type: "destroyed"; cards: CardRef[] }
   /** A card left the battlefield for its player's hand (Decoy). */
@@ -72,4 +76,4 @@ export interface DrewEvent {
 }
 
 /** What Played a card onto the battlefield. */
-export type PlayedVia = "hand" | "medic" | "muster";
+export type PlayedVia = "hand" | "medic" | "muster" | "leader";
