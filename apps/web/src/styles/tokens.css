@@ -1,0 +1,18 @@
+/* Design tokens of the chosen direction, "Clean modern" (#33). */
+:root {
+  --cd-bg: #16171b;
+  --cd-panel: #1e2026;
+  --cd-line: #2c2f37;
+  --cd-card: #2a2d35;
+  --cd-card-2: #33363f;
+  --cd-text: #f3f4f6;
+  --cd-muted: #9ca3af;
+  --cd-swarm: #f0662e;
+  --cd-court: #1d6fc2;
+  --cd-neutral: #6b7280;
+  --cd-raised: #34d399;
+  --cd-lowered: #f87171;
+  --cd-focus: #f3f4f6;
+  --cd-radius: 6px;
+  --cd-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

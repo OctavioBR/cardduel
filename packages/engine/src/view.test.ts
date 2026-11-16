@@ -3,7 +3,7 @@ import type { Action } from "./actions";
 import { type CardDefinition, ROWS } from "./cards";
 import { legalActions } from "./legal";
 import { applyAction, createMatch } from "./match";
-import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
+import { type MatchState, opponent, SEATS, type Seat } from "./state";
 import { deck, playCard, repeat, setup, startMatch, unit } from "./testing/fixtures";
 import { expectNoHiddenCards, uidsIn } from "./testing/hidden";
 import { playRandomMatch } from "./testing/random";

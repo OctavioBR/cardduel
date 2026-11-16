@@ -16,7 +16,7 @@ export function checkValidDeck(deck: DeckInput, catalog: Catalog): DeckProblem[]
     problems.push({ code: "no_leader", message: "Choose a Leader." });
   } else {
     const leader = catalog.byId.get(deck.leader);
-    if (!leader || leader.kind !== "leader" || leader.faction !== deck.faction) {
+    if (leader?.kind !== "leader" || leader.faction !== deck.faction) {
       problems.push({
         code: "bad_leader",
         message: `${name(deck.leader)} is not a Leader of this Faction.`,

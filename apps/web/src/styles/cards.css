@@ -1,0 +1,194 @@
+/* Card component (#30). Sizes are in stage pixels; the Match stage scales them (ADR-0006). */
+.cd-card {
+  --tint: var(--cd-neutral);
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px;
+  background: var(--cd-card);
+  color: var(--cd-text);
+  border-radius: var(--cd-radius);
+  box-shadow: inset 0 -4px 0 var(--tint);
+  font-family: var(--cd-font);
+  overflow: hidden;
+}
+.cd-f-swarm {
+  --tint: var(--cd-swarm);
+}
+.cd-f-court {
+  --tint: var(--cd-court);
+}
+.cd-f-neutral {
+  --tint: var(--cd-neutral);
+}
+
+.cd-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 18px;
+}
+.cd-strength {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cd-hero .cd-strength {
+  color: #111;
+  background: var(--cd-text);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.cd-strength.cd-raised {
+  color: var(--cd-raised);
+}
+.cd-strength.cd-lowered {
+  color: var(--cd-lowered);
+}
+.cd-hero .cd-strength.cd-raised,
+.cd-hero .cd-strength.cd-lowered {
+  color: #111;
+}
+.cd-special-mark {
+  color: var(--cd-muted);
+  display: inline-flex;
+}
+.cd-rows {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--cd-muted);
+}
+.cd-icons {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  color: var(--cd-text);
+  min-height: 11px;
+}
+.cd-icon {
+  display: block;
+  flex: none;
+}
+.cd-art-box {
+  flex: 1;
+  min-height: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--cd-card-2);
+}
+.cd-art,
+.cd-art-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.cd-art-ground {
+  fill: var(--cd-card-2);
+}
+.cd-art-shape {
+  fill: var(--tint);
+}
+.cd-name {
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.1;
+}
+.cd-text {
+  color: var(--cd-muted);
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+}
+.cd-count {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--cd-text);
+  color: #111;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* Board token: Strength and icons only. */
+.cd-token {
+  width: 56px;
+  height: 72px;
+  padding: 4px 3px 6px;
+  align-items: center;
+  justify-content: space-between;
+}
+.cd-token .cd-top {
+  flex-direction: column;
+  gap: 3px;
+}
+.cd-token .cd-strength {
+  font-size: 24px;
+}
+.cd-token.cd-hero .cd-strength {
+  font-size: 18px;
+}
+
+/* Hand card. */
+.cd-hand {
+  width: 92px;
+  height: 128px;
+}
+.cd-hand .cd-strength {
+  font-size: 20px;
+}
+.cd-hand .cd-name {
+  font-size: 10.5px;
+}
+.cd-hand .cd-text {
+  font-size: 8.5px;
+  max-height: 20px;
+}
+
+/* Deck builder tile. */
+.cd-tile {
+  width: 120px;
+  height: 168px;
+}
+.cd-tile .cd-strength {
+  font-size: 22px;
+}
+.cd-tile .cd-name {
+  font-size: 12px;
+}
+.cd-tile .cd-text {
+  font-size: 9.5px;
+  max-height: 34px;
+}
+
+/* Card Detail. */
+.cd-detail {
+  width: 280px;
+  height: 392px;
+  padding: 12px;
+  gap: 8px;
+  border-radius: 12px;
+  box-shadow: inset 0 -8px 0 var(--tint);
+}
+.cd-detail .cd-strength {
+  font-size: 44px;
+}
+.cd-detail.cd-hero .cd-strength {
+  padding: 2px 10px;
+}
+.cd-detail .cd-name {
+  font-size: 22px;
+}
+.cd-detail .cd-text {
+  font-size: 15px;
+  color: var(--cd-text);
+  max-height: none;
+}
+.cd-detail .cd-icons {
+  gap: 8px;
+}
