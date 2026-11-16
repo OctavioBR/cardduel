@@ -1,6 +1,6 @@
 import type { Action } from "./actions";
 import { ROWS, type RowId, type UnitDefinition } from "./cards";
-import type { MatchState, Seat } from "./state";
+import type { MatchState, Seat, Uid } from "./state";
 import { defOf } from "./strength";
 
 /** Rows a Unit may be played to from the hand. */
@@ -36,13 +36,32 @@ export function legalActions(state: MatchState, seat: Seat): Action[] {
         }
         break;
       case "decoy":
+        for (const target of decoyTargets(state, seat)) {
+          actions.push({ type: "play", card: uid, target });
+        }
+        break;
       case "scorch":
-        // Arrive with their own slices.
+        // Arrives with its own slice.
         break;
     }
   }
   actions.push({ type: "pass" });
   return actions;
+}
+
+/**
+ * Units a Decoy may swap with: non-Hero Units on your own side of the battlefield,
+ * including an opponent's Spy sitting there.
+ */
+export function decoyTargets(state: MatchState, seat: Seat): Uid[] {
+  const targets: Uid[] = [];
+  for (const row of ROWS) {
+    for (const uid of state.sides[seat].rows[row].units) {
+      const def = defOf(state, uid);
+      if (def.kind === "unit" && !def.hero) targets.push(uid);
+    }
+  }
+  return targets;
 }
 
 export function hornSlotEmpty(state: MatchState, seat: Seat, row: RowId): boolean {

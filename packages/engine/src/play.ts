@@ -1,6 +1,7 @@
 import type { PlayAction } from "./actions";
+import { ROWS, type RowId } from "./cards";
 import type { CardRef, MatchEvent } from "./events";
-import type { MatchState, Seat, Uid } from "./state";
+import { type MatchState, opponent, type Seat, type Uid } from "./state";
 import { cardIdOf, computeStrengths, defOf } from "./strength";
 
 export function ref(state: MatchState, uid: Uid): CardRef {
@@ -37,9 +38,7 @@ export function resolvePlay(
   const def = defOf(state, uid);
   removeFromHand(state, seat, uid);
   if (def.kind === "unit") {
-    const row = action.row ?? def.row;
-    state.sides[seat].rows[row].units.push(uid);
-    events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: row, side: seat });
+    playUnit(state, seat, uid, action.row ?? def.row, events);
     return;
   }
   if (def.kind !== "special") return;
@@ -69,9 +68,48 @@ export function resolvePlay(
       });
       return;
     }
+    case "decoy": {
+      if (action.target === undefined) throw new Error("Decoy needs a target");
+      decoy(state, seat, uid, action.target, events);
+      return;
+    }
     default:
       throw new Error(`Special effect ${def.effect.type} is not implemented`);
   }
+}
+
+/**
+ * Plays a Unit to a Row and fires its on-play abilities. A Spy goes to the opponent's
+ * matching Row (they become its Controller) and its player draws 2.
+ */
+export function playUnit(
+  state: MatchState,
+  seat: Seat,
+  uid: Uid,
+  row: RowId,
+  events: MatchEvent[],
+): void {
+  const def = defOf(state, uid);
+  const spy = def.kind === "unit" && def.abilities.includes("spy");
+  const side = spy ? opponent(seat) : seat;
+  state.sides[side].rows[row].units.push(uid);
+  events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: row, side });
+  if (spy) draw(state, seat, 2, events);
+}
+
+/** The Decoy takes the target's place (Strength 0); the target returns to the hand. */
+function decoy(state: MatchState, seat: Seat, uid: Uid, target: Uid, events: MatchEvent[]): void {
+  for (const row of ROWS) {
+    const units = state.sides[seat].rows[row].units;
+    const index = units.indexOf(target);
+    if (index < 0) continue;
+    units[index] = uid;
+    state.sides[seat].hand.push(target);
+    events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: row, side: seat });
+    events.push({ type: "returnedToHand", seat, card: ref(state, target) });
+    return;
+  }
+  throw new Error(`Decoy target ${target} is not on Seat ${seat}'s side`);
 }
 
 /** Sends a card to the Discard Pile of the Seat whose Deck it came from (Weather, Horn). */
