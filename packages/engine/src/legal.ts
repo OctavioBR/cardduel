@@ -15,6 +15,7 @@ export function playableRows(def: UnitDefinition): RowId[] {
  * Forfeit, which is always allowed while the Match runs and is not listed).
  */
 export function legalActions(state: MatchState, seat: Seat): Action[] {
+  if (state.phase === "redraw") return redrawActions(state, seat);
   if (state.phase !== "turns" || state.turn !== seat) return [];
   const pending = state.pending[0];
   if (pending) return pending.seat === seat ? choiceOptions(state, pending) : [];
@@ -50,6 +51,19 @@ export function legalActions(state: MatchState, seat: Seat): Action[] {
   }
   actions.push({ type: "pass" });
   return actions;
+}
+
+/** Most cards a Seat may return during Redraw. */
+export const MAX_REDRAW = 2;
+
+/** During Redraw both Seats act at once: return a hand card, or confirm. */
+function redrawActions(state: MatchState, seat: Seat): Action[] {
+  const side = state.sides[seat];
+  if (side.redraw.done) return [];
+  return [
+    ...side.hand.map((card): Action => ({ type: "redraw", card })),
+    { type: "confirmRedraw" },
+  ];
 }
 
 /**

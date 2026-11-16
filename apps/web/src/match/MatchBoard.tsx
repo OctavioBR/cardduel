@@ -110,24 +110,61 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
       </section>
 
       <section className="hand" aria-label="Your hand">
-        {view.you.hand.map((card) => (
-          <HandCard
-            key={card.uid}
-            card={card}
-            selected={selected === card.uid}
-            playable={playsFor(view, card.uid).size > 0}
-            onSelect={() => setSelected(selected === card.uid ? null : card.uid)}
-          />
-        ))}
+        {view.you.hand.map((card) =>
+          view.phase === "redraw" ? (
+            <HandCard
+              key={card.uid}
+              card={card}
+              selected={false}
+              playable={view.legalActions.some((a) => a.type === "redraw" && a.card === card.uid)}
+              onSelect={() => send({ type: "redraw", card: card.uid })}
+            />
+          ) : (
+            <HandCard
+              key={card.uid}
+              card={card}
+              selected={selected === card.uid}
+              playable={playsFor(view, card.uid).size > 0}
+              onSelect={() => setSelected(selected === card.uid ? null : card.uid)}
+            />
+          ),
+        )}
       </section>
+
+      {view.phase === "redraw" ? <RedrawPanel view={view} send={send} /> : null}
 
       {view.phase === "ended" && view.result ? <ResultBanner view={view} /> : null}
     </div>
   );
 }
 
+/** Minimal Redraw controls; the full Redraw overlay arrives with the Match flow overlays. */
+function RedrawPanel({ view, send }: { view: SeatView; send: (action: Action) => void }) {
+  const { returned, done } = view.you.redraw;
+  return (
+    <div className="redraw-panel" role="dialog" aria-label="Redraw" data-testid="redraw">
+      {done ? (
+        <p>Waiting for your opponent to Redraw…</p>
+      ) : (
+        <>
+          <p>Redraw: tap up to 2 cards to return them ({returned}/2 returned).</p>
+          <button type="button" onClick={() => send({ type: "confirmRedraw" })}>
+            Keep hand
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function TurnLabel({ view }: { view: SeatView }) {
   if (view.phase === "ended") return <div className="turn">Match over</div>;
+  if (view.phase === "redraw")
+    return (
+      <div className="turn" data-testid="turn">
+        Redraw
+      </div>
+    );
   return (
     <div className="turn" data-testid="turn">
       {view.turn === "you" ? "Your Turn" : "Opponent's Turn"}

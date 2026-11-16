@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { legalActions } from "./legal";
-import { applyAction, createMatch } from "./match";
+import { applyAction } from "./match";
 import { type MatchState, opponent, type Seat, type Uid } from "./state";
-import { act, deck, repeat, setup, toHand, unit } from "./testing/fixtures";
+import { act, deck, repeat, setup, startMatch, toHand, unit } from "./testing/fixtures";
 import { viewFor } from "./view";
 
 const CARDS = [
@@ -14,7 +14,7 @@ const CARDS = [
 const LIST = [...repeat("knight", 8), "hero", ...repeat("medic", 3), ...repeat("spy", 2)];
 
 function board(): { state: MatchState; a: Seat; b: Seat } {
-  const { state } = createMatch(setup(41, [deck(LIST), deck(LIST, "court")], CARDS));
+  const { state } = startMatch(setup(41, [deck(LIST), deck(LIST, "court")], CARDS));
   const a = state.turn as Seat;
   return { state, a, b: opponent(a) };
 }

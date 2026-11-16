@@ -24,7 +24,19 @@ export interface ChooseAction {
   row?: RowId;
 }
 
-export type Action = PlayAction | ChooseAction | { type: "pass" } | { type: "forfeit" };
+/** Redraw: return one card from the opening hand (it is shuffled back, then replaced). */
+export interface RedrawAction {
+  type: "redraw";
+  card: Uid;
+}
+
+export type Action =
+  | PlayAction
+  | ChooseAction
+  | RedrawAction
+  | { type: "confirmRedraw" }
+  | { type: "pass" }
+  | { type: "forfeit" };
 
 export interface LoggedAction {
   seat: Seat;
@@ -50,6 +62,8 @@ export function actionKey(action: Action): string {
   switch (action.type) {
     case "play":
       return `play:${action.card}:${action.row ?? ""}:${action.target ?? ""}`;
+    case "redraw":
+      return `redraw:${action.card}`;
     case "choose":
       return `choose:${action.card ?? ""}:${action.cardId ?? ""}:${action.row ?? ""}`;
     default:

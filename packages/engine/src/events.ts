@@ -39,6 +39,9 @@ export type MatchEvent =
   | { type: "returnedToHand"; seat: Seat; card: CardRef }
   /** Current Strength of Units on the battlefield changed. */
   | { type: "strengthChanged"; changes: StrengthChange[] }
+  /** Redraw: a card went back into the deck. `card` is present only for its Seat. */
+  | { type: "cardReturned"; seat: Seat; card?: CardRef }
+  | { type: "redrawDone"; seat: Seat; returned: number }
   | { type: "passed"; seat: Seat; auto: boolean }
   /** A Seat must now make a Pending Choice. */
   | { type: "choiceRequired"; seat: Seat; kind: PendingKind }

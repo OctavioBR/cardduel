@@ -29,10 +29,10 @@ export function playRandomMatch(
     const seat = actingSeat(state);
     if (seat === null) break;
     const options = legalActions(state, seat);
-    // Pass rarely, so Matches cover full hands and empty ones.
-    const plays = options.filter((a) => a.type !== "pass");
+    // Pass rarely, so Matches cover full hands and empty ones. Redraw sometimes returns cards.
+    const plays = options.filter((a) => a.type !== "pass" && a.type !== "confirmRedraw");
     const action =
-      plays.length > 0 && nextInt(picker, 6) !== 0
+      plays.length > 0 && nextInt(picker, state.phase === "redraw" ? 3 : 6) !== 0
         ? (plays[nextInt(picker, plays.length)] as Action)
         : (options[nextInt(picker, options.length)] as Action);
     const result = applyAction(state, seat, action);
@@ -43,7 +43,8 @@ export function playRandomMatch(
   return state;
 }
 
-/** The Seat that has something to do now. */
+/** The Seat that has something to do now (during Redraw, the first that has not confirmed). */
 export function actingSeat(state: MatchState): Seat | null {
+  if (state.phase === "redraw") return state.sides[0].redraw.done ? 1 : 0;
   return state.turn;
 }

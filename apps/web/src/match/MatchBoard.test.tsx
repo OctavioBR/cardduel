@@ -1,16 +1,28 @@
 import { DEV_PLAIN_CARDS, devPlainDeck } from "@card-duel/catalog";
-import { createMatch, type Seat, viewFor } from "@card-duel/engine";
+import { applyAction, createMatch, type MatchState, type Seat, viewFor } from "@card-duel/engine";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { MatchBoard, playsFor } from "./MatchBoard";
 
-const { state } = createMatch({
+const created = createMatch({
   seed: 5,
   decks: [devPlainDeck("swarm"), devPlainDeck("court")],
   cards: DEV_PLAIN_CARDS,
-});
+}).state;
+/** Both Seats keep their hands, so the first Turn has started. */
+const state = [0, 1].reduce<MatchState>((s, seat) => {
+  const result = applyAction(s, seat as Seat, { type: "confirmRedraw" });
+  if (!result.ok) throw new Error(result.rejection.message);
+  return result.state;
+}, created);
 
 describe("MatchBoard", () => {
+  it("shows Redraw controls before the first Turn", () => {
+    const html = renderToStaticMarkup(<MatchBoard view={viewFor(created, 0)} send={() => {}} />);
+    expect(html).toContain("Keep hand");
+    expect(html).toContain("0/2 returned");
+  });
+
   it("renders six Rows, the hand and Pass from the view", () => {
     const view = viewFor(state, state.turn as Seat);
     const html = renderToStaticMarkup(<MatchBoard view={view} send={() => {}} />);

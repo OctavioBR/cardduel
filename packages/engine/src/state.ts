@@ -36,13 +36,15 @@ export interface SideState {
   rows: Record<RowId, RowState>;
   gems: number;
   passed: boolean;
+  /** Redraw progress: cards returned so far, and whether the Seat has confirmed. */
+  redraw: { returned: number; done: boolean };
 }
 
 export type MatchResult =
   | { outcome: "win"; winner: Seat; reason: "gems" | "forfeit" }
   | { outcome: "draw" };
 
-export type Phase = "turns" | "ended";
+export type Phase = "redraw" | "turns" | "ended";
 
 export type PendingKind = "medic";
 

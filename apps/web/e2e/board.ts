@@ -37,3 +37,12 @@ export async function round(page: Page): Promise<number> {
   const text = (await page.locator(".round-info").textContent()) ?? "";
   return Number(text.match(/Round (\d+)/)?.[1] ?? 1);
 }
+
+/** Keeps the opening hand if this page still has to Redraw. */
+export async function keepHand(page: Page): Promise<void> {
+  const keep = page.getByRole("button", { name: "Keep hand" });
+  if (!(await keep.isVisible())) return;
+  const before = await actionCount(page);
+  await keep.click();
+  await expect.poll(() => actionCount(page)).toBeGreaterThan(before);
+}

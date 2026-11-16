@@ -16,8 +16,17 @@ async function seatBoth(): Promise<Seated> {
   expect(await a.next()).toEqual({ type: "waiting", seat: 0, code });
   const b = await TestSocket.open(code, "token-b");
   const [ma, mb] = await Promise.all([a.nextView(), b.nextView()]);
-  return { code, sockets: [a, b], views: [ma.view, mb.view] };
+  const room: Seated = { code, sockets: [a, b], views: [ma.view, mb.view] };
+  expect(room.views[0].phase).toBe("redraw");
+  // Both keep their opening hands; the first Turn then starts.
+  await play(room, 0, { type: "confirmRedraw" });
+  await play(room, 1, { type: "confirmRedraw" });
+  expect(room.views[0].phase).toBe("turns");
+  return room;
 }
+
+/** Action count once both Seats have confirmed Redraw. */
+const START = 2;
 
 /** Index of the Seat whose Turn it is. */
 function mover(views: [SeatView, SeatView]): 0 | 1 {
@@ -78,10 +87,10 @@ describe("Room", () => {
     const i = mover(room.views);
     await play(room, i);
     const j = mover(room.views);
-    room.sockets[j].send(0, { type: "pass" });
+    room.sockets[j].send(START - 1, { type: "pass" });
     expect(await room.sockets[j].next()).toMatchObject({ type: "error", code: "stale_action" });
     const resent = await room.sockets[j].nextView();
-    expect(resent.view.actionCount).toBe(1);
+    expect(resent.view.actionCount).toBe(START + 1);
     expect(resent.events).toEqual([]);
     closeAll(room);
   });
@@ -89,7 +98,7 @@ describe("Room", () => {
   it("rejects illegal actions with the engine's message", async () => {
     const room = await seatBoth();
     const waiting = mover(room.views) === 0 ? 1 : 0;
-    room.sockets[waiting].send(0, { type: "pass" });
+    room.sockets[waiting].send(START, { type: "pass" });
     expect(await room.sockets[waiting].next()).toEqual({
       type: "error",
       code: "rejected",
@@ -105,7 +114,7 @@ describe("Room", () => {
     const again = await TestSocket.open(room.code, "token-a");
     const { view, events } = await again.nextView();
     expect(view.seat).toBe(0);
-    expect(view.actionCount).toBe(1);
+    expect(view.actionCount).toBe(START + 1);
     expect(events).toEqual([]);
     again.close();
     room.sockets[1].close();
@@ -129,7 +138,7 @@ describe("Room", () => {
 
     // Hibernated sockets stay open; the next message wakes a fresh instance that reloads.
     await play(room, mover(room.views));
-    expect(room.views[0].actionCount).toBe(2);
+    expect(room.views[0].actionCount).toBe(START + 2);
     expect(room.views[0].board.you.score + room.views[0].board.opponent.score).toBeGreaterThan(
       before[0].board.you.score + before[0].board.opponent.score,
     );
