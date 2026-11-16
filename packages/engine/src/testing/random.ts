@@ -1,9 +1,9 @@
 import type { Action } from "../actions";
 import type { MatchEvent } from "../events";
+import { legalActions } from "../legal";
 import { applyAction, createMatch } from "../match";
 import { nextInt } from "../rng";
 import type { MatchSetup, MatchState, Seat } from "../state";
-import { legalActions } from "../view";
 
 export interface Step {
   before: MatchState;

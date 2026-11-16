@@ -1,6 +1,6 @@
 import { expect } from "vitest";
 import type { Action } from "../actions";
-import type { CardDefinition, RowId, UnitAbility } from "../cards";
+import type { CardDefinition, RowId, SpecialEffect, UnitAbility } from "../cards";
 import type { MatchEvent } from "../events";
 import { applyAction } from "../match";
 import type { DeckSpec, MatchSetup, MatchState, Seat, Uid } from "../state";
@@ -88,4 +88,43 @@ export function ownRow(state: MatchState, uid: Uid): RowId {
 export function playCard(state: MatchState, seat: Seat, cardId?: string, row?: RowId) {
   const uid = inHand(state, seat, cardId);
   return act(state, seat, { type: "play", card: uid, row: row ?? ownRow(state, uid) });
+}
+
+export function special(id: string, effect: SpecialEffect): CardDefinition {
+  return { id, kind: "special", faction: "neutral", maxCopies: 3, effect };
+}
+
+/**
+ * Test-only: moves a card with this id from the Seat's hand or deck straight onto a Row
+ * (or the Weather zone / Horn slot), bypassing the rules, to build boards quickly.
+ */
+export function place(
+  state: MatchState,
+  seat: Seat,
+  cardId: string,
+  where: RowId | "weather" | { horn: RowId },
+): Uid {
+  const side = state.sides[seat];
+  for (const pile of [side.hand, side.deck]) {
+    const i = pile.findIndex((u) => state.cards[u]?.cardId === cardId);
+    if (i < 0) continue;
+    const [uid] = pile.splice(i, 1) as [Uid];
+    if (where === "weather") state.weather.push(uid);
+    else if (typeof where === "object") side.rows[where.horn].horn = uid;
+    else side.rows[where].units.push(uid);
+    return uid;
+  }
+  return expect.fail(`Seat ${seat} has no ${cardId} left to place`);
+}
+
+/** Test-only: a card with this id in the Seat's hand, moved there from the deck if needed. */
+export function toHand(state: MatchState, seat: Seat, cardId: string): Uid {
+  const side = state.sides[seat];
+  const held = side.hand.find((u) => state.cards[u]?.cardId === cardId);
+  if (held !== undefined) return held;
+  const i = side.deck.findIndex((u) => state.cards[u]?.cardId === cardId);
+  if (i < 0) return expect.fail(`Seat ${seat} has no ${cardId} in hand or deck`);
+  const [uid] = side.deck.splice(i, 1) as [Uid];
+  side.hand.push(uid);
+  return uid;
 }

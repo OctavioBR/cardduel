@@ -110,18 +110,20 @@ exports[`replay > matches a recorded fixture of events 1`] = `
       "cardId": "five",
       "uid": 5,
     },
-    "row": "close",
     "seat": 0,
+    "side": 0,
     "type": "cardPlayed",
+    "zone": "close",
   },
   {
     "card": {
       "cardId": "three",
       "uid": 27,
     },
-    "row": "ranged",
     "seat": 1,
+    "side": 1,
     "type": "cardPlayed",
+    "zone": "ranged",
   },
   {
     "auto": false,

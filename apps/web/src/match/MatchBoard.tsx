@@ -15,7 +15,8 @@ export interface MatchBoardProps {
 export function playsFor(view: SeatView, uid: number): Map<RowId, Action> {
   const plays = new Map<RowId, Action>();
   for (const action of view.legalActions) {
-    if (action.type === "play" && action.card === uid) plays.set(action.row, action);
+    // Row-less plays (Weather, Scorch) and Decoy targets arrive with tap-to-play (#35).
+    if (action.type === "play" && action.card === uid && action.row) plays.set(action.row, action);
   }
   return plays;
 }

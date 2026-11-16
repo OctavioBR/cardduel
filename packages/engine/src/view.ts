@@ -1,7 +1,8 @@
 import type { Action } from "./actions";
 import { type CardId, ROWS, type RowId } from "./cards";
 import type { CardRef, MatchEvent } from "./events";
-import { playableRows, ref } from "./match";
+import { legalActions } from "./legal";
+import { ref } from "./play";
 import {
   type MatchResult,
   type MatchState,
@@ -145,21 +146,6 @@ function countCards(state: MatchState, uids: Uid[]): DeckCount[] {
   return [...counts.entries()]
     .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([cardId, count]) => ({ cardId, count }));
-}
-
-/** Every action the Seat may take now, each fully specified (card, Row, target). */
-export function legalActions(state: MatchState, seat: Seat): Action[] {
-  if (state.phase !== "turns" || state.turn !== seat) return [];
-  const side = state.sides[seat];
-  if (side.passed) return [];
-  const actions: Action[] = [];
-  for (const uid of side.hand) {
-    const def = state.defs[cardIdOf(state, uid)];
-    if (def?.kind !== "unit") continue;
-    for (const row of playableRows(def)) actions.push({ type: "play", card: uid, row });
-  }
-  actions.push({ type: "pass" });
-  return actions;
 }
 
 /** Removes hidden information from events for one Seat (ADR-0002). */

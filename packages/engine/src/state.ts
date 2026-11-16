@@ -17,9 +17,12 @@ export interface CardInstance {
 }
 
 export interface RowState {
+  /** Cards in the Row: Units, plus a Decoy standing in for one. */
   units: Uid[];
   /** A Horn Special Card sitting in this Row's Horn slot. */
   horn: Uid | null;
+  /** The Horn slot is taken by a Leader's Horn ability. */
+  leaderHorn: boolean;
 }
 
 export interface SideState {
