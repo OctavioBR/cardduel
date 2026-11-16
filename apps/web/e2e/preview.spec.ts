@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { actionCount } from "./board";
+import { actionCount, settled } from "./board";
 
 async function unitsOnBoard(page: Page): Promise<string[]> {
   return page
@@ -86,6 +86,7 @@ test("a whole Match can be played with the keyboard only", async ({ page }) => {
   const turn = page.getByTestId("turn");
   await expect(page.getByTestId("board")).toBeVisible();
   for (let i = 0; i < 200 && !(await page.getByTestId("result").isVisible()); i++) {
+    await settled(page);
     const n = await actionCount(page);
     const text = await turn.textContent();
     if (text === "Redraw") {

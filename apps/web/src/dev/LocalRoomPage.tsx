@@ -7,7 +7,7 @@ import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
 import { LocalRoom } from "../room/local-room";
 import { SCENARIOS } from "../room/local-scenarios";
-import { useRoom } from "../room/useRoom";
+import { useEventBatch, useRoom } from "../room/useRoom";
 
 /** Parses `?seed=` so a Local Room Match is reproducible. */
 export function seedFromParams(params: URLSearchParams): number {
@@ -46,6 +46,7 @@ export function LocalRoomPage() {
     return createDevLocalRoom(seed, decks);
   }, [seed, decks, scenario]);
   const state = useRoom(room);
+  const events = useEventBatch(room);
   const [seat, setSeat] = useState<Seat>(room.viewingSeat);
   const viewSeat = (s: Seat) => {
     room.viewSeat(s);
@@ -72,6 +73,7 @@ export function LocalRoomPage() {
             view={state.view}
             send={(a) => room.send(a)}
             error={state.error?.message ?? null}
+            events={events}
           />
         </CardDetailProvider>
       </Stage>

@@ -4,7 +4,7 @@ import { CardDetailProvider } from "../cards/CardDetail";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
 import { playerToken } from "../room/token";
-import { useRoom } from "../room/useRoom";
+import { useEventBatch, useRoom } from "../room/useRoom";
 import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
 
 export function RoomPage() {
@@ -21,6 +21,7 @@ export function RoomPage() {
 
 function RoomScreen({ code, connection }: { code: string; connection: WebSocketRoom }) {
   const state = useRoom(connection);
+  const events = useEventBatch(connection);
   if (state.view) {
     return (
       <Stage>
@@ -29,6 +30,7 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
             view={state.view}
             send={(a) => connection.send(a)}
             error={state.error?.message ?? null}
+            events={events}
           />
         </CardDetailProvider>
         {state.status === "reconnecting" ? (

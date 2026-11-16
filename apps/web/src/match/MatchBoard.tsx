@@ -13,11 +13,14 @@ import { PlayerPanel } from "./PlayerPanel";
 import { previewEffects } from "./preview-effects";
 import { playableCards, type Target, targetsFor } from "./targets";
 import { useCardDrag } from "./useCardDrag";
+import { type EventBatch, useEventAnimations } from "./useEventAnimations";
 
 export interface MatchBoardProps {
   view: SeatView;
   send: (action: Action) => void;
   error?: string | null;
+  /** The filtered events that produced this view, to animate (#38). */
+  events?: EventBatch | undefined;
 }
 
 /** How long "Confirm Pass" waits for the second press. */
@@ -39,20 +42,22 @@ export function weatheredRows(view: SeatView): Set<RowId> {
  * shows the server's Play Preview; tapping a target plays it. Targets and outcomes come
  * only from the view (ADR-0002); there are no optimistic updates.
  */
-export function MatchBoard({ view, send, error }: MatchBoardProps) {
+export function MatchBoard({ view, send, error, events }: MatchBoardProps) {
   // A selection belongs to one view: a new view (new action count) clears it.
   const [selection, setSelection] = useState<{ uid: number; at: number } | null>(null);
   const selected = selection?.at === view.actionCount ? selection.uid : null;
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   // After sending, input stays locked until the next view (or an error) arrives.
   const [lockedAt, setLockedAt] = useState<number | null>(null);
-  const locked = lockedAt === view.actionCount;
+  const boardRef = useRef<HTMLDivElement>(null);
+  // The whole queue (the opponent's Turn included) plays out before input unlocks.
+  const { animating, skip } = useEventAnimations(boardRef, events, view.seat);
+  const locked = lockedAt === view.actionCount || animating;
   const [passConfirm, setPassConfirm] = useState<{ at: number } | null>(null);
   const confirmingPass = passConfirm?.at === view.actionCount;
   const [leaderOpen, setLeaderOpen] = useState(false);
   const [knownOpen, setKnownOpen] = useState(false);
   const pointerType = useRef<string>("mouse");
-  const boardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (error) setLockedAt(null);
@@ -184,6 +189,14 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
     defaultPrevented: boolean;
   }) => {
     if (e.target instanceof HTMLInputElement || e.defaultPrevented) return;
+    if (animating) {
+      // While events animate, Esc, Enter or Space skips to the final state.
+      if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        skip();
+      }
+      return;
+    }
     if (e.key === "Escape") {
       if (confirmingPass) setPassConfirm(null);
       if (selected !== null) cancel();
@@ -240,8 +253,17 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
       className={`board${locked ? " locked" : ""}`}
       data-testid="board"
       data-action-count={view.actionCount}
+      data-animating={animating ? "true" : undefined}
       ref={boardRef}
+      onClickCapture={(e) => {
+        // A click anywhere skips to the final state.
+        if (!animating) return;
+        e.stopPropagation();
+        e.preventDefault();
+        skip();
+      }}
     >
+      <div className="anim-layer" aria-hidden="true" />
       <aside className="side">
         <PlayerPanel
           who="opponent"
@@ -260,7 +282,9 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
           <section className="weather-zone" aria-label="Weather">
             {view.weather.length === 0 ? <span className="empty">No Weather</span> : null}
             {view.weather.map((w) => (
-              <Card key={w.uid} cardId={w.cardId} size="token" />
+              <span key={w.uid} data-anim-uid={w.uid}>
+                <Card cardId={w.cardId} size="token" />
+              </span>
             ))}
           </section>
           <div>Round {view.round}</div>
@@ -377,6 +401,7 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
               aria-pressed={redraw ? undefined : selected === card.uid}
               aria-label={`${redraw ? "Return " : ""}${cardName(card.cardId)}${seen.has(card.uid) ? " (seen by opponent)" : ""}`}
               data-hand-uid={card.uid}
+              data-anim-uid={card.uid}
               data-dragging={dragging.drag?.uid === card.uid ? "true" : undefined}
               onPointerDown={redraw || locked || !legal ? undefined : dragging.start(card.uid)}
               onClick={(e: MouseEvent) => {

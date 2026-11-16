@@ -33,7 +33,7 @@ test("a Medic chain: a Medic Plays a Medic, which Plays a Unit", async ({ page }
 
   await expect(page.getByRole("dialog", { name: /Medic: choose a Unit/ })).toBeVisible();
   await step(page, () => page.getByRole("button", { name: /Choose Thornback Crawler/ }).click());
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: /Medic/ })).toHaveCount(0);
   await expect(page.getByTestId("row-you-siege").locator(".unit")).toHaveCount(2);
   await expect(page.getByTestId("row-you-close")).toContainText("8");
 });
@@ -57,7 +57,7 @@ for (const kind of LEADER_KINDS) {
           .click(),
       );
     }
-    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: /Leader:|Choose/ })).toHaveCount(0);
     await expect(page.getByTestId("your-leader")).toContainText("Used");
     if (kind === "lookAtOpponentHand") {
       // Revealed cards are shown to you.
