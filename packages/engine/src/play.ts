@@ -1,8 +1,8 @@
 import type { PlayAction } from "./actions";
 import { ROWS, type RowId } from "./cards";
 import type { CardRef, MatchEvent } from "./events";
-import { type MatchState, opponent, type Seat, type Uid } from "./state";
-import { cardIdOf, computeStrengths, defOf } from "./strength";
+import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
+import { cardIdOf, computeStrengths, defOf, rowScore } from "./strength";
 
 export function ref(state: MatchState, uid: Uid): CardRef {
   return { uid, cardId: cardIdOf(state, uid) };
@@ -68,13 +68,16 @@ export function resolvePlay(
       });
       return;
     }
+    case "scorch":
+      events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: "none" });
+      scorchBattlefield(state, events);
+      state.sides[seat].discard.push(uid);
+      return;
     case "decoy": {
       if (action.target === undefined) throw new Error("Decoy needs a target");
       decoy(state, seat, uid, action.target, events);
       return;
     }
-    default:
-      throw new Error(`Special effect ${def.effect.type} is not implemented`);
   }
 }
 
@@ -95,6 +98,55 @@ export function playUnit(
   state.sides[side].rows[row].units.push(uid);
   events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: row, side });
   if (spy) draw(state, seat, 2, events);
+  if (def.kind === "unit" && def.abilities.includes("scorch"))
+    scorchRow(state, opponent(seat), row, events);
+}
+
+/** Minimum current Score of a Row for a Row Scorch (Unit or Leader) to fire. */
+export const ROW_SCORCH_THRESHOLD = 10;
+
+/**
+ * Row Scorch: if the Seat's Row has a current Score of 10 or more, destroys its highest
+ * current-Strength non-Hero Unit or Units.
+ */
+export function scorchRow(state: MatchState, seat: Seat, row: RowId, events: MatchEvent[]): void {
+  const strengths = computeStrengths(state);
+  if (rowScore(state, seat, row, strengths) < ROW_SCORCH_THRESHOLD) return;
+  destroyStrongest(state, strengths, [{ seat, row }], events);
+}
+
+/**
+ * Special Scorch: destroys every non-Hero Unit with the highest current Strength on the
+ * whole battlefield, on both sides, all ties included.
+ */
+export function scorchBattlefield(state: MatchState, events: MatchEvent[]): void {
+  const rows = SEATS.flatMap((seat) => ROWS.map((row) => ({ seat, row })));
+  destroyStrongest(state, computeStrengths(state), rows, events);
+}
+
+function destroyStrongest(
+  state: MatchState,
+  strengths: Map<Uid, number>,
+  rows: Array<{ seat: Seat; row: RowId }>,
+  events: MatchEvent[],
+): void {
+  const candidates: Array<{ seat: Seat; row: RowId; uid: Uid; strength: number }> = [];
+  for (const { seat, row } of rows) {
+    for (const uid of state.sides[seat].rows[row].units) {
+      const def = defOf(state, uid);
+      if (def.kind !== "unit" || def.hero) continue;
+      candidates.push({ seat, row, uid, strength: strengths.get(uid) ?? 0 });
+    }
+  }
+  if (candidates.length === 0) return;
+  const highest = Math.max(...candidates.map((c) => c.strength));
+  const doomed = candidates.filter((c) => c.strength === highest);
+  for (const { seat, row, uid } of doomed) {
+    const units = state.sides[seat].rows[row].units;
+    units.splice(units.indexOf(uid), 1);
+    state.sides[seat].discard.push(uid);
+  }
+  events.push({ type: "destroyed", cards: doomed.map(({ uid }) => ref(state, uid)) });
 }
 
 /** The Decoy takes the target's place (Strength 0); the target returns to the hand. */

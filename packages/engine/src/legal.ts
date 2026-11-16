@@ -41,7 +41,7 @@ export function legalActions(state: MatchState, seat: Seat): Action[] {
         }
         break;
       case "scorch":
-        // Arrives with its own slice.
+        actions.push({ type: "play", card: uid });
         break;
     }
   }
