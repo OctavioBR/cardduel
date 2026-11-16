@@ -1,6 +1,8 @@
 import type { CardRef, DeckCount, FactionId } from "@card-duel/engine";
 import { useState } from "react";
 import { Card } from "../cards/Card";
+import copy from "../strings/en.json";
+import { formatCopy } from "../strings/format";
 import { Overlay } from "./Overlay";
 
 type Browse = "yourDiscard" | "opponentDiscard" | "yourDeck" | null;
@@ -17,58 +19,63 @@ export function Piles(props: {
   const [open, setOpen] = useState<Browse>(null);
   const close = () => setOpen(null);
   return (
-    <aside className="piles" aria-label="Decks and Discard Piles">
+    <aside className="piles" aria-label={copy.decksAndDiscardPiles}>
       <div
         className={`pile f-${props.opponentFaction}`}
         role="img"
-        aria-label={`Opponent's deck, ${props.opponentDeckSize} cards`}
+        aria-label={formatCopy(copy.opponentSDeckCards, { p0: props.opponentDeckSize })}
       >
         <span className="pile-stack">{props.opponentDeckSize}</span>
-        Opponent deck
+        {copy.opponentDeck}
       </div>
       <button
         type="button"
         className="pile"
         onClick={() => setOpen("opponentDiscard")}
-        aria-label={`Opponent's Discard Pile, ${props.opponentDiscard.length} cards`}
+        aria-label={formatCopy(copy.opponentSDiscardPileCards, {
+          p0: props.opponentDiscard.length,
+        })}
       >
         <span className="pile-stack">{props.opponentDiscard.length}</span>
-        Opponent discard
+        {copy.opponentDiscard}
       </button>
       <button
         type="button"
         className="pile"
         onClick={() => setOpen("yourDiscard")}
-        aria-label={`Your Discard Pile, ${props.yourDiscard.length} cards`}
+        aria-label={formatCopy(copy.yourDiscardPileCards, { p0: props.yourDiscard.length })}
       >
         <span className="pile-stack">{props.yourDiscard.length}</span>
-        Your discard
+        {copy.yourDiscard}
       </button>
       <button
         type="button"
         className={`pile f-${props.yourFaction}`}
         onClick={() => setOpen("yourDeck")}
-        aria-label={`Your deck, ${props.yourDeckSize} cards`}
+        aria-label={formatCopy(copy.yourDeckCards, { p0: props.yourDeckSize })}
       >
         <span className="pile-stack">{props.yourDeckSize}</span>
-        Your deck
+        {copy.yourDeck}
       </button>
 
       {open === "yourDiscard" ? (
-        <CardsOverlay title="Your Discard Pile" cards={props.yourDiscard} onClose={close} />
+        <CardsOverlay title={copy.yourDiscardPile} cards={props.yourDiscard} onClose={close} />
       ) : null}
       {open === "opponentDiscard" ? (
         <CardsOverlay
-          title="Opponent's Discard Pile"
+          title={copy.opponentSDiscardPile}
           cards={props.opponentDiscard}
           onClose={close}
         />
       ) : null}
       {open === "yourDeck" ? (
-        <Overlay title={`Your deck (${props.yourDeckSize} cards, unordered)`} onClose={close}>
+        <Overlay
+          title={formatCopy(copy.yourDeckCardsUnordered, { p0: props.yourDeckSize })}
+          onClose={close}
+        >
           <div className="overlay-cards">
             {props.yourDeck.length === 0 ? (
-              <p className="overlay-empty">Your deck is empty.</p>
+              <p className="overlay-empty">{copy.yourDeckIsEmpty}</p>
             ) : null}
             {props.yourDeck.map((entry) => (
               <Card
@@ -98,7 +105,7 @@ function CardsOverlay({
   return (
     <Overlay title={`${title} (${cards.length})`} onClose={onClose}>
       <div className="overlay-cards">
-        {cards.length === 0 ? <p className="overlay-empty">No cards.</p> : null}
+        {cards.length === 0 ? <p className="overlay-empty">{copy.noCards}</p> : null}
         {cards.map((c) => (
           <Card key={c.uid} cardId={c.cardId} size="tile" keyboardDetail />
         ))}

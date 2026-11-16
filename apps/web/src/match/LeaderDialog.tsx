@@ -2,6 +2,8 @@ import type { Action, SeatView } from "@card-duel/engine";
 import { Card } from "../cards/Card";
 import { ROW_LABEL } from "../cards/icons";
 import { cardName, cardText } from "../cards/strings";
+import copy from "../strings/en.json";
+import { formatCopy } from "../strings/format";
 import { Overlay } from "./Overlay";
 import { leaderState } from "./PlayerPanel";
 import { PreviewSummary } from "./PreviewSummary";
@@ -22,7 +24,7 @@ export function LeaderDialog({
   const uses = view.legalActions.filter((a) => a.type === "leader");
   const state = leaderState(leader);
   return (
-    <Overlay title={`Leader: ${cardName(leader.cardId)}`} onClose={onClose}>
+    <Overlay title={formatCopy(copy.leader, { p0: cardName(leader.cardId) })} onClose={onClose}>
       <div className="leader-dialog">
         <Card cardId={leader.cardId} size="tile" />
         <div className="leader-body">
@@ -30,14 +32,14 @@ export function LeaderDialog({
           {uses.length === 0 ? (
             <p className="muted">
               {leader.passive
-                ? "A passive Leader: its rule is always on."
+                ? copy.aPassiveLeaderItsRuleIs
                 : leader.used
-                  ? "Already used this Match."
+                  ? copy.alreadyUsedThisMatch
                   : view.you.passed
-                    ? "You have Passed this Round."
+                    ? copy.youHavePassedThisRound
                     : view.turn !== "you"
-                      ? "Wait for your Turn."
-                      : "Nothing to use it on right now."}
+                      ? copy.waitForYourTurn
+                      : copy.nothingToUseItOnRight}
             </p>
           ) : null}
           {uses.map((use) =>
@@ -51,13 +53,18 @@ export function LeaderDialog({
                     onClose();
                   }}
                 >
-                  {use.row ? `Use on your ${ROW_LABEL[use.row]} Row` : "Use Leader ability"}
+                  {use.row
+                    ? formatCopy(copy.useOnYourRow, { p0: ROW_LABEL[use.row] })
+                    : copy.useLeaderAbility}
                 </button>
                 <PreviewSummary view={view} preview={use.preview} />
               </div>
             ) : null,
           )}
-          <p className="muted">State: {state.text}</p>
+          <p className="muted">
+            {copy.state}
+            {state.text}
+          </p>
         </div>
       </div>
     </Overlay>

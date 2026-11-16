@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import copy from "../strings/en.json";
 
 export interface Account {
   id: string;
@@ -53,11 +54,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ username, password }),
       });
       const body = (await res.json().catch(() => ({}))) as { account?: Account; message?: string };
-      if (!res.ok || !body.account) return body.message ?? "Something went wrong. Try again.";
+      if (!res.ok || !body.account) return body.message ?? copy.somethingWentWrongTryAgain;
       setAccount(body.account);
       return null;
     } catch {
-      return "Could not reach the server. Try again.";
+      return copy.couldNotReachTheServerTry;
     }
   }, []);
 

@@ -1,12 +1,14 @@
 import type { CardRef, FactionId, LeaderView } from "@card-duel/engine";
 import { cardName } from "../cards/strings";
+import copy from "../strings/en.json";
+import { formatCopy } from "../strings/format";
 
-const FACTION_NAME: Record<FactionId, string> = { swarm: "Swarm", court: "Court" };
+const FACTION_NAME: Record<FactionId, string> = { swarm: copy.swarm, court: copy.court };
 
 export function leaderState(leader: LeaderView): { text: string; ready: boolean } {
-  if (leader.passive) return { text: "Passive", ready: false };
-  if (leader.used) return { text: "Used", ready: false };
-  return { text: "Ready", ready: true };
+  if (leader.passive) return { text: copy.passive, ready: false };
+  if (leader.used) return { text: copy.used, ready: false };
+  return { text: copy.ready, ready: true };
 }
 
 export function PlayerPanel(props: {
@@ -26,7 +28,7 @@ export function PlayerPanel(props: {
   onKnownHand?: () => void;
 }) {
   const state = leaderState(props.leader);
-  const name = props.who === "you" ? "You" : "Opponent";
+  const name = props.who === "you" ? copy.you3 : copy.opponent3;
   return (
     <section
       className={`player-panel f-${props.faction}${props.active ? " active" : ""}`}
@@ -38,7 +40,10 @@ export function PlayerPanel(props: {
           type="button"
           className={`leader-chip f-${props.faction}`}
           onClick={props.onLeader}
-          aria-label={`Leader ${cardName(props.leader.cardId)}, ${state.text}`}
+          aria-label={formatCopy(copy.leader2, {
+            p0: cardName(props.leader.cardId),
+            p1: state.text,
+          })}
           data-testid="your-leader"
         >
           <span>{cardName(props.leader.cardId)}</span>
@@ -48,7 +53,10 @@ export function PlayerPanel(props: {
         <div
           className={`leader-chip f-${props.faction}`}
           role="img"
-          aria-label={`Leader ${cardName(props.leader.cardId)}, ${state.text}`}
+          aria-label={formatCopy(copy.leader2, {
+            p0: cardName(props.leader.cardId),
+            p1: state.text,
+          })}
         >
           <span>{cardName(props.leader.cardId)}</span>
           <span className={`leader-state${state.ready ? " ready" : ""}`}>{state.text}</span>
@@ -57,16 +65,20 @@ export function PlayerPanel(props: {
       <div className="player-info">
         <span className="player-name">{name}</span>
         <span>{FACTION_NAME[props.faction]}</span>
-        <div className="gems" role="img" aria-label={`${props.gems} Gems`}>
+        <div className="gems" role="img" aria-label={formatCopy(copy.gems, { p0: props.gems })}>
           {[0, 1].map((i) => (
             <span key={i} className={i < props.gems ? "gem on" : "gem"} />
           ))}
         </div>
-        <span>Hand {props.handSize}</span>
-        {props.passed ? <span className="passed">Passed</span> : null}
+        <span>
+          {copy.hand}
+          {props.handSize}
+        </span>
+        {props.passed ? <span className="passed">{copy.passed}</span> : null}
         {props.knownHand && props.knownHand.length > 0 ? (
           <button type="button" className="known-hand" onClick={props.onKnownHand}>
-            Seen in hand: {props.knownHand.map((c) => cardName(c.cardId)).join(", ")}
+            {copy.seenInHand}
+            {props.knownHand.map((c) => cardName(c.cardId)).join(", ")}
           </button>
         ) : null}
       </div>
@@ -74,7 +86,7 @@ export function PlayerPanel(props: {
         className="total-score"
         role="img"
         data-testid={`score-${props.who}`}
-        aria-label={`Score ${props.score}`}
+        aria-label={formatCopy(copy.score, { p0: props.score })}
       >
         {props.score}
         {props.scoreDelta ? (

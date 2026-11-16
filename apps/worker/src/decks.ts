@@ -8,6 +8,8 @@ import {
 import type { FactionId } from "@card-duel/engine";
 import type { Account } from "./auth/session";
 import { json } from "./http";
+import copy from "./strings/en.json";
+import { formatCopy } from "./strings/format";
 
 const FACTIONS: FactionId[] = ["swarm", "court"];
 export const MAX_DECK_NAME = 40;
@@ -67,10 +69,10 @@ async function readDeckBody(
   { name?: string; faction?: FactionId; leader?: string | null; cards?: string[] } | Response
 > {
   if (!request.headers.get("Content-Type")?.includes("application/json")) {
-    return json({ error: "bad_request", message: "Send JSON." }, { status: 415 });
+    return json({ error: "bad_request", message: copy.sendJSON }, { status: 415 });
   }
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!body || typeof body !== "object") return badRequest("Send a JSON object.");
+  if (!body || typeof body !== "object") return badRequest(copy.sendAJSONObject);
   const out: { name?: string; faction?: FactionId; leader?: string | null; cards?: string[] } = {};
   if (body.name !== undefined) {
     if (
@@ -78,17 +80,17 @@ async function readDeckBody(
       !body.name.trim() ||
       body.name.trim().length > MAX_DECK_NAME
     ) {
-      return badRequest(`A Deck name has 1 to ${MAX_DECK_NAME} characters.`);
+      return badRequest(formatCopy(copy.aDeckNameHas1To, { p0: MAX_DECK_NAME }));
     }
     out.name = body.name.trim();
   }
   if (body.faction !== undefined) {
-    if (!FACTIONS.includes(body.faction as FactionId)) return badRequest("Unknown Faction.");
+    if (!FACTIONS.includes(body.faction as FactionId)) return badRequest(copy.unknownFaction);
     out.faction = body.faction as FactionId;
   }
   if (body.leader !== undefined) {
     if (body.leader !== null && typeof body.leader !== "string")
-      return badRequest("The Leader is a card id or null.");
+      return badRequest(copy.theLeaderIsACardId);
     out.leader = body.leader as string | null;
   }
   if (body.cards !== undefined) {
@@ -97,7 +99,7 @@ async function readDeckBody(
       body.cards.length > MAX_DECK_CARDS ||
       !body.cards.every((c) => typeof c === "string" && c.length <= 64)
     ) {
-      return badRequest(`Cards are a list of at most ${MAX_DECK_CARDS} card ids.`);
+      return badRequest(formatCopy(copy.cardsAreAListOfAt, { p0: MAX_DECK_CARDS }));
     }
     out.cards = body.cards as string[];
   }
@@ -113,7 +115,7 @@ async function ownDeck(db: D1Database, account: Account, id: string): Promise<De
     .first<DeckRow>();
 }
 
-const notFound = () => json({ error: "not_found", message: "No such Deck." }, { status: 404 });
+const notFound = () => json({ error: "not_found", message: copy.noSuchDeck }, { status: 404 });
 
 /** Routes under /api/decks for the signed-in account. Another player's Deck is a 404. */
 export async function handleDecks(
@@ -143,9 +145,9 @@ export async function handleDecks(
     if (method === "POST") {
       const body = await readDeckBody(request);
       if (body instanceof Response) return body;
-      if (!body.faction) return badRequest("Choose a Faction.");
+      if (!body.faction) return badRequest(copy.chooseAFaction);
       return insertDeck(db, account, {
-        name: body.name ?? "New Deck",
+        name: body.name ?? copy.newDeck,
         faction: body.faction,
         leader: body.leader ?? null,
         cards: body.cards ?? [],
@@ -157,10 +159,12 @@ export async function handleDecks(
   if (path === "/copy-starter" && method === "POST") {
     const body = await readDeckBody(request);
     if (body instanceof Response) return body;
-    if (!body.faction) return badRequest("Choose a Faction.");
+    if (!body.faction) return badRequest(copy.chooseAFaction);
     const starter = catalog().starterDecks[body.faction];
     return insertDeck(db, account, {
-      name: body.name ?? `${body.faction === "swarm" ? "Swarm" : "Court"} Starter`,
+      name:
+        body.name ??
+        formatCopy(copy.starter, { p0: body.faction === "swarm" ? copy.swarm : copy.court }),
       faction: body.faction,
       leader: starter.leader,
       cards: [...starter.cards],
@@ -183,7 +187,7 @@ export async function handleDecks(
     const body = await readDeckBody(request);
     if (body instanceof Response) return body;
     if (body.faction && body.faction !== row.faction)
-      return badRequest("A Deck's Faction cannot change.");
+      return badRequest(copy.aDeckSFactionCannotChange);
     const next: DeckRow = {
       ...row,
       name: body.name ?? row.name,

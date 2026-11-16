@@ -1,5 +1,6 @@
 import type { CardDefinition, FactionId, RowId, UnitAbility } from "@card-duel/engine";
 import { cardName } from "../cards/strings";
+import copy from "../strings/en.json";
 
 export type TypeFilter = "all" | "unit" | "hero" | "special";
 export type RowFilter = "all" | RowId;
@@ -92,10 +93,10 @@ export function deckGroups(
     .filter((d): d is CardDefinition => !!d)
     .sort(compareCards);
   const groups = [
-    { key: "close", label: "Close" },
-    { key: "ranged", label: "Ranged" },
-    { key: "siege", label: "Siege" },
-    { key: "special", label: "Special Cards" },
+    { key: "close", label: copy.close },
+    { key: "ranged", label: copy.ranged },
+    { key: "siege", label: copy.siege },
+    { key: "special", label: copy.specialCards },
   ];
   return groups
     .map((g) => ({

@@ -1,5 +1,7 @@
 import type { DeckProblem } from "@card-duel/catalog";
 import type { FactionId } from "@card-duel/engine";
+import copy from "../strings/en.json";
+import { formatCopy } from "../strings/format";
 
 export interface Deck {
   id: string;
@@ -20,7 +22,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   });
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { message?: string };
-    throw new Error(body.message ?? `HTTP ${res.status}`);
+    throw new Error(body.message ?? formatCopy(copy.http, { p0: res.status }));
   }
   return (res.status === 204 ? undefined : await res.json()) as T;
 }

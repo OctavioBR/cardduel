@@ -1,4 +1,6 @@
 import type { PlayPreview, SeatView } from "@card-duel/engine";
+import copy from "../strings/en.json";
+import { formatCopy } from "../strings/format";
 
 /** One-line Play Preview: Score changes, cards destroyed and cards drawn. */
 export function PreviewSummary({
@@ -13,13 +15,25 @@ export function PreviewSummary({
   const opp = preview.totals.opponent - view.board.opponent.score;
   const parts: string[] = [];
   parts.push(
-    `You ${view.board.you.score} → ${preview.totals.you}${you ? ` (${you > 0 ? "+" : ""}${you})` : ""}`,
+    formatCopy(copy.you4, {
+      p0: view.board.you.score,
+      p1: preview.totals.you,
+      p2: you ? ` (${you > 0 ? "+" : ""}${you})` : "",
+    }),
   );
   parts.push(
-    `Opponent ${view.board.opponent.score} → ${preview.totals.opponent}${opp ? ` (${opp > 0 ? "+" : ""}${opp})` : ""}`,
+    formatCopy(copy.opponent4, {
+      p0: view.board.opponent.score,
+      p1: preview.totals.opponent,
+      p2: opp ? ` (${opp > 0 ? "+" : ""}${opp})` : "",
+    }),
   );
-  if (preview.destroyed.length) parts.push(`destroys ${preview.destroyed.length}`);
-  if (preview.drawn) parts.push(`+${preview.drawn} card${preview.drawn === 1 ? "" : "s"}`);
+  if (preview.destroyed.length)
+    parts.push(formatCopy(copy.destroys, { p0: preview.destroyed.length }));
+  if (preview.drawn)
+    parts.push(
+      formatCopy(preview.drawn === 1 ? copy.drawOneCard : copy.drawCards, { count: preview.drawn }),
+    );
   return (
     <span
       className="preview-summary"

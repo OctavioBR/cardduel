@@ -9,6 +9,8 @@ import { cardDef, cardName, catalog } from "../cards/strings";
 import { type Deck, deckApi } from "../decks/api";
 import { countCopies, deckCounters, deckGroups, type PoolFilters, poolCards } from "../decks/pool";
 import { type DropZone, useTileDrag } from "../decks/useTileDrag";
+import copy from "../strings/en.json";
+import { formatCopy } from "../strings/format";
 
 const ABILITIES: UnitAbility[] = [
   "agile",
@@ -33,7 +35,7 @@ export function DeckEditorPage() {
     deckApi.get(id).then(setDeck, (e: Error) => setError(e.message));
   }, [id]);
   if (error) return <main className="page">{error}</main>;
-  if (!deck || !catalog) return <main className="page">Loading…</main>;
+  if (!deck || !catalog) return <main className="page">{copy.loading}</main>;
   return (
     <CardDetailProvider>
       <Editor initial={deck} />
@@ -102,68 +104,68 @@ function Editor({ initial }: { initial: Deck }) {
   return (
     <main className="page wide deck-editor">
       <div className="editor-head">
-        <Link to="/decks">← My Decks</Link>
+        <Link to="/decks">{copy.myDecks2}</Link>
         <label className="deck-name">
-          <span className="visually-hidden">Deck name</span>
+          <span className="visually-hidden">{copy.deckName}</span>
           <input
             value={name}
             maxLength={40}
             onChange={(e) => edit(setName)(e.target.value)}
-            aria-label="Deck name"
+            aria-label={copy.deckName}
           />
         </label>
         <span className={`faction-badge f-${initial.faction}`}>
-          {initial.faction === "swarm" ? "Swarm" : "Court"}
+          {initial.faction === "swarm" ? copy.swarm : copy.court}
         </span>
         <span className="save-state" role="status" data-testid="save-state">
           {save === "saving"
-            ? "Saving…"
+            ? copy.saving
             : save === "error"
-              ? "Not saved: check your connection"
-              : "Saved"}
+              ? copy.notSavedCheckYourConnection
+              : copy.saved}
         </span>
       </div>
 
       <div className="editor-columns">
-        <section className="pool" aria-label="Card pool" data-drop-zone="pool">
+        <section className="pool" aria-label={copy.cardPool} data-drop-zone="pool">
           <div className="filters">
             <label>
-              Row{" "}
+              {copy.row2}{" "}
               <select
                 value={filters.row}
                 onChange={(e) =>
                   setFilters({ ...filters, row: e.target.value as PoolFilters["row"] })
                 }
               >
-                <option value="all">All</option>
-                <option value="close">Close</option>
-                <option value="ranged">Ranged</option>
-                <option value="siege">Siege</option>
+                <option value="all">{copy.all}</option>
+                <option value="close">{copy.close}</option>
+                <option value="ranged">{copy.ranged}</option>
+                <option value="siege">{copy.siege}</option>
               </select>
             </label>
             <label>
-              Type{" "}
+              {copy.type}{" "}
               <select
                 value={filters.type}
                 onChange={(e) =>
                   setFilters({ ...filters, type: e.target.value as PoolFilters["type"] })
                 }
               >
-                <option value="all">All</option>
-                <option value="unit">Units</option>
-                <option value="hero">Heroes</option>
-                <option value="special">Special Cards</option>
+                <option value="all">{copy.all}</option>
+                <option value="unit">{copy.units}</option>
+                <option value="hero">{copy.heroes}</option>
+                <option value="special">{copy.specialCards}</option>
               </select>
             </label>
             <label>
-              Ability{" "}
+              {copy.ability}{" "}
               <select
                 value={filters.ability}
                 onChange={(e) =>
                   setFilters({ ...filters, ability: e.target.value as PoolFilters["ability"] })
                 }
               >
-                <option value="all">All</option>
+                <option value="all">{copy.all}</option>
                 {ABILITIES.map((a) => (
                   <option key={a} value={a}>
                     {abilityLabel(a)}
@@ -181,7 +183,7 @@ function Editor({ initial }: { initial: Deck }) {
                   type="button"
                   className={`tile${left <= 0 ? " spent" : ""}`}
                   disabled={left <= 0}
-                  aria-label={`Add ${cardName(def.id)}, ${left} left`}
+                  aria-label={formatCopy(copy.addLeft, { p0: cardName(def.id), p1: left })}
                   data-testid="pool-tile"
                   data-card={def.id}
                   onPointerDown={left > 0 ? drag.start(def.id, "pool") : undefined}
@@ -196,12 +198,12 @@ function Editor({ initial }: { initial: Deck }) {
 
         <section
           className="deck-panel"
-          aria-label="Your Deck"
+          aria-label={copy.yourDeck2}
           data-drop-zone="deck"
           data-testid="deck-panel"
         >
           <fieldset className="leader-picker">
-            <legend>Leader</legend>
+            <legend>{copy.leader3}</legend>
             {leaders.map((l) => (
               <label key={l.id} className={leader === l.id ? "chosen" : ""}>
                 <input
@@ -217,23 +219,27 @@ function Editor({ initial }: { initial: Deck }) {
 
           <dl className="counters" data-testid="counters">
             <div className={limits && counters.units < limits.valid.minUnits ? "short" : ""}>
-              <dt>Units</dt>
+              <dt>{copy.units}</dt>
               <dd data-testid="count-units">
-                {counters.units}/{limits?.valid.minUnits}
+                {counters.units}
+                {copy.label4}
+                {limits?.valid.minUnits}
               </dd>
             </div>
             <div className={limits && counters.specials > limits.valid.maxSpecials ? "short" : ""}>
-              <dt>Special Cards</dt>
+              <dt>{copy.specialCards}</dt>
               <dd data-testid="count-specials">
-                {counters.specials}/{limits?.valid.maxSpecials}
+                {counters.specials}
+                {copy.label4}
+                {limits?.valid.maxSpecials}
               </dd>
             </div>
             <div>
-              <dt>Total Strength</dt>
+              <dt>{copy.totalStrength}</dt>
               <dd data-testid="count-strength">{counters.strength}</dd>
             </div>
             <div>
-              <dt>Heroes</dt>
+              <dt>{copy.heroes}</dt>
               <dd>{counters.heroes}</dd>
             </div>
           </dl>
@@ -241,7 +247,7 @@ function Editor({ initial }: { initial: Deck }) {
           <div className="deck-status" data-testid="deck-status">
             {problems?.valid.length === 0 ? (
               <p className="ok">
-                {problems.competitive.length === 0 ? "Competitive Deck" : "Valid Deck"}
+                {problems.competitive.length === 0 ? copy.competitiveDeck : copy.validDeck}
               </p>
             ) : null}
             {problems?.valid.map((p) => (
@@ -251,7 +257,8 @@ function Editor({ initial }: { initial: Deck }) {
             ))}
             {problems?.competitive.map((p) => (
               <p key={`${p.code}-${p.cardId ?? ""}`} className="warning" data-testid="deck-warning">
-                Competitive: {p.message}
+                {copy.competitive}
+                {p.message}
               </p>
             ))}
           </div>
@@ -265,7 +272,7 @@ function Editor({ initial }: { initial: Deck }) {
                     key={def.id}
                     type="button"
                     className="tile"
-                    aria-label={`Remove ${cardName(def.id)}, ${count} in Deck`}
+                    aria-label={formatCopy(copy.removeInDeck, { p0: cardName(def.id), p1: count })}
                     data-testid="deck-tile"
                     onPointerDown={drag.start(def.id, "deck")}
                     onClick={() => !drag.ignoreClick() && remove(def.id)}
@@ -276,9 +283,7 @@ function Editor({ initial }: { initial: Deck }) {
               </div>
             </div>
           ))}
-          {cards.length === 0 ? (
-            <p className="muted">Click or drag cards from the pool to add them.</p>
-          ) : null}
+          {cards.length === 0 ? <p className="muted">{copy.clickOrDragCardsFromThe}</p> : null}
         </section>
       </div>
       {drag.ghost ? (

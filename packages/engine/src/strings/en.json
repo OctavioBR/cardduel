@@ -1,0 +1,10 @@
+{
+  "theMatchIsOver": "The Match is over.",
+  "finishYourRedrawFirst": "Finish your Redraw first.",
+  "itIsNotYourTurn": "It is not your Turn.",
+  "youHavePassedThisRound": "You have Passed this Round.",
+  "thatCardIsNotInYour": "That card is not in your hand.",
+  "thatCardCannotTargetThat": "That card cannot target that.",
+  "thatCardCannotBePlayedThere": "That card cannot be played there.",
+  "thatActionIsNotAllowedNow": "That action is not allowed now."
+}

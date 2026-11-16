@@ -3,9 +3,11 @@ import { useCallback, useState } from "react";
 import { Card } from "../cards/Card";
 import { cardName } from "../cards/strings";
 import roomStrings from "../room/strings/en.json";
+import copy from "../strings/en.json";
+import { formatCopy } from "../strings/format";
 import { Overlay } from "./Overlay";
 
-const FACTION_NAME = { swarm: "Swarm", court: "Court" } as const;
+const FACTION_NAME = { swarm: copy.swarm, court: copy.court } as const;
 
 /**
  * A callback ref that focuses the element each time it mounts: the main action of an overlay,
@@ -30,38 +32,48 @@ export function OpeningOverlay({
   const focusRef = useFocusOnMount<HTMLButtonElement>();
   const { returned, done } = view.you.redraw;
   return (
-    <Overlay title="Match start">
+    <Overlay title={copy.matchStart}>
       <div className="reveal" data-testid="reveal">
         <div className="reveal-side">
-          <span className="reveal-label">You · {FACTION_NAME[view.you.faction]}</span>
+          <span className="reveal-label">
+            {copy.you}
+            {FACTION_NAME[view.you.faction]}
+          </span>
           <Card cardId={view.you.leader.cardId} size="tile" />
         </div>
         <div className="reveal-vs">
-          <strong>vs</strong>
+          <strong>{copy.vs}</strong>
           <span data-testid="coin-flip">
-            Coin flip:{" "}
+            {copy.coinFlip}{" "}
             {view.roundStarter === "you"
-              ? "you take the first Turn"
-              : "your opponent takes the first Turn"}
+              ? copy.youTakeTheFirstTurn
+              : copy.opponentTakesTheFirstTurn}
           </span>
         </div>
         <div className="reveal-side">
-          <span className="reveal-label">Opponent · {FACTION_NAME[view.opponent.faction]}</span>
+          <span className="reveal-label">
+            {copy.opponent}
+            {FACTION_NAME[view.opponent.faction]}
+          </span>
           <Card cardId={view.opponent.leader.cardId} size="tile" />
         </div>
       </div>
       {done ? (
         <p className="redraw-wait" data-testid="redraw-wait">
-          You returned {returned} card{returned === 1 ? "" : "s"}. Waiting for your opponent to
-          Redraw…
+          {copy.youReturned}
+          {returned}
+          {copy.card}
+          {returned === 1 ? "" : "s"}
+          {copy.waitingForYourOpponentToRedraw}
         </p>
       ) : (
         <div className="redraw" data-testid="redraw">
           <p>
-            Redraw: return up to 2 cards, one at a time; each is shuffled back and replaced (
-            {returned}/2 returned).
+            {copy.redrawReturnUpTo2Cards}
+            {returned}
+            {copy.text2Returned}
             {view.opponent.redraw.returned > 0
-              ? ` Your opponent has returned ${view.opponent.redraw.returned}.`
+              ? formatCopy(copy.yourOpponentHasReturned, { p0: view.opponent.redraw.returned })
               : ""}
           </p>
           <div className="overlay-cards redraw-hand">
@@ -71,7 +83,7 @@ export function OpeningOverlay({
                 type="button"
                 className="redraw-card"
                 disabled={locked}
-                aria-label={`Return ${cardName(card.cardId)}`}
+                aria-label={formatCopy(copy.return, { p0: cardName(card.cardId) })}
                 onClick={() => send({ type: "redraw", card: card.uid })}
               >
                 <Card cardId={card.cardId} size="tile" />
@@ -85,7 +97,7 @@ export function OpeningOverlay({
             disabled={locked}
             onClick={() => send({ type: "confirmRedraw" })}
           >
-            {returned === 0 ? "Keep hand" : "Done"}
+            {returned === 0 ? copy.keepHand : copy.done}
           </button>
         </div>
       )}
@@ -110,11 +122,11 @@ export function roundSummary(events: readonly MatchEvent[], seat: Seat): RoundSu
   const passives: string[] = [];
   for (const e of events) {
     if (e.type !== "factionPassive") continue;
-    const whose = e.seat === seat ? "Your" : "Your opponent's";
+    const whose = e.seat === seat ? copy.your : copy.yourOpponentS;
     passives.push(
       e.faction === "court"
-        ? `${whose} Court won the Tie.`
-        : `${whose} Swarm kept ${cardName(e.card.cardId)} on the battlefield.`,
+        ? formatCopy(copy.courtWonTheTie, { p0: whose })
+        : formatCopy(copy.swarmKeptOnTheBattlefield, { p0: whose, p1: cardName(e.card.cardId) }),
     );
   }
   return {
@@ -136,23 +148,29 @@ export function RoundResultOverlay({
   const focusRef = useFocusOnMount<HTMLButtonElement>();
   const title =
     summary.winner === null
-      ? `Round ${summary.round}: Tie`
+      ? formatCopy(copy.roundTie, { p0: summary.round })
       : summary.winner === "you"
-        ? `Round ${summary.round}: you win`
-        : `Round ${summary.round}: your opponent wins`;
+        ? formatCopy(copy.roundYouWin, { p0: summary.round })
+        : formatCopy(copy.roundYourOpponentWins, { p0: summary.round });
   return (
     <Overlay title={title} onClose={onContinue}>
       <div className="round-result" data-testid="round-result">
         <div className="round-scores">
           <span>
-            You <strong>{summary.scores.you}</strong>
+            {copy.you2}
+            <strong>{summary.scores.you}</strong>
           </span>
           <span>
-            Opponent <strong>{summary.scores.opponent}</strong>
+            {copy.opponent2}
+            <strong>{summary.scores.opponent}</strong>
           </span>
         </div>
         <p>
-          Gems lost: you {summary.gemsLost.you}, your opponent {summary.gemsLost.opponent}.
+          {copy.gemsLostYou}
+          {summary.gemsLost.you}
+          {copy.yourOpponent}
+          {summary.gemsLost.opponent}
+          {copy.label2}
         </p>
         {summary.passives.map((p) => (
           <p key={p} className="passive-note">
@@ -160,7 +178,7 @@ export function RoundResultOverlay({
           </p>
         ))}
         <button type="button" className="primary" ref={focusRef} onClick={onContinue}>
-          Continue
+          {copy.continue}
         </button>
       </div>
     </Overlay>
@@ -180,35 +198,39 @@ export function MatchEndOverlay({
   if (!result) return null;
   const won = result.outcome === "win" && result.winner === view.seat;
   const text =
-    result.outcome === "draw" ? "Draw" : won ? "You won the Match" : "You lost the Match";
+    result.outcome === "draw" ? copy.draw : won ? copy.youWonTheMatch : copy.youLostTheMatch;
   const reason =
     result.outcome === "win" && result.reason === "forfeit"
       ? won
-        ? "Your opponent Forfeited."
-        : "You Forfeited."
+        ? copy.yourOpponentForfeited
+        : copy.youForfeited
       : result.outcome === "win" && result.reason === "disconnect"
         ? won
           ? roomStrings.disconnectWon
           : roomStrings.disconnectLost
         : result.outcome === "draw"
-          ? "Both players lost their last Gem in the same Round."
+          ? copy.bothPlayersLostTheirLastGem
           : null;
   return (
-    <Overlay title="Match over">
+    <Overlay title={copy.matchOver}>
       <div className="match-end">
         <p className="match-end-result" role="status" data-testid="result">
           {text}
         </p>
         {reason ? <p className="muted">{reason}</p> : null}
         <p className="muted">
-          Gems left: you {view.you.gems}, your opponent {view.opponent.gems}.
+          {copy.gemsLeftYou}
+          {view.you.gems}
+          {copy.yourOpponent}
+          {view.opponent.gems}
+          {copy.label2}
         </p>
         <div className="match-end-actions">
           <button type="button" className="primary" onClick={onRematch} disabled={!onRematch}>
-            Rematch
+            {copy.rematch}
           </button>
           <button type="button" onClick={onLeave}>
-            Leave
+            {copy.leave}
           </button>
         </div>
       </div>
@@ -228,20 +250,20 @@ export function MatchMenu({ onForfeit, disabled }: { onForfeit: () => void; disa
         disabled={disabled}
         aria-haspopup="dialog"
       >
-        Menu
+        {copy.menu}
       </button>
       {open === "menu" ? (
-        <Overlay title="Menu" onClose={() => setOpen(null)}>
+        <Overlay title={copy.menu} onClose={() => setOpen(null)}>
           <div className="menu-items">
             <button type="button" onClick={() => setOpen("confirm")}>
-              Forfeit
+              {copy.forfeit}
             </button>
           </div>
         </Overlay>
       ) : null}
       {open === "confirm" ? (
-        <Overlay title="Forfeit this Match?" onClose={() => setOpen(null)}>
-          <p>Your opponent wins, and it counts as a loss on your Record.</p>
+        <Overlay title={copy.forfeitThisMatch} onClose={() => setOpen(null)}>
+          <p>{copy.yourOpponentWinsAndItCounts}</p>
           <div className="match-end-actions">
             <button
               type="button"
@@ -251,10 +273,10 @@ export function MatchMenu({ onForfeit, disabled }: { onForfeit: () => void; disa
                 onForfeit();
               }}
             >
-              Forfeit
+              {copy.forfeit}
             </button>
             <button type="button" onClick={() => setOpen(null)}>
-              Keep playing
+              {copy.keepPlaying}
             </button>
           </div>
         </Overlay>

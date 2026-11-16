@@ -10,6 +10,7 @@ import { DisconnectBanner } from "../room/DisconnectBanner";
 import roomStrings from "../room/strings/en.json";
 import { useEventBatch, useRoom } from "../room/useRoom";
 import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
+import copy from "../strings/en.json";
 
 import en from "../strings/home.en.json";
 
@@ -19,7 +20,7 @@ export function RoomPage() {
   if (account === undefined) {
     return (
       <main className="page">
-        <p>Loading…</p>
+        <p>{copy.loading}</p>
       </main>
     );
   }
@@ -27,8 +28,11 @@ export function RoomPage() {
     // A shared Room link while signed out: sign up (or in) right here, then go on to the Seat.
     return (
       <main className="page narrow">
-        <h1>Room {code.toUpperCase()}</h1>
-        <p>You need an account to take a Seat. It takes a moment.</p>
+        <h1>
+          {copy.room}
+          {code.toUpperCase()}
+        </h1>
+        <p>{copy.youNeedAnAccountToTake}</p>
         <AuthForm initialMode="signup" />
       </main>
     );
@@ -98,8 +102,12 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
   if (state.error?.code === "room_full") {
     return (
       <main className="page">
-        <h1>Room full</h1>
-        <p>Both Seats in Room {code} are taken.</p>
+        <h1>{copy.roomFull}</h1>
+        <p>
+          {copy.bothSeatsInRoom}
+          {code}
+          {copy.areTaken}
+        </p>
       </main>
     );
   }
@@ -107,10 +115,17 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
     const link = `${window.location.origin}/r/${state.waitingCode}`;
     return (
       <main className="page">
-        <h1>Room {state.waitingCode}</h1>
-        <p>{state.lobby?.competitive ? "Competitive Room" : "Casual Room"}</p>
+        <h1>
+          {copy.room}
+          {state.waitingCode}
+        </h1>
+        <p>{state.lobby?.competitive ? copy.competitiveRoom : copy.casualRoom}</p>
         {state.lobby?.you.seated ? (
-          <p>You chose {state.lobby.you.deckName}. Waiting for your opponent to choose a Deck.</p>
+          <p>
+            {copy.youChose}
+            {state.lobby.you.deckName}
+            {copy.waitingForYourOpponentToChoose}
+          </p>
         ) : (
           <DeckPicker
             lastDeckId={state.lobby?.you.lastDeckId ?? null}
@@ -120,11 +135,13 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
         )}
         {state.lobby?.opponent.present ? (
           <p>
-            {state.lobby.opponent.username} is here
-            {state.lobby.opponent.seated ? " and has chosen a Deck" : ""}.
+            {state.lobby.opponent.username}
+            {copy.isHere}
+            {state.lobby.opponent.seated ? copy.opponentHasChosen : ""}
+            {copy.label2}
           </p>
         ) : (
-          <p>Waiting for your opponent. Share the code or this link:</p>
+          <p>{copy.waitingForYourOpponentShareThe}</p>
         )}
         <p>
           <code data-testid="room-link">{link}</code>
@@ -148,7 +165,7 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
   }
   return (
     <main className="page">
-      <p>{state.status === "reconnecting" ? "Reconnecting…" : "Connecting…"}</p>
+      <p>{state.status === "reconnecting" ? copy.reconnecting : copy.connecting}</p>
     </main>
   );
 }
@@ -168,17 +185,25 @@ function DeckPicker({
     deckApi.list().then(setDecks, (e: Error) => setError(e.message));
   }, []);
   return (
-    <section aria-label="Choose a Deck">
-      <h2>Take a Seat</h2>
-      <p>Choose a {competitive ? "Competitive " : "Valid "}Deck for this Match.</p>
+    <section aria-label={copy.chooseADeck}>
+      <h2>{copy.takeASeat}</h2>
+      <p>
+        {copy.chooseA}
+        {competitive ? copy.competitive2 : copy.valid}
+        {copy.deckForThisMatch}
+      </p>
       {error ? <p role="alert">{error}</p> : null}
       {decks === null ? (
-        <p>Loading Decks…</p>
+        <p>{copy.loadingDecks}</p>
       ) : decks.filter(
           (d) =>
             d.problems.valid.length === 0 && (!competitive || d.problems.competitive.length === 0),
         ).length === 0 ? (
-        <p>You have no {competitive ? "Competitive " : "Valid "}Decks. Create one in My Decks.</p>
+        <p>
+          {copy.youHaveNo}
+          {competitive ? copy.competitive2 : copy.valid}
+          {copy.decksCreateOneInMyDecks}
+        </p>
       ) : (
         <ul>
           {decks
@@ -194,7 +219,9 @@ function DeckPicker({
                   aria-pressed={deck.id === lastDeckId}
                   onClick={() => onChoose(deck.id)}
                 >
-                  {deck.name} — {deck.faction}
+                  {deck.name}
+                  {copy.label5}
+                  {deck.faction === "swarm" ? copy.swarmId : copy.courtId}
                 </button>
               </li>
             ))}

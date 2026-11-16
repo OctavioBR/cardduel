@@ -1,4 +1,5 @@
 import { type FormEvent, useId, useState } from "react";
+import copy from "../strings/en.json";
 import { type AuthMode, useAuth } from "./AuthContext";
 
 /**
@@ -33,8 +34,8 @@ export function AuthForm({
   const signUp = mode === "signup";
   return (
     <form className="auth-form" onSubmit={onSubmit} aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`}>{signUp ? "Create an account" : "Sign in"}</h2>
-      <label htmlFor={`${id}-user`}>Username</label>
+      <h2 id={`${id}-title`}>{signUp ? copy.createAnAccount : copy.signIn}</h2>
+      <label htmlFor={`${id}-user`}>{copy.username}</label>
       <input
         id={`${id}-user`}
         value={username}
@@ -43,11 +44,11 @@ export function AuthForm({
         minLength={3}
         maxLength={20}
         pattern="[A-Za-z0-9_]{3,20}"
-        title="3 to 20 letters, digits or underscores"
+        title={copy.text3To20LettersDigitsOr}
         required
       />
-      {signUp ? <p className="hint">3 to 20 letters, digits or underscores.</p> : null}
-      <label htmlFor={`${id}-pass`}>Password</label>
+      {signUp ? <p className="hint">{copy.text3To20LettersDigitsOr2}</p> : null}
+      <label htmlFor={`${id}-pass`}>{copy.password}</label>
       <input
         id={`${id}-pass`}
         type="password"
@@ -57,27 +58,23 @@ export function AuthForm({
         minLength={signUp ? 8 : undefined}
         required
       />
-      {signUp ? (
-        <p className="hint">
-          At least 8 characters. There is no email, so there is no password reset: keep it safe.
-        </p>
-      ) : null}
+      {signUp ? <p className="hint">{copy.atLeast8CharactersThereIs}</p> : null}
       {error ? (
         <p className="form-error" role="alert">
           {error}
         </p>
       ) : null}
       <button type="submit" className="primary" disabled={busy}>
-        {signUp ? "Sign up" : "Sign in"}
+        {signUp ? copy.signUp : copy.signIn}
       </button>
       <p className="switch">
-        {signUp ? "Already have an account?" : "New here?"}{" "}
+        {signUp ? copy.alreadyHaveAnAccount : copy.newHere}{" "}
         <button
           type="button"
           className="link"
           onClick={() => setMode(signUp ? "signin" : "signup")}
         >
-          {signUp ? "Sign in" : "Create an account"}
+          {signUp ? copy.signIn : copy.createAnAccount}
         </button>
       </p>
     </form>

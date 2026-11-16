@@ -2,10 +2,12 @@ import type { FactionId } from "@card-duel/engine";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { type Deck, deckApi } from "../decks/api";
+import copy from "../strings/en.json";
+import { formatCopy } from "../strings/format";
 
 const FACTIONS: { id: FactionId; name: string }[] = [
-  { id: "swarm", name: "Swarm" },
-  { id: "court", name: "Court" },
+  { id: "swarm", name: copy.swarm },
+  { id: "court", name: copy.court },
 ];
 
 /** Your Decks, by Faction tab, with New Deck and Copy a Starter Deck. */
@@ -38,8 +40,8 @@ export function DecksPage() {
 
   return (
     <main className="page wide">
-      <h1>My Decks</h1>
-      <div className="tabs" role="tablist" aria-label="Faction">
+      <h1>{copy.myDecks}</h1>
+      <div className="tabs" role="tablist" aria-label={copy.faction}>
         {FACTIONS.map((f) => (
           <button
             key={f.id}
@@ -57,18 +59,22 @@ export function DecksPage() {
         <button
           type="button"
           className="primary"
-          onClick={() => open(() => deckApi.create(faction, "New Deck"))}
+          onClick={() => open(() => deckApi.create(faction, copy.newDeck))}
         >
-          New Deck
+          {copy.newDeck}
         </button>
         <button type="button" onClick={() => open(() => deckApi.copyStarter(faction))}>
-          Copy a Starter Deck
+          {copy.copyAStarterDeck}
         </button>
       </div>
       {error ? <p role="alert">{error}</p> : null}
-      {decks === null ? <p>Loading…</p> : null}
+      {decks === null ? <p>{copy.loading}</p> : null}
       {decks?.length === 0 ? (
-        <p className="muted">No {faction === "swarm" ? "Swarm" : "Court"} Decks yet.</p>
+        <p className="muted">
+          {copy.no}
+          {faction === "swarm" ? copy.swarm : copy.court}
+          {copy.decksYet}
+        </p>
       ) : null}
       <ul className="deck-list">
         {decks?.map((d) => (
@@ -77,9 +83,9 @@ export function DecksPage() {
             <span className={d.problems.valid.length === 0 ? "status ok" : "status"}>
               {d.problems.valid.length === 0
                 ? d.problems.competitive.length === 0
-                  ? "Competitive Deck"
-                  : "Valid Deck"
-                : "Incomplete"}
+                  ? copy.competitiveDeck
+                  : copy.validDeck
+                : copy.incomplete}
             </span>
             <button
               type="button"
@@ -88,9 +94,9 @@ export function DecksPage() {
                 await deckApi.remove(d.id);
                 setDecks((list) => list?.filter((x) => x.id !== d.id) ?? null);
               }}
-              aria-label={`Delete ${d.name}`}
+              aria-label={formatCopy(copy.delete, { p0: d.name })}
             >
-              Delete
+              {copy.delete2}
             </button>
           </li>
         ))}

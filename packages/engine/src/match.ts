@@ -16,6 +16,7 @@ import {
   type Seat,
   type SideState,
 } from "./state";
+import copy from "./strings/en.json";
 
 export const HAND_SIZE = 10;
 export const STARTING_GEMS = 2;
@@ -198,27 +199,26 @@ function cloneRow(row: RowState): RowState {
 }
 
 function validate(state: MatchState, seat: Seat, action: Action): Rejection | null {
-  if (state.phase === "ended") return reject("match_over", "The Match is over.");
+  if (state.phase === "ended") return reject("match_over", copy.theMatchIsOver);
   if (action.type === "forfeit") return null;
   if (state.phase === "redraw") {
     const key = actionKey(action);
     if (legalActions(state, seat).some((legal) => actionKey(legal) === key)) return null;
-    return reject("invalid_action", "Finish your Redraw first.");
+    return reject("invalid_action", copy.finishYourRedrawFirst);
   }
-  if (state.turn !== seat) return reject("not_your_turn", "It is not your Turn.");
+  if (state.turn !== seat) return reject("not_your_turn", copy.itIsNotYourTurn);
   const side = state.sides[seat];
-  if (side.passed) return reject("already_passed", "You have Passed this Round.");
+  if (side.passed) return reject("already_passed", copy.youHavePassedThisRound);
   const key = actionKey(action);
   if (legalActions(state, seat).some((legal) => actionKey(legal) === key)) return null;
   if (action.type === "play") {
     if (!side.hand.includes(action.card)) {
-      return reject("card_not_in_hand", "That card is not in your hand.");
+      return reject("card_not_in_hand", copy.thatCardIsNotInYour);
     }
-    if (action.target !== undefined)
-      return reject("invalid_target", "That card cannot target that.");
-    return reject("invalid_row", "That card cannot be played there.");
+    if (action.target !== undefined) return reject("invalid_target", copy.thatCardCannotTargetThat);
+    return reject("invalid_row", copy.thatCardCannotBePlayedThere);
   }
-  return reject("invalid_action", "That action is not allowed now.");
+  return reject("invalid_action", copy.thatActionIsNotAllowedNow);
 }
 
 function reject(code: Rejection["code"], message: string): Rejection {
