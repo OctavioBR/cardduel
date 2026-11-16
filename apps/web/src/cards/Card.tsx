@@ -15,6 +15,8 @@ export interface CardProps {
   count?: number | undefined;
   /** The card shown inside Card Detail itself does not open Card Detail. */
   noDetail?: boolean;
+  /** Include read-only pile cards in keyboard navigation for the I shortcut. */
+  keyboardDetail?: boolean;
 }
 
 /** Rows a card's icon shows: both for Agile. */
@@ -32,7 +34,7 @@ function strengthClass(def: CardDefinition, strength: number | undefined): strin
  * Renders any card from catalog data and strings (ADR-0004). The board token shows only
  * Strength and icons; the other sizes add name, short ability text and art.
  */
-export function Card({ cardId, size, strength, count, noDetail }: CardProps) {
+export function Card({ cardId, size, strength, count, noDetail, keyboardDetail }: CardProps) {
   const trigger = useCardDetailTrigger(cardId, strength);
   const detail = noDetail ? {} : trigger;
   const def = cardDef(cardId);
@@ -65,6 +67,8 @@ export function Card({ cardId, size, strength, count, noDetail }: CardProps) {
       className={`cd-card cd-${size} cd-f-${def.faction} cd-k-${def.kind}${hero ? " cd-hero" : ""}`}
       role="img"
       aria-label={label}
+      tabIndex={keyboardDetail ? 0 : undefined}
+      aria-keyshortcuts={keyboardDetail ? "I" : undefined}
       data-card-id={cardId}
       {...detail}
     >

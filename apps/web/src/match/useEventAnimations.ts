@@ -1,5 +1,5 @@
 import type { MatchEvent, Seat } from "@card-duel/engine";
-import { type RefObject, useLayoutEffect, useRef, useState } from "react";
+import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { type AnimationStep, planAnimations, STEP_MS } from "./animation-plan";
 
 interface Snapshot {
@@ -34,13 +34,22 @@ export function useEventAnimations(
   const clones = useRef<HTMLElement[]>([]);
   const lastSeq = useRef<number | undefined>(undefined);
 
-  const finishAll = () => {
+  const finishAll = useCallback(() => {
     for (const a of running.current) a.finish();
     running.current = [];
     for (const c of clones.current) c.remove();
     clones.current = [];
     setAnimating(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const change = () => {
+      if (preference.matches) finishAll();
+    };
+    preference.addEventListener("change", change);
+    return () => preference.removeEventListener("change", change);
+  }, [finishAll]);
 
   // After every render: play new events against the previous snapshot, then take a new one.
   useLayoutEffect(() => {

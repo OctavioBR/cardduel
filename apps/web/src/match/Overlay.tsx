@@ -1,4 +1,6 @@
-import { type ReactNode, useEffect, useId, useRef } from "react";
+import { type ReactNode, useId, useRef } from "react";
+
+import { useDialogFocus } from "./useDialogFocus";
 
 /** An in-page dialog (no browser dialogs). Esc or the close button dismisses it. */
 export function Overlay({
@@ -12,16 +14,7 @@ export function Overlay({
 }) {
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    // Keep focus inside the dialog, but do not steal it from an autofocused control.
-    if (!ref.current?.contains(document.activeElement)) ref.current?.focus();
-    if (!onClose) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  useDialogFocus(ref, true, onClose);
   return (
     <div className="overlay-backdrop">
       <div

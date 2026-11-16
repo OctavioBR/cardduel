@@ -19,12 +19,12 @@ export default defineConfig({
     {
       name: "local-room",
       testMatch:
-        /(local-room|gallery|stage|preview|choices|drag|card-detail|animations|flow)\.spec\.ts/,
+        /(local-room|gallery|stage|preview|choices|drag|card-detail|animations|flow|accessibility-local)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${VITE_PORT}` },
     },
     {
       name: "online",
-      testMatch: /(online|deck-builder|home)\.spec\.ts/,
+      testMatch: /(online|deck-builder|home|accessibility-online)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${WORKER_PORT}` },
     },
   ],

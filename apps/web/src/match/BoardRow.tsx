@@ -118,6 +118,7 @@ export function BoardRow(props: {
             <div
               key={unit.uid}
               className={cls}
+              tabIndex={props.rowTarget ? undefined : 0}
               data-uid={unit.uid}
               data-anim-uid={unit.uid}
               data-doomed={doomed ? "true" : undefined}
