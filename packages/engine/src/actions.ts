@@ -30,8 +30,15 @@ export interface RedrawAction {
   card: Uid;
 }
 
+/** Use the Leader's active ability. `row` is set for the Horn kind. */
+export interface LeaderAction {
+  type: "leader";
+  row?: RowId;
+}
+
 export type Action =
   | PlayAction
+  | LeaderAction
   | ChooseAction
   | RedrawAction
   | { type: "confirmRedraw" }
@@ -62,6 +69,8 @@ export function actionKey(action: Action): string {
   switch (action.type) {
     case "play":
       return `play:${action.card}:${action.row ?? ""}:${action.target ?? ""}`;
+    case "leader":
+      return `leader:${action.row ?? ""}`;
     case "redraw":
       return `redraw:${action.card}`;
     case "choose":

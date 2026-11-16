@@ -136,6 +136,8 @@ describe("Turns", () => {
   it("Passes a Seat automatically when its hand is empty", () => {
     const s = setup(7, [deck(repeat("five", 10)), deck(repeat("five", 10))], [FIVE]);
     let { state } = startMatch(s);
+    // With a usable Leader ability a Seat is not Passed automatically, so spend both.
+    for (const side of state.sides) side.leaderUsed = true;
     const a = state.turn as Seat;
     const b = opponent(a);
     ({ state } = playCard(state, a));

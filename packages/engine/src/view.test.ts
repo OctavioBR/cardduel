@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Action } from "./actions";
-import { ROWS } from "./cards";
+import { type CardDefinition, ROWS } from "./cards";
 import { legalActions } from "./legal";
 import { applyAction, createMatch } from "./match";
 import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
@@ -17,10 +17,11 @@ const CARDS = [
 const LIST = [...repeat("a", 6), ...repeat("b", 6), ...repeat("c", 6), ...repeat("d", 4)];
 const SETUP = setup(99, [deck(LIST), deck(LIST, "court")], CARDS);
 
-/** Uids a Seat must never see: the opponent's hand and both decks. */
+/** Uids a Seat must never see: the opponent's hand (except cards it saw) and both decks. */
 function hiddenFrom(state: MatchState, seat: Seat): Set<Uid> {
+  const known = new Set(state.sides[seat].known);
   return new Set([
-    ...state.sides[opponent(seat)].hand,
+    ...state.sides[opponent(seat)].hand.filter((uid) => !known.has(uid)),
     ...state.sides[0].deck,
     ...state.sides[1].deck,
   ]);
@@ -110,6 +111,45 @@ describe("hidden information", () => {
         for (const seat of SEATS) {
           const hidden = hiddenFrom(after, seat);
           // A Seat knows which card it just returned in Redraw; the deck is reshuffled after.
+          for (const e of stepEvents) {
+            if (e.type === "cardReturned" && e.seat === seat && e.card) hidden.delete(e.card.uid);
+          }
+          const seen = uidsIn([viewFor(after, seat), filterEvents(stepEvents, seat)]);
+          expect(seen.filter((u) => hidden.has(u))).toEqual([]);
+        }
+      });
+    }
+  });
+});
+
+describe("hidden information with Leaders that look and draw", () => {
+  it("only cards a Seat has seen appear in its view", () => {
+    const look: CardDefinition = {
+      id: "leader-look",
+      kind: "leader",
+      faction: "court",
+      maxCopies: 1,
+      ability: { type: "lookAtOpponentHand" },
+    };
+    const pick: CardDefinition = {
+      id: "leader-pick",
+      kind: "leader",
+      faction: "court",
+      maxCopies: 1,
+      ability: { type: "drawChosenFromDeck" },
+    };
+    const s = {
+      ...SETUP,
+      decks: [
+        { ...deck(LIST), leader: look.id },
+        { ...deck(LIST), leader: pick.id },
+      ] as typeof SETUP.decks,
+      cards: [...SETUP.cards, look, pick],
+    };
+    for (let seed = 0; seed < 40; seed++) {
+      playRandomMatch({ ...s, seed }, seed + 7, ({ after, events: stepEvents }) => {
+        for (const seat of SEATS) {
+          const hidden = hiddenFrom(after, seat);
           for (const e of stepEvents) {
             if (e.type === "cardReturned" && e.seat === seat && e.card) hidden.delete(e.card.uid);
           }

@@ -1,6 +1,7 @@
 import type { Action } from "./actions";
 import { type CardId, ROWS, type RowId } from "./cards";
 import type { CardRef, MatchEvent } from "./events";
+import { leaderAbility } from "./leader";
 import { legalActions } from "./legal";
 import { ref } from "./play";
 import {
@@ -32,6 +33,8 @@ export interface BoardSideView {
 export interface LeaderView {
   cardId: CardId;
   used: boolean;
+  /** A passive Leader has no ability to use; its rule is always on. */
+  passive: boolean;
 }
 
 export interface DeckCount {
@@ -55,12 +58,16 @@ export interface OwnSideView {
   gems: number;
   passed: boolean;
   redraw: RedrawView;
+  /** Hand cards the opponent has seen (a "look at 3" Leader). */
+  seenByOpponent: Uid[];
 }
 
 export interface OpponentSideView {
   faction: MatchState["sides"][0]["faction"];
   leader: LeaderView;
   handSize: number;
+  /** Cards in the opponent's hand you have seen and that are still there. */
+  knownHand: CardRef[];
   deckSize: number;
   discard: CardRef[];
   gems: number;
@@ -108,7 +115,7 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
     result: state.result,
     you: {
       faction: own.faction,
-      leader: { cardId: own.leader, used: own.leaderUsed },
+      leader: leaderView(state, seat),
       hand: own.hand.map((uid) => ref(state, uid)),
       deck: countCards(state, own.deck),
       deckSize: own.deck.length,
@@ -116,11 +123,13 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
       gems: own.gems,
       passed: own.passed,
       redraw: { ...own.redraw },
+      seenByOpponent: opp.known.filter((uid) => own.hand.includes(uid)),
     },
     opponent: {
       faction: opp.faction,
-      leader: { cardId: opp.leader, used: opp.leaderUsed },
+      leader: leaderView(state, other),
       handSize: opp.hand.length,
+      knownHand: own.known.filter((uid) => opp.hand.includes(uid)).map((uid) => ref(state, uid)),
       deckSize: opp.deck.length,
       discard: opp.discard.map((uid) => ref(state, uid)),
       gems: opp.gems,
@@ -135,6 +144,15 @@ export function viewFor(state: MatchState, seat: Seat): SeatView {
     pendingChoice: pending?.seat === seat ? { kind: pending.kind } : null,
     opponentChoosing: pending?.seat === other,
     legalActions: legalActions(state, seat),
+  };
+}
+
+function leaderView(state: MatchState, seat: Seat): LeaderView {
+  const side = state.sides[seat];
+  return {
+    cardId: side.leader,
+    used: side.leaderUsed,
+    passive: leaderAbility(state, seat)?.type === "passive",
   };
 }
 

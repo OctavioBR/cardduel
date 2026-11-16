@@ -36,6 +36,8 @@ export interface SideState {
   rows: Record<RowId, RowState>;
   gems: number;
   passed: boolean;
+  /** Cards in the opponent's hand this Seat has seen (a "look at 3" Leader). */
+  known: Uid[];
   /** Redraw progress: cards returned so far, and whether the Seat has confirmed. */
   redraw: { returned: number; done: boolean };
 }
@@ -46,7 +48,7 @@ export type MatchResult =
 
 export type Phase = "redraw" | "turns" | "ended";
 
-export type PendingKind = "medic";
+export type PendingKind = "medic" | "leaderWeather" | "leaderReturn" | "leaderDraw";
 
 /**
  * A decision a Seat must make after a play has resolved (GLOSSARY.md: Pending Choice).
