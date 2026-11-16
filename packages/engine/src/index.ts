@@ -2,6 +2,7 @@ export * from "./actions";
 export * from "./cards";
 export * from "./events";
 export * from "./match";
+export * from "./protocol";
 export * from "./rng";
 export * from "./state";
 export * from "./strength";
