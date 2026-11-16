@@ -26,6 +26,8 @@ import {
   withoutPreview,
 } from "@card-duel/engine";
 
+import { writeMatchResult } from "./results";
+
 /** Headers the Worker sets after checking the session; never taken from the client. */
 export const ACCOUNT_ID_HEADER = "X-Card-Duel-Account";
 export const USERNAME_HEADER = "X-Card-Duel-Username";
@@ -49,6 +51,8 @@ interface RoomMeta {
 }
 
 interface StoredMatch {
+  id: string;
+  finishedAt?: number;
   setup: MatchSetup;
   catalogVersion: string;
   log: LoggedAction[];
@@ -77,6 +81,7 @@ export class Room extends DurableObject<Env> {
 
   override async fetch(request: Request): Promise<Response> {
     await this.load();
+    await this.persistResult();
     if (!this.meta) return new Response("Room not found", { status: 404 });
     if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
       return new Response("Expected a WebSocket upgrade", { status: 426 });
@@ -107,6 +112,7 @@ export class Room extends DurableObject<Env> {
 
   override async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
     await this.load();
+    await this.persistResult();
     const attachment = ws.deserializeAttachment() as Attachment | null;
     if (!attachment) return;
     const { seat } = attachment;
@@ -142,7 +148,13 @@ export class Room extends DurableObject<Env> {
     }
     this.match.log.push({ seat, action });
     this.match.state = result.state;
-    await this.ctx.storage.put({ log: this.match.log, snapshot: result.state });
+    if (result.state.phase === "ended") this.match.finishedAt = Date.now();
+    await this.ctx.storage.put({
+      log: this.match.log,
+      snapshot: result.state,
+      finishedAt: this.match.finishedAt ?? null,
+    });
+    await this.persistResult();
     this.broadcast(result.events);
   }
 
@@ -215,6 +227,8 @@ export class Room extends DurableObject<Env> {
       "catalogVersion",
       "log",
       "snapshot",
+      "matchId",
+      "finishedAt",
     ]);
     this.meta = (stored.get("meta") as RoomMeta | undefined) ?? null;
     this.seats = (stored.get("seats") as [SeatState | null, SeatState | null] | undefined) ?? [
@@ -228,7 +242,10 @@ export class Room extends DurableObject<Env> {
       // The snapshot is a cache: rebuild from seed plus log when it is missing or behind.
       if (!snapshot || snapshot.actionCount !== log.length) snapshot = replay(setup, log);
       const catalogVersion = (stored.get("catalogVersion") as string | undefined) ?? "";
-      this.match = { setup, catalogVersion, log, state: snapshot };
+      const id = (stored.get("matchId") as string | undefined) ?? crypto.randomUUID();
+      await this.ctx.storage.put("matchId", id);
+      const finishedAt = (stored.get("finishedAt") as number | undefined) ?? undefined;
+      this.match = { id, finishedAt, setup, catalogVersion, log, state: snapshot };
     }
     this.loaded = true;
   }
@@ -255,9 +272,27 @@ export class Room extends DurableObject<Env> {
       cards: getCatalog(catalogVersion).cards,
     };
     const { state, events } = createMatch(setup);
-    this.match = { setup, catalogVersion, log: [], state };
-    await this.ctx.storage.put({ setup, catalogVersion, log: [], snapshot: state });
+    const id = crypto.randomUUID();
+    this.match = { id, setup, catalogVersion, log: [], state };
+    await this.ctx.storage.put({ matchId: id, setup, catalogVersion, log: [], snapshot: state });
     this.broadcast(events);
+  }
+
+  /** Also retried on reconnect/message if D1 failed after the final action was saved. */
+  private async persistResult(): Promise<void> {
+    const match = this.match;
+    const [a, b] = this.seats;
+    if (!match?.state.result || !a || !b) return;
+    await writeMatchResult(this.env.DB, {
+      id: match.id,
+      roomCode: this.meta?.code ?? "",
+      players: [a.accountId, b.accountId],
+      setup: match.setup,
+      catalogVersion: match.catalogVersion,
+      log: match.log,
+      result: match.state.result,
+      finishedAt: match.finishedAt ?? Date.now(),
+    });
   }
 
   private lobbyFor(seat: Seat): LobbyInfo {
