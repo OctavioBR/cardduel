@@ -52,6 +52,7 @@
       "includes": [
         "apps/web/src/**",
         "!apps/web/src/room/local-room.ts",
+        "!apps/web/src/room/local-scenarios.ts",
         "!apps/web/src/**/*.test.ts",
         "!apps/web/src/**/*.test.tsx"
       ],
