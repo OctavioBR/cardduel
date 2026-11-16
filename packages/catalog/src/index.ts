@@ -1,1 +1,1 @@
-export const name = "catalog";
+export * from "./dev-plain";
