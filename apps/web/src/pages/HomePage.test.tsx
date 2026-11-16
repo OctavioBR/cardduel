@@ -1,7 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { expect, it } from "vitest";
 import { HomePage } from "./HomePage";
 
-it("shows the game name", () => {
-  expect(renderToStaticMarkup(<HomePage />)).toContain("Card Duel");
+it("offers to create a Room and to join one by code", () => {
+  const router = createMemoryRouter([{ path: "/", element: <HomePage /> }]);
+  const html = renderToStaticMarkup(<RouterProvider router={router} />);
+  expect(html).toContain("Card Duel");
+  expect(html).toContain("Create Room");
+  expect(html).toContain("Room code");
 });
