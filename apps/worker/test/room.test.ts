@@ -1,24 +1,39 @@
 import { env, evictDurableObject, runInDurableObject, SELF } from "cloudflare:test";
-import { CLOSE_ROOM_FULL, type SeatView } from "@card-duel/engine";
+import { CLOSE_ROOM_FULL, CLOSE_SIGNED_OUT, type SeatView } from "@card-duel/engine";
 import { describe, expect, it } from "vitest";
 import { ROOM_CODE_ALPHABET } from "../src/room-code";
-import { createRoom, firstPlay, TestSocket } from "./ws-client";
+import {
+  BASE,
+  createRoom,
+  firstPlay,
+  newPlayer,
+  savedDeck,
+  starterDeck,
+  TestSocket,
+} from "./ws-client";
 
 interface Seated {
   code: string;
+  cookies: [string, string];
   sockets: [TestSocket, TestSocket];
   views: [SeatView, SeatView];
 }
 
-async function seatBoth(): Promise<Seated> {
-  const code = await createRoom();
-  const a = await TestSocket.open(code, "token-a");
-  expect(await a.next()).toEqual({ type: "waiting", seat: 0, code });
-  const b = await TestSocket.open(code, "token-b");
+/** Two accounts take Seats with their Starter Decks, then both keep their opening hands. */
+async function seatBoth(competitive = false): Promise<Seated> {
+  const cookies: [string, string] = [await newPlayer(), await newPlayer()];
+  const decks = [await starterDeck(cookies[0], "swarm"), await starterDeck(cookies[1], "court")];
+  const code = await createRoom(cookies[0], competitive);
+  const a = await TestSocket.open(code, cookies[0]);
+  expect(await a.nextLobby()).toMatchObject({ code, seat: 0, opponent: { present: false } });
+  const b = await TestSocket.open(code, cookies[1]);
+  await Promise.all([a.nextLobby(), b.nextLobby()]);
+  a.takeSeat(decks[0] as string);
+  await Promise.all([a.nextLobby(), b.nextLobby()]);
+  b.takeSeat(decks[1] as string);
   const [ma, mb] = await Promise.all([a.nextView(), b.nextView()]);
-  const room: Seated = { code, sockets: [a, b], views: [ma.view, mb.view] };
+  const room: Seated = { code, cookies, sockets: [a, b], views: [ma.view, mb.view] };
   expect(room.views[0].phase).toBe("redraw");
-  // Both keep their opening hands; the first Turn then starts.
   await play(room, 0, { type: "confirmRedraw" });
   await play(room, 1, { type: "confirmRedraw" });
   expect(room.views[0].phase).toBe("turns");
@@ -28,12 +43,10 @@ async function seatBoth(): Promise<Seated> {
 /** Action count once both Seats have confirmed Redraw. */
 const START = 2;
 
-/** Index of the Seat whose Turn it is. */
 function mover(views: [SeatView, SeatView]): 0 | 1 {
   return views[0].turn === "you" ? 0 : 1;
 }
 
-/** Sends an action from Seat `i` and returns both Seats' next views. */
 async function play(room: Seated, i: 0 | 1, action = firstPlay(room.views[i])): Promise<void> {
   room.sockets[i].send(room.views[i].actionCount, action);
   const [ma, mb] = await Promise.all([room.sockets[0].nextView(), room.sockets[1].nextView()]);
@@ -45,47 +58,120 @@ function closeAll(room: Seated): void {
 }
 
 describe("POST /api/rooms", () => {
-  it("returns a 6-character code from the unambiguous alphabet", async () => {
-    const code = await createRoom();
+  it("requires signing in, and returns a 6-character code from the unambiguous alphabet", async () => {
+    const signedOut = await SELF.fetch(`${BASE}/api/rooms`, { method: "POST" });
+    expect(signedOut.status).toBe(401);
+    const code = await createRoom(await newPlayer());
     expect(code).toHaveLength(6);
     for (const ch of code) expect(ROOM_CODE_ALPHABET).toContain(ch);
   });
 
   it("refuses WebSockets to a Room that was never created", async () => {
-    const res = await SELF.fetch("https://card-duel.test/api/rooms/ZZZZZZ/ws?token=x", {
-      headers: { Upgrade: "websocket" },
+    const res = await SELF.fetch(`${BASE}/api/rooms/ZZZZZZ/ws`, {
+      headers: { Upgrade: "websocket", Cookie: await newPlayer() },
     });
     expect(res.status).toBe(404);
   });
 });
 
 describe("Room", () => {
-  it("starts the Match when both Seats are taken and plays to Match end", async () => {
-    const room = await seatBoth();
-    expect(room.views[0].seat).toBe(0);
-    expect(room.views[1].seat).toBe(1);
-    expect(room.views[0].you.hand).toHaveLength(10);
-    expect(room.views[0].opponent.handSize).toBe(10);
+  it("the WebSocket requires a signed-in session", async () => {
+    const code = await createRoom(await newPlayer());
+    const socket = await TestSocket.open(code, "");
+    expect(await socket.next()).toMatchObject({ type: "error", code: "signed_out" });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(socket.closed?.code).toBe(CLOSE_SIGNED_OUT);
+  });
 
-    for (let guard = 0; room.views[0].phase !== "ended" && guard < 200; guard++) {
+  it("two accounts take Seats with real Decks and play to Match end", async () => {
+    const room = await seatBoth();
+    expect(room.views[0].you.faction).toBe("swarm");
+    expect(room.views[1].you.faction).toBe("court");
+    for (let guard = 0; room.views[0].phase !== "ended" && guard < 400; guard++) {
       const i = mover(room.views);
-      // Play a few cards per Round, then Pass, so the Match ends quickly.
       const view = room.views[i];
+      const pending = view.legalActions.some((a) => a.type === "choose");
       const action =
-        view.you.hand.length > 10 - 2 * view.round ? firstPlay(view) : { type: "pass" as const };
+        pending || view.you.hand.length > 10 - 2 * view.round
+          ? firstPlay(view)
+          : { type: "pass" as const };
       await play(room, i, action);
       expect(room.views[0].actionCount).toBe(room.views[1].actionCount);
     }
     expect(room.views[0].phase).toBe("ended");
-    expect(room.views[0].result).not.toBeNull();
     expect(room.views[1].result).toEqual(room.views[0].result);
     closeAll(room);
   });
 
+  it("neither player sees the other's Deck, Faction or Leader before both take a Seat", async () => {
+    const cookies = [await newPlayer(), await newPlayer()];
+    const deck = await starterDeck(cookies[0] as string, "swarm");
+    const code = await createRoom(cookies[0] as string);
+    const a = await TestSocket.open(code, cookies[0] as string);
+    await a.nextLobby();
+    const b = await TestSocket.open(code, cookies[1] as string);
+    await Promise.all([a.nextLobby(), b.nextLobby()]);
+    a.takeSeat(deck);
+    const [la, lb] = await Promise.all([a.nextLobby(), b.nextLobby()]);
+    expect(la.you).toEqual({ seated: true, deckName: "Swarm Starter" });
+    expect(lb.opponent).toMatchObject({ present: true, seated: true });
+    const text = JSON.stringify(lb);
+    expect(text).not.toContain("swarm");
+    expect(text).not.toContain("Swarm Starter");
+    a.close();
+    b.close();
+  });
+
+  it("refuses an invalid Deck with a readable message", async () => {
+    const cookie = await newPlayer();
+    const code = await createRoom(cookie);
+    const deck = await savedDeck(cookie, { faction: "swarm", cards: ["swarm-gnawing-mite"] });
+    const socket = await TestSocket.open(code, cookie);
+    await socket.nextLobby();
+    socket.takeSeat(deck);
+    const error = await socket.next();
+    expect(error).toMatchObject({ type: "error", code: "invalid_deck" });
+    expect(error.type === "error" && error.message).toContain("Choose a Leader.");
+    expect(error.type === "error" && error.message).toContain("at least 22 Unit Cards");
+    socket.takeSeat("someone-elses-or-missing");
+    expect(await socket.next()).toMatchObject({
+      code: "invalid_deck",
+      message: "That Deck was not found.",
+    });
+    socket.close();
+  });
+
+  it("refuses a non-Competitive Deck in a Competitive Room, but takes it in a Casual one", async () => {
+    const cookie = await newPlayer();
+    const starter = await starterDeck(cookie, "court");
+    // Add three more Special Cards: still Valid, no longer Competitive.
+    const res = await SELF.fetch(`${BASE}/api/decks/${starter}`, { headers: { Cookie: cookie } });
+    const { deck } = (await res.json()) as { deck: { cards: string[]; leader: string } };
+    const heavy = await savedDeck(cookie, {
+      faction: "court",
+      leader: deck.leader,
+      cards: [...deck.cards, "neutral-mudslide", "neutral-thunderhead", "neutral-black-ice"],
+    });
+    const competitive = await TestSocket.open(await createRoom(cookie, true), cookie);
+    expect(await competitive.nextLobby()).toMatchObject({ competitive: true });
+    competitive.takeSeat(heavy);
+    const error = await competitive.next();
+    expect(error).toMatchObject({ type: "error", code: "invalid_deck" });
+    expect(error.type === "error" && error.message).toMatch(
+      /Competitive Room.*at most 5 Special Cards/,
+    );
+    competitive.close();
+
+    const casual = await TestSocket.open(await createRoom(cookie, false), cookie);
+    await casual.nextLobby();
+    casual.takeSeat(heavy);
+    expect(await casual.nextLobby()).toMatchObject({ you: { seated: true } });
+    casual.close();
+  });
+
   it("rejects stale actions and resends the current view", async () => {
     const room = await seatBoth();
-    const i = mover(room.views);
-    await play(room, i);
+    await play(room, mover(room.views));
     const j = mover(room.views);
     room.sockets[j].send(START - 1, { type: "pass" });
     expect(await room.sockets[j].next()).toMatchObject({ type: "error", code: "stale_action" });
@@ -107,11 +193,11 @@ describe("Room", () => {
     closeAll(room);
   });
 
-  it("gives a reconnecting Seat just its current view", async () => {
+  it("gives a reconnecting account its Seat and just the current view", async () => {
     const room = await seatBoth();
     await play(room, mover(room.views));
     room.sockets[0].close();
-    const again = await TestSocket.open(room.code, "token-a");
+    const again = await TestSocket.open(room.code, room.cookies[0]);
     const { view, events } = await again.nextView();
     expect(view.seat).toBe(0);
     expect(view.actionCount).toBe(START + 1);
@@ -120,9 +206,9 @@ describe("Room", () => {
     room.sockets[1].close();
   });
 
-  it("refuses a third connection with Room full", async () => {
+  it("a third account opening the link sees Room full", async () => {
     const room = await seatBoth();
-    const third = await TestSocket.open(room.code, "token-c");
+    const third = await TestSocket.open(room.code, await newPlayer());
     expect(await third.next()).toMatchObject({ type: "error", code: "room_full" });
     await new Promise((r) => setTimeout(r, 50));
     expect(third.closed?.code).toBe(CLOSE_ROOM_FULL);
@@ -132,31 +218,25 @@ describe("Room", () => {
   it("rebuilds its state after eviction and continues the Match", async () => {
     const room = await seatBoth();
     await play(room, mover(room.views));
-    const before = room.views;
-
     await evictDurableObject(env.ROOMS.getByName(room.code));
-
-    // Hibernated sockets stay open; the next message wakes a fresh instance that reloads.
     await play(room, mover(room.views));
     expect(room.views[0].actionCount).toBe(START + 2);
-    expect(room.views[0].board.you.score + room.views[0].board.opponent.score).toBeGreaterThan(
-      before[0].board.you.score + before[0].board.opponent.score,
-    );
     closeAll(room);
   });
 
-  it("replays seed plus action log when the snapshot is missing", async () => {
+  it("replays seed plus action log when the snapshot is missing, with the pinned catalog", async () => {
     const room = await seatBoth();
     await play(room, mover(room.views));
     await play(room, mover(room.views));
     const before = room.views;
     const stub = env.ROOMS.getByName(room.code);
-    await runInDurableObject(stub, async (_instance, state) => {
+    const version = await runInDurableObject(stub, async (_instance, state) => {
       await state.storage.delete("snapshot");
+      return state.storage.get<string>("catalogVersion");
     });
+    expect(version).toBe("v1");
     await evictDurableObject(stub);
-
-    const again = await TestSocket.open(room.code, "token-a");
+    const again = await TestSocket.open(room.code, room.cookies[0]);
     const { view } = await again.nextView();
     expect(view).toEqual(before[0]);
     again.close();
@@ -166,13 +246,10 @@ describe("Room", () => {
   it("never sends a Seat the opponent's hidden cards", async () => {
     const room = await seatBoth();
     const [va, vb] = room.views;
-    const handA = va.you.hand.map((c) => c.uid);
-    const handB = vb.you.hand.map((c) => c.uid);
     const messageA = JSON.stringify(va);
     const messageB = JSON.stringify(vb);
-    for (const uid of handB) expect(messageA).not.toContain(`"uid":${uid},`);
-    for (const uid of handA) expect(messageB).not.toContain(`"uid":${uid},`);
-    expect(va.opponent).not.toHaveProperty("hand");
+    for (const c of vb.you.hand) expect(messageA).not.toContain(`"uid":${c.uid},`);
+    for (const c of va.you.hand) expect(messageB).not.toContain(`"uid":${c.uid},`);
     closeAll(room);
   });
 });

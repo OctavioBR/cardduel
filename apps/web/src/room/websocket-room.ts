@@ -8,9 +8,8 @@ import {
 import { bareAction, Emitter, type RoomConnection } from "./connection";
 
 export interface WebSocketRoomOptions {
-  /** Absolute ws:// or wss:// URL of the Room socket, without the token. */
+  /** Absolute ws:// or wss:// URL of the Room socket. */
   url: string;
-  token: string;
   /** Injected for tests. */
   createSocket?: (url: string) => WebSocket;
   setTimer?: (fn: () => void, ms: number) => unknown;
@@ -57,6 +56,11 @@ export class WebSocketRoom implements RoomConnection {
     this.socket.send(JSON.stringify(message));
   }
 
+  takeSeat(deckId: string): void {
+    if (this.socket?.readyState === WebSocket.OPEN)
+      this.socket.send(JSON.stringify({ type: "takeSeat", deckId } satisfies ClientMessage));
+  }
+
   close(): void {
     this.closedByUser = true;
     if (this.timer !== null) this.clearTimer(this.timer);
@@ -65,8 +69,7 @@ export class WebSocketRoom implements RoomConnection {
   }
 
   private connect(): void {
-    const url = `${this.options.url}?token=${encodeURIComponent(this.options.token)}`;
-    const socket = this.createSocket(url);
+    const socket = this.createSocket(this.options.url);
     this.socket = socket;
     socket.addEventListener("open", () => {
       this.attempt = 0;
@@ -85,12 +88,23 @@ export class WebSocketRoom implements RoomConnection {
       return;
     }
     switch (message.type) {
-      case "waiting":
-        this.emitter.update({ seat: message.seat, waitingCode: message.code, error: null });
+      case "lobby":
+        this.emitter.update({
+          seat: message.lobby.seat,
+          lobby: message.lobby,
+          waitingCode: message.lobby.code,
+          error: null,
+        });
         break;
       case "view":
         this.emitter.update(
-          { seat: message.view.seat, waitingCode: null, view: message.view, error: null },
+          {
+            seat: message.view.seat,
+            waitingCode: null,
+            lobby: null,
+            view: message.view,
+            error: null,
+          },
           message.events,
         );
         break;

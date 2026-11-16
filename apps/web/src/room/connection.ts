@@ -1,4 +1,11 @@
-import type { Action, MatchEvent, Seat, SeatView, ServerErrorCode } from "@card-duel/engine";
+import type {
+  Action,
+  LobbyInfo,
+  MatchEvent,
+  Seat,
+  SeatView,
+  ServerErrorCode,
+} from "@card-duel/engine";
 
 export type ConnectionStatus = "connecting" | "open" | "reconnecting" | "closed";
 
@@ -13,6 +20,7 @@ export interface RoomClientState {
   seat: Seat | null;
   /** The Room code while waiting for the opponent to take their Seat. */
   waitingCode: string | null;
+  lobby: LobbyInfo | null;
   view: SeatView | null;
   /** The last error, cleared by the next view. */
   error: RoomError | null;
@@ -33,6 +41,7 @@ export interface RoomConnection {
   subscribe(listener: (update: RoomUpdate) => void): () => void;
   /** Sends an action based on the last view received. */
   send(action: Action): void;
+  takeSeat(deckId: string): void;
   close(): void;
 }
 
@@ -40,6 +49,7 @@ export const INITIAL_STATE: RoomClientState = {
   status: "connecting",
   seat: null,
   waitingCode: null,
+  lobby: null,
   view: null,
   error: null,
 };

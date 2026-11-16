@@ -3,9 +3,9 @@ import { useNavigate, useParams } from "react-router";
 import { useAuth } from "../auth/AuthContext";
 import { AuthForm } from "../auth/AuthForm";
 import { CardDetailProvider } from "../cards/CardDetail";
+import { type Deck, deckApi } from "../decks/api";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
-import { playerToken } from "../room/token";
 import { useEventBatch, useRoom } from "../room/useRoom";
 import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
 
@@ -35,7 +35,7 @@ export function RoomPage() {
 function RoomConnectionPage({ code }: { code: string }) {
   const [connection, setConnection] = useState<WebSocketRoom | null>(null);
   useEffect(() => {
-    const room = new WebSocketRoom({ url: roomSocketUrl(code), token: playerToken() });
+    const room = new WebSocketRoom({ url: roomSocketUrl(code) });
     setConnection(room);
     return () => room.close();
   }, [code]);
@@ -78,7 +78,23 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
     return (
       <main className="page">
         <h1>Room {state.waitingCode}</h1>
-        <p>Waiting for your opponent. Share the code or this link:</p>
+        <p>{state.lobby?.competitive ? "Competitive Room" : "Casual Room"}</p>
+        {state.lobby?.you.seated ? (
+          <p>You chose {state.lobby.you.deckName}. Waiting for your opponent to choose a Deck.</p>
+        ) : (
+          <DeckPicker
+            competitive={state.lobby?.competitive ?? false}
+            onChoose={(id) => connection.takeSeat(id)}
+          />
+        )}
+        {state.lobby?.opponent.present ? (
+          <p>
+            {state.lobby.opponent.username} is here
+            {state.lobby.opponent.seated ? " and has chosen a Deck" : ""}.
+          </p>
+        ) : (
+          <p>Waiting for your opponent. Share the code or this link:</p>
+        )}
         <p>
           <code data-testid="room-link">{link}</code>
         </p>
@@ -89,5 +105,50 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
     <main className="page">
       <p>{state.status === "reconnecting" ? "Reconnecting…" : "Connecting…"}</p>
     </main>
+  );
+}
+
+function DeckPicker({
+  competitive,
+  onChoose,
+}: {
+  competitive: boolean;
+  onChoose: (id: string) => void;
+}) {
+  const [decks, setDecks] = useState<Deck[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    deckApi.list().then(setDecks, (e: Error) => setError(e.message));
+  }, []);
+  return (
+    <section aria-label="Choose a Deck">
+      <h2>Take a Seat</h2>
+      <p>Choose a {competitive ? "Competitive " : "Valid "}Deck for this Match.</p>
+      {error ? <p role="alert">{error}</p> : null}
+      {decks === null ? (
+        <p>Loading Decks…</p>
+      ) : decks.filter(
+          (d) =>
+            d.problems.valid.length === 0 && (!competitive || d.problems.competitive.length === 0),
+        ).length === 0 ? (
+        <p>You have no {competitive ? "Competitive " : "Valid "}Decks. Create one in My Decks.</p>
+      ) : (
+        <ul>
+          {decks
+            .filter(
+              (d) =>
+                d.problems.valid.length === 0 &&
+                (!competitive || d.problems.competitive.length === 0),
+            )
+            .map((deck) => (
+              <li key={deck.id}>
+                <button type="button" onClick={() => onChoose(deck.id)}>
+                  {deck.name} — {deck.faction}
+                </button>
+              </li>
+            ))}
+        </ul>
+      )}
+    </section>
   );
 }

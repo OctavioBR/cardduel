@@ -1,11 +1,19 @@
 import { DurableObject } from "cloudflare:workers";
-import { DEV_PLAIN_CARDS, devPlainDeck } from "@card-duel/catalog";
+import {
+  CURRENT_CATALOG_VERSION,
+  checkCompetitiveDeck,
+  checkValidDeck,
+  getCatalog,
+} from "@card-duel/catalog";
 import {
   applyAction,
   CLOSE_ROOM_FULL,
   type ClientMessage,
   createMatch,
+  type DeckSpec,
+  type FactionId,
   filterEvents,
+  type LobbyInfo,
   type LoggedAction,
   type MatchEvent,
   type MatchSetup,
@@ -18,47 +26,69 @@ import {
   withoutPreview,
 } from "@card-duel/engine";
 
+/** Headers the Worker sets after checking the session; never taken from the client. */
+export const ACCOUNT_ID_HEADER = "X-Card-Duel-Account";
+export const USERNAME_HEADER = "X-Card-Duel-Username";
+
 interface Attachment {
   seat: Seat;
-  token: string;
+  accountId: string;
+}
+
+interface SeatState {
+  accountId: string;
+  username: string;
+  /** The committed Deck, copied at seat time (ADR-0004); null until the Seat is taken. */
+  deck: DeckSpec | null;
+  deckName: string | null;
+}
+
+interface RoomMeta {
+  code: string;
+  competitive: boolean;
 }
 
 interface StoredMatch {
   setup: MatchSetup;
+  catalogVersion: string;
   log: LoggedAction[];
 }
 
 /**
- * One Room per shareable code (ADR-0002). The Match is stored as seed plus action log with a
- * cached snapshot (ADR-0003). WebSockets use the Hibernation API, so the object can be evicted
- * between moves while sockets stay open.
+ * One Room per shareable code (ADR-0002). Two Seats, each held by a signed-in account; a
+ * player takes their Seat by committing a Valid Deck (a Competitive Deck in a Competitive
+ * Room). The Match is stored as seed plus action log with a cached snapshot (ADR-0003).
  */
 export class Room extends DurableObject<Env> {
   private loaded = false;
-  private code = "";
-  private seats: [string | null, string | null] = [null, null];
+  private meta: RoomMeta | null = null;
+  private seats: [SeatState | null, SeatState | null] = [null, null];
   private match: (StoredMatch & { state: MatchState }) | null = null;
 
   /** Marks the Room as created. Returns false if the code is already in use. */
-  async create(code: string): Promise<boolean> {
-    if (await this.ctx.storage.get<string>("code")) return false;
-    await this.ctx.storage.put({ code, createdAt: Date.now() });
+  async create(code: string, competitive = false): Promise<boolean> {
+    if (await this.ctx.storage.get<RoomMeta>("meta")) return false;
+    await this.ctx.storage.put({
+      meta: { code, competitive } satisfies RoomMeta,
+      createdAt: Date.now(),
+    });
     return true;
   }
 
   override async fetch(request: Request): Promise<Response> {
     await this.load();
-    if (!this.code) return new Response("Room not found", { status: 404 });
+    if (!this.meta) return new Response("Room not found", { status: 404 });
     if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
       return new Response("Expected a WebSocket upgrade", { status: 426 });
     }
-    const token = new URL(request.url).searchParams.get("token") ?? "";
+    const accountId = request.headers.get(ACCOUNT_ID_HEADER) ?? "";
+    const username = request.headers.get(USERNAME_HEADER) ?? "";
     const pair = new WebSocketPair();
     const [client, server] = [pair[0], pair[1]];
 
-    const seat = await this.seatFor(token);
+    const seat = await this.seatFor(accountId, username);
     if (seat === null) {
-      // No token, or both Seats taken: accepted only to say why, then closed.
+      // Both Seats belong to other players: accepted only to say why, then closed.
       server.accept();
       send(server, { type: "error", code: "room_full", message: "Room full" });
       server.close(CLOSE_ROOM_FULL, "Room full");
@@ -69,13 +99,9 @@ export class Room extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets(seatTag(seat)))
       ws.close(1000, "Replaced by a new connection");
     this.ctx.acceptWebSocket(server, [seatTag(seat)]);
-    server.serializeAttachment({ seat, token } satisfies Attachment);
-
-    if (!this.match && this.seats[0] && this.seats[1]) {
-      await this.startMatch();
-    } else {
-      this.sendCurrent(server, seat);
-    }
+    server.serializeAttachment({ seat, accountId } satisfies Attachment);
+    if (this.match) this.sendCurrent(server, seat);
+    else this.broadcastLobby();
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -87,6 +113,10 @@ export class Room extends DurableObject<Env> {
     const message = parseClientMessage(raw);
     if (!message) {
       send(ws, { type: "error", code: "bad_message", message: "Unreadable message." });
+      return;
+    }
+    if (message.type === "takeSeat") {
+      await this.takeSeat(ws, seat, message.deckId);
       return;
     }
     if (!this.match) {
@@ -125,11 +155,69 @@ export class Room extends DurableObject<Env> {
     }
   }
 
+  /** Checks the Deck and copies it with the current catalog version (ADR-0004). */
+  private async takeSeat(ws: WebSocket, seat: Seat, deckId: string): Promise<void> {
+    const holder = this.seats[seat];
+    if (this.match || !holder) {
+      send(ws, { type: "error", code: "invalid_deck", message: "The Match has already started." });
+      return;
+    }
+    const row = await this.env.DB.prepare(
+      "SELECT name, faction, leader, cards FROM decks WHERE id = ? AND account_id = ?",
+    )
+      .bind(deckId, holder.accountId)
+      .first<{ name: string; faction: FactionId; leader: string | null; cards: string }>();
+    if (!row) {
+      send(ws, { type: "error", code: "invalid_deck", message: "That Deck was not found." });
+      return;
+    }
+    const version = CURRENT_CATALOG_VERSION;
+    if (!version) throw new Error("No catalog version");
+    const catalog = getCatalog(version);
+    const input = {
+      faction: row.faction,
+      leader: row.leader,
+      cards: JSON.parse(row.cards) as string[],
+    };
+    const problems = checkValidDeck(input, catalog);
+    if (problems.length > 0) {
+      send(ws, {
+        type: "error",
+        code: "invalid_deck",
+        message: `“${row.name}” is not a Valid Deck: ${problems.map((p) => p.message).join(" ")}`,
+      });
+      return;
+    }
+    if (this.meta?.competitive) {
+      const competitive = checkCompetitiveDeck(input, catalog);
+      if (competitive.length > 0) {
+        send(ws, {
+          type: "error",
+          code: "invalid_deck",
+          message: `This is a Competitive Room and “${row.name}” is not a Competitive Deck: ${competitive.map((p) => p.message).join(" ")}`,
+        });
+        return;
+      }
+    }
+    holder.deck = { faction: input.faction, leader: input.leader as string, cards: input.cards };
+    holder.deckName = row.name;
+    await this.ctx.storage.put("seats", this.seats);
+    if (this.seats[0]?.deck && this.seats[1]?.deck) await this.startMatch(version);
+    else this.broadcastLobby();
+  }
+
   private async load(): Promise<void> {
     if (this.loaded) return;
-    const stored = await this.ctx.storage.get(["code", "seats", "setup", "log", "snapshot"]);
-    this.code = (stored.get("code") as string | undefined) ?? "";
-    this.seats = (stored.get("seats") as [string | null, string | null] | undefined) ?? [
+    const stored = await this.ctx.storage.get([
+      "meta",
+      "seats",
+      "setup",
+      "catalogVersion",
+      "log",
+      "snapshot",
+    ]);
+    this.meta = (stored.get("meta") as RoomMeta | undefined) ?? null;
+    this.seats = (stored.get("seats") as [SeatState | null, SeatState | null] | undefined) ?? [
       null,
       null,
     ];
@@ -139,34 +227,56 @@ export class Room extends DurableObject<Env> {
       let snapshot = stored.get("snapshot") as MatchState | undefined;
       // The snapshot is a cache: rebuild from seed plus log when it is missing or behind.
       if (!snapshot || snapshot.actionCount !== log.length) snapshot = replay(setup, log);
-      this.match = { setup, log, state: snapshot };
+      const catalogVersion = (stored.get("catalogVersion") as string | undefined) ?? "";
+      this.match = { setup, catalogVersion, log, state: snapshot };
     }
     this.loaded = true;
   }
 
-  private async seatFor(token: string): Promise<Seat | null> {
-    if (!token) return null;
-    const existing = this.seats.indexOf(token);
+  /** The Seat for an account: its own on reconnect, else a free one, else null (Room full). */
+  private async seatFor(accountId: string, username: string): Promise<Seat | null> {
+    if (!accountId) return null;
+    const existing = this.seats.findIndex((s) => s?.accountId === accountId);
     if (existing === 0 || existing === 1) return existing;
     const free = this.seats.indexOf(null);
     if (free !== 0 && free !== 1) return null;
-    this.seats[free] = token;
+    this.seats[free] = { accountId, username, deck: null, deckName: null };
     await this.ctx.storage.put("seats", this.seats);
     return free;
   }
 
-  private async startMatch(): Promise<void> {
+  private async startMatch(catalogVersion: string): Promise<void> {
+    const [a, b] = this.seats;
+    if (!a?.deck || !b?.deck) return;
     const seed = crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
-    // Hard-coded plain-Unit Decks until accounts and real Decks exist (Milestone 6).
     const setup: MatchSetup = {
       seed,
-      decks: [devPlainDeck("swarm"), devPlainDeck("court")],
-      cards: DEV_PLAIN_CARDS,
+      decks: [a.deck, b.deck],
+      cards: getCatalog(catalogVersion).cards,
     };
     const { state, events } = createMatch(setup);
-    this.match = { setup, log: [], state };
-    await this.ctx.storage.put({ setup, log: [], snapshot: state });
+    this.match = { setup, catalogVersion, log: [], state };
+    await this.ctx.storage.put({ setup, catalogVersion, log: [], snapshot: state });
     this.broadcast(events);
+  }
+
+  private lobbyFor(seat: Seat): LobbyInfo {
+    const mine = this.seats[seat];
+    const theirs = this.seats[seat === 0 ? 1 : 0];
+    return {
+      code: this.meta?.code ?? "",
+      competitive: this.meta?.competitive ?? false,
+      seat,
+      you: { seated: !!mine?.deck, deckName: mine?.deckName ?? null },
+      opponent: { present: !!theirs, seated: !!theirs?.deck, username: theirs?.username ?? null },
+    };
+  }
+
+  private broadcastLobby(): void {
+    for (const seat of SEATS) {
+      for (const ws of this.ctx.getWebSockets(seatTag(seat)))
+        send(ws, { type: "lobby", lobby: this.lobbyFor(seat) });
+    }
   }
 
   private broadcast(events: MatchEvent[]): void {
@@ -183,11 +293,8 @@ export class Room extends DurableObject<Env> {
 
   /** A (re)connecting Seat gets just the view, without events. */
   private sendCurrent(ws: WebSocket, seat: Seat): void {
-    if (this.match) {
-      send(ws, { type: "view", view: viewFor(this.match.state, seat), events: [] });
-    } else {
-      send(ws, { type: "waiting", seat, code: this.code });
-    }
+    if (this.match) send(ws, { type: "view", view: viewFor(this.match.state, seat), events: [] });
+    else send(ws, { type: "lobby", lobby: this.lobbyFor(seat) });
   }
 }
 
@@ -206,7 +313,10 @@ function send(ws: WebSocket, message: ServerMessage): void {
 function parseClientMessage(raw: string | ArrayBuffer): ClientMessage | null {
   if (typeof raw !== "string") return null;
   try {
-    const value = JSON.parse(raw) as Partial<ClientMessage>;
+    const value = JSON.parse(raw) as Record<string, unknown>;
+    if (value?.type === "takeSeat" && typeof value.deckId === "string") {
+      return { type: "takeSeat", deckId: value.deckId };
+    }
     if (
       value?.type === "action" &&
       typeof value.actionCount === "number" &&
@@ -214,7 +324,7 @@ function parseClientMessage(raw: string | ArrayBuffer): ClientMessage | null {
       typeof value.action === "object" &&
       typeof (value.action as { type?: unknown }).type === "string"
     ) {
-      return value as ClientMessage;
+      return value as unknown as ClientMessage;
     }
   } catch {
     // Fall through.
