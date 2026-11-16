@@ -45,7 +45,7 @@ export function MatchBoard({ view, send, error }: MatchBoardProps) {
   };
 
   return (
-    <div className="board">
+    <div className="board" data-testid="board" data-action-count={view.actionCount}>
       <aside className="side-panel">
         <PlayerPanel
           who="Opponent"
