@@ -1,0 +1,274 @@
+{
+  "swarm-gnawing-mite": {
+    "name": "Gnawing Mite",
+    "text": "Muster: also Plays every other Mite card from your hand and deck."
+  },
+  "swarm-mite-matron": {
+    "name": "Mite Matron",
+    "text": "Muster: also Plays every other Mite card from your hand and deck."
+  },
+  "swarm-hive-drone": {
+    "name": "Hive Drone",
+    "text": "Muster: also Plays every other Drone card from your hand and deck."
+  },
+  "swarm-drone-warden": {
+    "name": "Drone Warden",
+    "text": "Muster: also Plays every other Drone card from your hand and deck."
+  },
+  "swarm-tunnel-burrower": {
+    "name": "Tunnel Burrower",
+    "text": "Muster: also Plays every other Burrower card from your hand and deck."
+  },
+  "swarm-carapace-guard": {
+    "name": "Carapace Guard",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "swarm-thornback-crawler": {
+    "name": "Thornback Crawler",
+    "text": ""
+  },
+  "swarm-lurking-mantis": {
+    "name": "Lurking Mantis",
+    "text": ""
+  },
+  "swarm-amber-sentinel": {
+    "name": "Amber Sentinel",
+    "text": ""
+  },
+  "swarm-skitterling": {
+    "name": "Skitterling",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "swarm-wingbeat-hunter": {
+    "name": "Wingbeat Hunter",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "swarm-needle-stinger": {
+    "name": "Needle Stinger",
+    "text": ""
+  },
+  "swarm-chitter-herald": {
+    "name": "Chitter Herald",
+    "text": "Morale Boost: +1 to every other Unit on its Row."
+  },
+  "swarm-glasswing": {
+    "name": "Glasswing",
+    "text": ""
+  },
+  "swarm-siege-grub": {
+    "name": "Siege Grub",
+    "text": ""
+  },
+  "swarm-spore-lobber": {
+    "name": "Spore Lobber",
+    "text": ""
+  },
+  "swarm-drumming-beetle": {
+    "name": "Drumming Beetle",
+    "text": "Horn: doubles the other Units on its Row."
+  },
+  "swarm-pyre-beetle": {
+    "name": "Pyre Beetle",
+    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "swarm-brood-tender": {
+    "name": "Brood Tender",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "swarm-infiltrator-larva": {
+    "name": "Infiltrator Larva",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "swarm-silk-spinner": {
+    "name": "Silk Spinner",
+    "text": ""
+  },
+  "swarm-siegebreaker": {
+    "name": "Hive Siegebreaker",
+    "text": ""
+  },
+  "swarm-hollow-colossus": {
+    "name": "The Hollow Colossus",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "swarm-pale-oracle": {
+    "name": "The Pale Oracle",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "swarm-deep-maw": {
+    "name": "Maw of the Deep Hive",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "swarm-leader-queen": {
+    "name": "Queen of the Deep Hive",
+    "text": "Double the Units on one of your Rows whose Horn slot is empty."
+  },
+  "swarm-leader-swarmlord": {
+    "name": "The Burning Swarmlord",
+    "text": "If your opponent's Close Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "swarm-leader-spore-mother": {
+    "name": "Mother of Spores",
+    "text": "Play a Weather card of your choice from your deck."
+  },
+  "court-palace-informant": {
+    "name": "Palace Informant",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-masked-envoy": {
+    "name": "Masked Envoy",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-double-agent": {
+    "name": "Double Agent",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-royal-physician": {
+    "name": "Royal Physician",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-field-surgeon": {
+    "name": "Field Surgeon",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-halberd-guard": {
+    "name": "Halberd Guard",
+    "text": ""
+  },
+  "court-twin-duelist": {
+    "name": "Twin Duelist",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "court-banner-knight": {
+    "name": "Banner Knight",
+    "text": ""
+  },
+  "court-palace-champion": {
+    "name": "Palace Champion",
+    "text": ""
+  },
+  "court-court-herald": {
+    "name": "Court Herald",
+    "text": "Morale Boost: +1 to every other Unit on its Row."
+  },
+  "court-crossbow-marksman": {
+    "name": "Crossbow Marksman",
+    "text": ""
+  },
+  "court-tower-archer": {
+    "name": "Tower Archer",
+    "text": ""
+  },
+  "court-falconer": {
+    "name": "Falconer",
+    "text": ""
+  },
+  "court-duelling-squire": {
+    "name": "Duelling Squire",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "court-ballista-crew": {
+    "name": "Ballista Crew",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "court-sapper": {
+    "name": "Royal Sapper",
+    "text": ""
+  },
+  "court-siege-trumpeter": {
+    "name": "Siege Trumpeter",
+    "text": "Horn: doubles the other Units on its Row."
+  },
+  "court-inquisitor": {
+    "name": "Grand Inquisitor",
+    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "court-palace-sentry": {
+    "name": "Palace Sentry",
+    "text": ""
+  },
+  "court-royal-lancer": {
+    "name": "Royal Lancer",
+    "text": ""
+  },
+  "court-arbalest-master": {
+    "name": "Arbalest Master",
+    "text": ""
+  },
+  "court-trebuchet-team": {
+    "name": "Trebuchet Team",
+    "text": ""
+  },
+  "court-iron-chancellor": {
+    "name": "The Iron Chancellor",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "court-spymistress": {
+    "name": "Vesper, the Spymistress",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "court-archmedic": {
+    "name": "Archmedic Ilsa",
+    "text": "Hero: immune to every card, special and Leader ability. Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-leader-spymaster": {
+    "name": "The Spymaster",
+    "text": "Look at 3 random cards in your opponent's hand."
+  },
+  "court-leader-chancellor": {
+    "name": "The Old Chancellor",
+    "text": "Return a card of your choice from your Discard Pile to your hand."
+  },
+  "court-leader-regent": {
+    "name": "The Regent",
+    "text": "Draw a card of your choice from your deck, then shuffle it."
+  },
+  "neutral-black-ice": {
+    "name": "Black Ice",
+    "text": "Weather: sets every non-Hero Unit on both Close Rows to 1."
+  },
+  "neutral-sea-mist": {
+    "name": "Sea Mist",
+    "text": "Weather: sets every non-Hero Unit on both Ranged Rows to 1."
+  },
+  "neutral-mudslide": {
+    "name": "Mudslide",
+    "text": "Weather: sets every non-Hero Unit on both Siege Rows to 1."
+  },
+  "neutral-thunderhead": {
+    "name": "Thunderhead",
+    "text": "Weather: sets every non-Hero Unit on both Ranged and Siege Rows to 1."
+  },
+  "neutral-break-in-the-clouds": {
+    "name": "Break in the Clouds",
+    "text": "Discards every Weather card in play."
+  },
+  "neutral-war-drum": {
+    "name": "War Drum",
+    "text": "Place on one of your Rows: doubles the Units on that Row."
+  },
+  "neutral-straw-double": {
+    "name": "Straw Double",
+    "text": "Swap with one of your non-Hero Units, which returns to your hand. Strength 0."
+  },
+  "neutral-wildfire": {
+    "name": "Wildfire",
+    "text": "Destroys the strongest non-Hero Units on the whole battlefield, yours included."
+  },
+  "neutral-wandering-sellsword": {
+    "name": "Wandering Sellsword",
+    "text": ""
+  },
+  "neutral-lantern-keeper": {
+    "name": "Lantern Keeper",
+    "text": "Horn: doubles the other Units on its Row."
+  },
+  "neutral-grey-pilgrim": {
+    "name": "The Grey Pilgrim",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "neutral-hedge-healer": {
+    "name": "Hedge Healer",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  }
+}

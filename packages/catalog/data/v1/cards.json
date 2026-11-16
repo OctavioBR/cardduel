@@ -1,0 +1,678 @@
+[
+  {
+    "id": "swarm-gnawing-mite",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 1,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "mites"
+  },
+  {
+    "id": "swarm-mite-matron",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 1,
+    "musterGroup": "mites"
+  },
+  {
+    "id": "swarm-hive-drone",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "drones"
+  },
+  {
+    "id": "swarm-drone-warden",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 6,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 1,
+    "musterGroup": "drones"
+  },
+  {
+    "id": "swarm-tunnel-burrower",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 3,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "burrowers"
+  },
+  {
+    "id": "swarm-carapace-guard",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3
+  },
+  {
+    "id": "swarm-thornback-crawler",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 8,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-lurking-mantis",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 9,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-amber-sentinel",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2
+  },
+  {
+    "id": "swarm-skitterling",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 3,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile"],
+    "maxCopies": 2
+  },
+  {
+    "id": "swarm-wingbeat-hunter",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile"],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-needle-stinger",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 5,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2
+  },
+  {
+    "id": "swarm-chitter-herald",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["moraleBoost"],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-glasswing",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 7,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-siege-grub",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-spore-lobber",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 8,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-drumming-beetle",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["horn"],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-pyre-beetle",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 4,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["scorch"],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-brood-tender",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 3,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-infiltrator-larva",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-silk-spinner",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 5,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2
+  },
+  {
+    "id": "swarm-siegebreaker",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 8,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-hollow-colossus",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 12,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-pale-oracle",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 10,
+    "row": "ranged",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-deep-maw",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 11,
+    "row": "siege",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "swarm-leader-queen",
+    "kind": "leader",
+    "faction": "swarm",
+    "maxCopies": 1,
+    "ability": {
+      "type": "hornRow"
+    }
+  },
+  {
+    "id": "swarm-leader-swarmlord",
+    "kind": "leader",
+    "faction": "swarm",
+    "maxCopies": 1,
+    "ability": {
+      "type": "scorchRow",
+      "row": "close"
+    }
+  },
+  {
+    "id": "swarm-leader-spore-mother",
+    "kind": "leader",
+    "faction": "swarm",
+    "maxCopies": 1,
+    "ability": {
+      "type": "playWeatherFromDeck"
+    }
+  },
+  {
+    "id": "court-palace-informant",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 1,
+    "row": "close",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 2
+  },
+  {
+    "id": "court-masked-envoy",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 4,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-double-agent",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 5,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-royal-physician",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 3,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 2
+  },
+  {
+    "id": "court-field-surgeon",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-halberd-guard",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 3
+  },
+  {
+    "id": "court-twin-duelist",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 2
+  },
+  {
+    "id": "court-banner-knight",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 7,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-palace-champion",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 9,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-court-herald",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": ["moraleBoost"],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-crossbow-marksman",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 4,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 3
+  },
+  {
+    "id": "court-tower-archer",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 5,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2
+  },
+  {
+    "id": "court-falconer",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 7,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-duelling-squire",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 3,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile"],
+    "maxCopies": 2
+  },
+  {
+    "id": "court-ballista-crew",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 2
+  },
+  {
+    "id": "court-sapper",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 4,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2
+  },
+  {
+    "id": "court-siege-trumpeter",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 1,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["horn"],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-inquisitor",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["scorch"],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-palace-sentry",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2
+  },
+  {
+    "id": "court-royal-lancer",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 8,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-arbalest-master",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 7,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-trebuchet-team",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 8,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-iron-chancellor",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 12,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-spymistress",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 10,
+    "row": "ranged",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-archmedic",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 6,
+    "row": "siege",
+    "hero": true,
+    "abilities": ["medic"],
+    "maxCopies": 1
+  },
+  {
+    "id": "court-leader-spymaster",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "lookAtOpponentHand"
+    }
+  },
+  {
+    "id": "court-leader-chancellor",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "returnFromDiscard"
+    }
+  },
+  {
+    "id": "court-leader-regent",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "drawChosenFromDeck"
+    }
+  },
+  {
+    "id": "neutral-black-ice",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "weather",
+      "rows": ["close"]
+    }
+  },
+  {
+    "id": "neutral-sea-mist",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "weather",
+      "rows": ["ranged"]
+    }
+  },
+  {
+    "id": "neutral-mudslide",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "weather",
+      "rows": ["siege"]
+    }
+  },
+  {
+    "id": "neutral-thunderhead",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 2,
+    "effect": {
+      "type": "weather",
+      "rows": ["ranged", "siege"]
+    }
+  },
+  {
+    "id": "neutral-break-in-the-clouds",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "clearWeather"
+    }
+  },
+  {
+    "id": "neutral-war-drum",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "horn"
+    }
+  },
+  {
+    "id": "neutral-straw-double",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "decoy"
+    }
+  },
+  {
+    "id": "neutral-wildfire",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "scorch"
+    }
+  },
+  {
+    "id": "neutral-wandering-sellsword",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2
+  },
+  {
+    "id": "neutral-lantern-keeper",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 2,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["horn"],
+    "maxCopies": 1
+  },
+  {
+    "id": "neutral-grey-pilgrim",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 8,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1
+  },
+  {
+    "id": "neutral-hedge-healer",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 0,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 1
+  }
+]
