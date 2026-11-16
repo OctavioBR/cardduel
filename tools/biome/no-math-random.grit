@@ -1,0 +1,3 @@
+`Math.random` where {
+  register_diagnostic(span=$match, message="The engine must be deterministic: use the seeded generator passed in, not Math.random (ADR-0003).")
+}

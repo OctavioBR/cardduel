@@ -1,0 +1,20 @@
+{
+  "name": "card-duel",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.21.0",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.8",
+    "typescript": "7.0.2",
+    "vitest": "4.1.12"
+  }
+}
