@@ -104,3 +104,103 @@ button:disabled {
     animation: none !important;
   }
 }
+
+/* Fluid pages (#44) */
+.shell {
+  min-height: 100vh;
+}
+.shell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--cd-line);
+  background: var(--cd-panel);
+}
+.brand {
+  color: var(--cd-text);
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 1.15rem;
+}
+.account-links {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+.account-links a {
+  color: var(--cd-text);
+}
+.account-links a.button-link {
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--cd-radius);
+  background: var(--cd-text);
+  color: #111;
+  text-decoration: none;
+  font-weight: 700;
+}
+.account-menu {
+  position: relative;
+}
+.account-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+  padding: 0.25rem;
+  background: var(--cd-panel);
+  border: 1px solid var(--cd-line);
+  border-radius: var(--cd-radius);
+  z-index: 10;
+}
+.account-dropdown button {
+  text-align: left;
+  border: 0;
+}
+.page.narrow {
+  max-width: 26rem;
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.auth-form h2 {
+  margin: 0 0 0.5rem;
+}
+.auth-form input {
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--cd-radius);
+  border: 1px solid var(--cd-line);
+  background: var(--cd-panel);
+  color: var(--cd-text);
+}
+.auth-form .primary {
+  margin-top: 0.75rem;
+  padding: 0.65rem;
+}
+.hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cd-muted);
+}
+.form-error {
+  margin: 0.25rem 0 0;
+  color: var(--cd-lowered);
+}
+.switch {
+  margin: 0.5rem 0 0;
+  color: var(--cd-muted);
+}
+button.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--cd-text);
+  text-decoration: underline;
+}
