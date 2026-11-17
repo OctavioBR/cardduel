@@ -1,4 +1,6 @@
+import { formatCopy } from "@card-duel/strings";
 import { json } from "../http";
+import copy from "../strings/en.json";
 import { hashPassword, verifyPassword } from "./password";
 import {
   type Account,
@@ -22,12 +24,12 @@ interface Credentials {
 async function readCredentials(request: Request): Promise<Credentials | Response> {
   // JSON only: together with SameSite=Lax this keeps cross-site form posts out.
   if (!request.headers.get("Content-Type")?.includes("application/json")) {
-    return json({ error: "bad_request", message: "Send JSON." }, { status: 415 });
+    return json({ error: "bad_request", message: copy.sendJSON }, { status: 415 });
   }
   const body = (await request.json().catch(() => null)) as Partial<Credentials> | null;
   if (!body || typeof body.username !== "string" || typeof body.password !== "string") {
     return json(
-      { error: "bad_request", message: "Username and password are required." },
+      { error: "bad_request", message: copy.usernameAndPasswordAreRequired },
       { status: 400 },
     );
   }
@@ -46,7 +48,7 @@ export async function signUp(request: Request, db: D1Database): Promise<Response
     return json(
       {
         error: "invalid_username",
-        message: "Usernames are 3 to 20 letters, digits or underscores.",
+        message: copy.usernamesAre3To20Letters,
       },
       { status: 400 },
     );
@@ -55,7 +57,7 @@ export async function signUp(request: Request, db: D1Database): Promise<Response
     return json(
       {
         error: "invalid_password",
-        message: `Passwords need at least ${MIN_PASSWORD_LENGTH} characters.`,
+        message: formatCopy(copy.passwordsNeedAtLeastCharacters, { p0: MIN_PASSWORD_LENGTH }),
       },
       { status: 400 },
     );
@@ -63,7 +65,7 @@ export async function signUp(request: Request, db: D1Database): Promise<Response
   const key = creds.username.toLowerCase();
   const taken = await db.prepare("SELECT 1 FROM accounts WHERE username_key = ?").bind(key).first();
   if (taken)
-    return json({ error: "username_taken", message: "That username is taken." }, { status: 409 });
+    return json({ error: "username_taken", message: copy.thatUsernameIsTaken }, { status: 409 });
 
   const stored = await hashPassword(creds.password);
   const account: Account = { id: crypto.randomUUID(), username: creds.username };
@@ -87,7 +89,7 @@ export async function signUp(request: Request, db: D1Database): Promise<Response
     ]);
   } catch {
     // Lost a race with another sign-up for the same name.
-    return json({ error: "username_taken", message: "That username is taken." }, { status: 409 });
+    return json({ error: "username_taken", message: copy.thatUsernameIsTaken }, { status: 409 });
   }
   const cookie = await createSession(db, account.id);
   return withCookie(json({ account }, { status: 201 }), cookie);
@@ -107,7 +109,7 @@ export async function signIn(request: Request, db: D1Database): Promise<Response
   if (inWindow && failures.failures >= MAX_FAILURES) {
     const retryAfter = Math.ceil((failures.window_start + FAILURE_WINDOW_MS - now) / 1000);
     const response = json(
-      { error: "throttled", message: "Too many failed sign-ins. Try again later." },
+      { error: "throttled", message: copy.tooManyFailedSignInsTry },
       { status: 429 },
     );
     response.headers.set("Retry-After", String(retryAfter));
@@ -148,7 +150,7 @@ export async function signIn(request: Request, db: D1Database): Promise<Response
           .bind(key, now);
     await record.run();
     return json(
-      { error: "invalid_credentials", message: "Wrong username or password." },
+      { error: "invalid_credentials", message: copy.wrongUsernameOrPassword },
       { status: 401 },
     );
   }

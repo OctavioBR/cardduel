@@ -1,4 +1,5 @@
 import type { RowId, SpecialEffect, UnitAbility } from "@card-duel/engine";
+import copy from "../strings/en.json";
 
 /** Row icons from the chosen direction (#33): square Close, triangle Ranged, hexagon Siege. */
 const ROW_PATHS: Record<RowId, string> = {
@@ -8,9 +9,9 @@ const ROW_PATHS: Record<RowId, string> = {
 };
 
 export const ROW_LABEL: Record<RowId, string> = {
-  close: "Close",
-  ranged: "Ranged",
-  siege: "Siege",
+  close: copy.close,
+  ranged: copy.ranged,
+  siege: copy.siege,
 };
 
 export function RowIcon({ row, size = 16 }: { row: RowId; size?: number }) {
@@ -47,18 +48,18 @@ const GLYPHS: Record<IconName, string> = {
 };
 
 const LABEL: Record<IconName, string> = {
-  agile: "Agile",
-  horn: "Horn",
-  medic: "Medic",
-  moraleBoost: "Morale Boost",
-  muster: "Muster",
-  tightBond: "Tight Bond",
-  scorch: "Scorch",
-  spy: "Spy",
-  weather: "Weather",
-  clearWeather: "Clear Weather",
-  decoy: "Decoy",
-  hero: "Hero",
+  agile: copy.agile,
+  horn: copy.horn,
+  medic: copy.medic,
+  moraleBoost: copy.moraleBoost,
+  muster: copy.muster,
+  tightBond: copy.tightBond,
+  scorch: copy.scorch,
+  spy: copy.spy,
+  weather: copy.weather,
+  clearWeather: copy.clearWeather,
+  decoy: copy.decoy,
+  hero: copy.hero,
 };
 
 export function AbilityIcon({ name, size = 14 }: { name: IconName; size?: number }) {

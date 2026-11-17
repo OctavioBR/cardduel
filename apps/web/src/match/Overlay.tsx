@@ -1,5 +1,5 @@
 import { type ReactNode, useId, useRef } from "react";
-
+import copy from "../strings/en.json";
 import { useDialogFocus } from "./useDialogFocus";
 
 /** An in-page dialog (no browser dialogs). Esc or the close button dismisses it. */
@@ -29,7 +29,7 @@ export function Overlay({
           <h2 id={id}>{title}</h2>
           {onClose ? (
             <button type="button" onClick={onClose}>
-              Close
+              {copy.close}
             </button>
           ) : null}
         </header>

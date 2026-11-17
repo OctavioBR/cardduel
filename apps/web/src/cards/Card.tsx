@@ -1,4 +1,6 @@
 import type { CardDefinition, RowId } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
+import copy from "../strings/en.json";
 import { PlaceholderArt } from "./Art";
 import { useCardDetailTrigger } from "./CardDetail";
 import { AbilityIcon, abilityLabel, ROW_LABEL, RowIcon } from "./icons";
@@ -52,11 +54,11 @@ export function Card({ cardId, size, strength, count, noDetail, keyboardDetail }
   const effect = def.kind === "special" ? def.effect.type : null;
   const label = [
     name,
-    shown !== null ? `Strength ${shown}` : null,
+    shown !== null ? formatCopy(copy.strength, { p0: shown }) : null,
     rowsOf(def)
       .map((r) => ROW_LABEL[r])
-      .join(" or ") || null,
-    hero ? "Hero" : null,
+      .join(copy.or) || null,
+    hero ? copy.hero : null,
     ...abilities.map(abilityLabel),
   ]
     .filter(Boolean)
@@ -101,7 +103,12 @@ export function Card({ cardId, size, strength, count, noDetail, keyboardDetail }
       {size === "hand" || size === "tile" || size === "detail" ? (
         <div className="cd-text">{cardText(cardId)}</div>
       ) : null}
-      {count !== undefined ? <span className="cd-count">×{count}</span> : null}
+      {count !== undefined ? (
+        <span className="cd-count">
+          {copy.label}
+          {count}
+        </span>
+      ) : null}
     </div>
   );
 }

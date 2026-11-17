@@ -1,5 +1,7 @@
 import type { CardDefinition } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { cardName } from "./catalog";
+import copy from "./strings/en.json";
 import type { Catalog, DeckInput, DeckProblem } from "./types";
 
 /**
@@ -13,13 +15,13 @@ export function checkValidDeck(deck: DeckInput, catalog: Catalog): DeckProblem[]
   const { minUnits, maxSpecials } = catalog.limits.valid;
 
   if (deck.leader === null) {
-    problems.push({ code: "no_leader", message: "Choose a Leader." });
+    problems.push({ code: "no_leader", message: copy.chooseALeader });
   } else {
     const leader = catalog.byId.get(deck.leader);
     if (leader?.kind !== "leader" || leader.faction !== deck.faction) {
       problems.push({
         code: "bad_leader",
-        message: `${name(deck.leader)} is not a Leader of this Faction.`,
+        message: formatCopy(copy.isNotALeaderOfThis, { p0: name(deck.leader) }),
         cardId: deck.leader,
       });
     }
@@ -40,7 +42,7 @@ export function checkValidDeck(deck: DeckInput, catalog: Catalog): DeckProblem[]
     if (!def || def.kind === "leader") {
       problems.push({
         code: "unknown_card",
-        message: `${name(id)} is not a card you can put in a Deck.`,
+        message: formatCopy(copy.isNotACardYouCan, { p0: name(id) }),
         cardId: id,
       });
       continue;
@@ -48,14 +50,18 @@ export function checkValidDeck(deck: DeckInput, catalog: Catalog): DeckProblem[]
     if (def.faction !== "neutral" && def.faction !== deck.faction) {
       problems.push({
         code: "wrong_faction",
-        message: `${name(id)} belongs to another Faction.`,
+        message: formatCopy(copy.belongsToAnotherFaction, { p0: name(id) }),
         cardId: id,
       });
     }
     if (count > def.maxCopies) {
       problems.push({
         code: "too_many_copies",
-        message: `Too many copies of ${name(id)}: ${count} (at most ${def.maxCopies}).`,
+        message: formatCopy(copy.tooManyCopiesOfAtMost, {
+          p0: name(id),
+          p1: count,
+          p2: def.maxCopies,
+        }),
         cardId: id,
       });
     }
@@ -64,13 +70,13 @@ export function checkValidDeck(deck: DeckInput, catalog: Catalog): DeckProblem[]
   if (units < minUnits) {
     problems.push({
       code: "too_few_units",
-      message: `A Deck needs at least ${minUnits} Unit Cards (has ${units}).`,
+      message: formatCopy(copy.aDeckNeedsAtLeastUnit, { p0: minUnits, p1: units }),
     });
   }
   if (specials > maxSpecials) {
     problems.push({
       code: "too_many_specials",
-      message: `A Deck may hold at most ${maxSpecials} Special Cards (has ${specials}).`,
+      message: formatCopy(copy.aDeckMayHoldAtMost, { p0: maxSpecials, p1: specials }),
     });
   }
   return problems;
@@ -93,25 +99,34 @@ export function checkCompetitiveDeck(deck: DeckInput, catalog: Catalog): DeckPro
   if (specials > limits.maxSpecials) {
     problems.push({
       code: "competitive_specials",
-      message: `Competitive Decks hold at most ${limits.maxSpecials} Special Cards (has ${specials}).`,
+      message: formatCopy(copy.competitiveDecksHoldAtMostSpecial, {
+        p0: limits.maxSpecials,
+        p1: specials,
+      }),
     });
   }
   if (medics > limits.maxMedics) {
     problems.push({
       code: "competitive_medics",
-      message: `Competitive Decks hold at most ${limits.maxMedics} Medics (has ${medics}).`,
+      message: formatCopy(copy.competitiveDecksHoldAtMostMedics, {
+        p0: limits.maxMedics,
+        p1: medics,
+      }),
     });
   }
   if (spies > limits.maxSpies) {
     problems.push({
       code: "competitive_spies",
-      message: `Competitive Decks hold at most ${limits.maxSpies} Spies (has ${spies}).`,
+      message: formatCopy(copy.competitiveDecksHoldAtMostSpies, { p0: limits.maxSpies, p1: spies }),
     });
   }
   if (strength > limits.maxUnitStrength) {
     problems.push({
       code: "competitive_strength",
-      message: `Competitive Decks have at most ${limits.maxUnitStrength} total Unit Strength (has ${strength}).`,
+      message: formatCopy(copy.competitiveDecksHaveAtMostTotal, {
+        p0: limits.maxUnitStrength,
+        p1: strength,
+      }),
     });
   }
   return problems;

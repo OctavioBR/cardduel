@@ -11,6 +11,7 @@
     "table": "node scripts/render-table.mjs"
   },
   "dependencies": {
-    "@card-duel/engine": "workspace:*"
+    "@card-duel/engine": "workspace:*",
+    "@card-duel/strings": "workspace:*"
   }
 }

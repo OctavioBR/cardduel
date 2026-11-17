@@ -1,4 +1,6 @@
 import type { MatchEvent, Seat } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
+import copy from "../strings/en.json";
 
 /** One visual step of the queue; steps play one after another. */
 export type AnimationStep =
@@ -65,10 +67,10 @@ export function planAnimations(events: readonly MatchEvent[], seat: Seat): Anima
       case "roundEnded": {
         const text =
           e.winner === null
-            ? `Round ${e.round}: Tie`
+            ? formatCopy(copy.roundTie, { p0: e.round })
             : mine(e.winner)
-              ? `Round ${e.round}: you win`
-              : `Round ${e.round}: opponent wins`;
+              ? formatCopy(copy.roundYouWin, { p0: e.round })
+              : formatCopy(copy.roundOpponentWins, { p0: e.round });
         steps.push({ kind: "round", text });
         break;
       }

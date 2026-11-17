@@ -1,0 +1,13 @@
+{
+  "chooseALeader": "Choose a Leader.",
+  "tooManyCopiesOfAtMost": "Too many copies of {p0}: {p1} (at most {p2}).",
+  "competitiveDecksHoldAtMostSpecial": "Competitive Decks hold at most {p0} Special Cards (has {p1}).",
+  "competitiveDecksHoldAtMostMedics": "Competitive Decks hold at most {p0} Medics (has {p1}).",
+  "competitiveDecksHoldAtMostSpies": "Competitive Decks hold at most {p0} Spies (has {p1}).",
+  "competitiveDecksHaveAtMostTotal": "Competitive Decks have at most {p0} total Unit Strength (has {p1}).",
+  "isNotALeaderOfThis": "{p0} is not a Leader of this Faction.",
+  "isNotACardYouCan": "{p0} is not a card you can put in a Deck.",
+  "belongsToAnotherFaction": "{p0} belongs to another Faction.",
+  "aDeckNeedsAtLeastUnit": "A Deck needs at least {p0} Unit Cards (has {p1}).",
+  "aDeckMayHoldAtMost": "A Deck may hold at most {p0} Special Cards (has {p1})."
+}

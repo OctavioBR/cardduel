@@ -1,10 +1,12 @@
 import type { Action, RowId, SeatView } from "@card-duel/engine";
 import { ROWS } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { Card } from "../cards/Card";
 import { useCardDetailPress } from "../cards/CardDetail";
 import { cardDef, cardName, cardText } from "../cards/strings";
 import accessibility from "../strings/accessibility.en.json";
+import copy from "../strings/en.json";
 import { BoardRow, type TargetHandlers } from "./BoardRow";
 import { ChoiceOverlay } from "./ChoiceOverlay";
 import {
@@ -227,8 +229,8 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
       pass();
       return;
     }
-    const forward = e.key === "ArrowRight" || e.key === "ArrowDown";
-    const back = e.key === "ArrowLeft" || e.key === "ArrowUp";
+    const forward = e.key === "ArrowRight" || e.key === copy.arrowdown;
+    const back = e.key === "ArrowLeft" || e.key === copy.arrowup;
     if (!forward && !back) return;
     const step = forward ? 1 : -1;
     e.preventDefault();
@@ -302,25 +304,32 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
           onKnownHand={() => setKnownOpen(true)}
         />
         <div className="round-info">
-          <section className="weather-zone" aria-label="Weather">
-            {view.weather.length === 0 ? <span className="empty">No Weather</span> : null}
+          <section className="weather-zone" aria-label={copy.weather}>
+            {view.weather.length === 0 ? <span className="empty">{copy.noWeather}</span> : null}
             {view.weather.map((w) => (
               <span key={w.uid} data-anim-uid={w.uid}>
                 <Card cardId={w.cardId} size="token" />
               </span>
             ))}
           </section>
-          <div>Round {view.round}</div>
+          <div>
+            {copy.round}
+            {view.round}
+          </div>
           <TurnLabel view={view} />
-          {view.opponentChoosing ? <div className="notice">Your opponent is choosing…</div> : null}
+          {view.opponentChoosing ? (
+            <div className="notice">{copy.yourOpponentIsChoosing}</div>
+          ) : null}
           {view.phase === "turns" && view.opponent.passed ? (
             <div className="opponent-passed" role="status" data-testid="opponent-passed">
-              Your opponent Passed
+              {copy.yourOpponentPassed}
             </div>
           ) : null}
           {view.phase === "redraw" ? (
             <div>
-              Opponent returned {view.opponent.redraw.returned} card
+              {copy.opponentReturned}
+              {view.opponent.redraw.returned}
+              {copy.card}
               {view.opponent.redraw.returned === 1 ? "" : "s"}
             </div>
           ) : null}
@@ -349,11 +358,11 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
           onClick={pass}
           aria-keyshortcuts="P"
         >
-          {confirmingPass ? "Confirm Pass" : "Pass"}
+          {confirmingPass ? copy.confirmPass : copy.pass}
         </button>
       </aside>
 
-      <section className="field" aria-label="Battlefield">
+      <section className="field" aria-label={copy.battlefield}>
         {[...ROWS].reverse().map((row) => (
           <BoardRow
             key={`o-${row}`}
@@ -388,13 +397,16 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
           <button
             type="button"
             className="battlefield-target"
-            aria-label={`Play ${selectedName} on the battlefield`}
+            aria-label={formatCopy(copy.playOnTheBattlefield, { p0: selectedName })}
             data-target-key={battlefield.key}
             disabled={locked}
             onPointerDown={handlers.onPointerDown}
             onClick={() => handlers.onActivate(battlefield)}
           >
-            <span>Play {selectedName}</span>
+            <span>
+              {copy.play}
+              {selectedName}
+            </span>
           </button>
         ) : null}
       </section>
@@ -409,10 +421,12 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
         opponentDiscard={view.opponent.discard}
       />
 
-      <section className="hand" aria-label="Your hand">
+      <section className="hand" aria-label={copy.yourHand}>
         {effects && effects.drawn > 0 ? (
           <span className="draw-preview" data-testid="draw-preview">
-            +{effects.drawn} cards
+            {copy.label3}
+            {effects.drawn}
+            {copy.cards}
           </span>
         ) : null}
         {view.you.hand.map((card) => {
@@ -428,7 +442,7 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
               disabled={locked || !legal}
               aria-describedby={`hand-description-${card.uid}`}
               aria-pressed={redraw ? undefined : selected === card.uid}
-              aria-label={`${redraw ? "Return " : ""}${cardName(card.cardId)}${seen.has(card.uid) ? " (seen by opponent)" : ""}`}
+              aria-label={`${redraw ? copy.return2 : ""}${cardName(card.cardId)}${seen.has(card.uid) ? copy.seenByOpponent : ""}`}
               data-hand-uid={card.uid}
               data-anim-uid={card.uid}
               data-dragging={dragging.drag?.uid === card.uid ? "true" : undefined}
@@ -447,7 +461,7 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
                   return `${definition?.kind === "unit" ? `${accessibility.strength} ${definition.strength}. ` : ""}${cardText(card.cardId)}`;
                 })()}
               </span>
-              {seen.has(card.uid) ? <span className="seen-badge">Seen</span> : null}
+              {seen.has(card.uid) ? <span className="seen-badge">{copy.seen}</span> : null}
             </button>
           );
         })}
@@ -482,10 +496,10 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
         />
       ) : null}
       {knownOpen ? (
-        <Overlay title="Cards seen in your opponent's hand" onClose={() => setKnownOpen(false)}>
+        <Overlay title={copy.cardsSeenInYourOpponentS} onClose={() => setKnownOpen(false)}>
           <div className="overlay-cards">
             {view.opponent.knownHand.length === 0 ? (
-              <p className="overlay-empty">None are left in their hand.</p>
+              <p className="overlay-empty">{copy.noneAreLeftInTheirHand}</p>
             ) : null}
             {view.opponent.knownHand.map((c) => (
               <Card key={c.uid} cardId={c.cardId} size="tile" />
@@ -504,18 +518,18 @@ function TurnLabel({ view }: { view: SeatView }) {
   if (view.phase === "ended")
     return (
       <div className="turn" data-testid="turn">
-        Match over
+        {copy.matchOver}
       </div>
     );
   if (view.phase === "redraw")
     return (
       <div className="turn" data-testid="turn">
-        Redraw
+        {copy.redraw}
       </div>
     );
   return (
     <div className="turn" data-testid="turn">
-      {view.turn === "you" ? "Your Turn" : "Opponent's Turn"}
+      {view.turn === "you" ? copy.yourTurn : copy.opponentSTurn}
     </div>
   );
 }

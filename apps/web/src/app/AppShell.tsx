@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Outlet } from "react-router";
 import { useAuth } from "../auth/AuthContext";
+import copy from "../strings/en.json";
 
 /** The fluid, responsive frame for every screen except the Match stage (ADR-0006). */
 export function AppShell() {
@@ -8,7 +9,7 @@ export function AppShell() {
     <div className="shell">
       <header className="shell-header">
         <Link to="/" className="brand">
-          Card Duel
+          {copy.cardDuel}
         </Link>
         <AccountMenu />
       </header>
@@ -40,10 +41,10 @@ function AccountMenu() {
   if (account === undefined) return null;
   if (account === null) {
     return (
-      <nav className="account-links" aria-label="Account">
-        <Link to="/signin">Sign in</Link>
+      <nav className="account-links" aria-label={copy.account}>
+        <Link to="/signin">{copy.signIn}</Link>
         <Link to="/signup" className="button-link">
-          Sign up
+          {copy.signUp}
         </Link>
       </nav>
     );
@@ -51,7 +52,7 @@ function AccountMenu() {
   return (
     <div className="account-menu" ref={ref}>
       <Link to="/decks" className="nav-link">
-        My Decks
+        {copy.myDecks}
       </Link>
       <button
         type="button"
@@ -71,7 +72,7 @@ function AccountMenu() {
               await signOut();
             }}
           >
-            Sign out
+            {copy.signOut}
           </button>
         </div>
       ) : null}

@@ -1,8 +1,10 @@
 import type { RowId, RowView } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { Card } from "../cards/Card";
 import { ROW_LABEL, RowIcon } from "../cards/icons";
 import { cardName } from "../cards/strings";
+import copy from "../strings/en.json";
 import { type PreviewEffects, signed } from "./preview-effects";
 import type { Target } from "./targets";
 
@@ -28,7 +30,11 @@ export function BoardRow(props: {
   handlers: TargetHandlers;
 }) {
   const { handlers, effects } = props;
-  const label = `${props.side === "you" ? "Your" : "Opponent's"} ${ROW_LABEL[props.row]} Row, Score ${props.view.score}`;
+  const label = formatCopy(copy.rowScore, {
+    p0: props.side === "you" ? copy.your : copy.opponentS,
+    p1: ROW_LABEL[props.row],
+    p2: props.view.score,
+  });
   const rowDelta = effects?.rowDelta[props.side][props.row] ?? 0;
   const ghosts = effects?.ghosts.get(`${props.side}:${props.row}`) ?? [];
   const targetProps = (target: Target) => ({
@@ -52,7 +58,7 @@ export function BoardRow(props: {
           <Card cardId={props.view.horn.cardId} size="token" />
         </span>
       ) : null}
-      {!props.view.horn && props.view.leaderHorn ? <span>Leader Horn</span> : null}
+      {!props.view.horn && props.view.leaderHorn ? <span>{copy.leaderHorn}</span> : null}
     </>
   );
   const content = (
@@ -61,13 +67,13 @@ export function BoardRow(props: {
         <button
           type="button"
           className="horn-slot target"
-          aria-label={`Play to the Horn slot of ${label}`}
+          aria-label={formatCopy(copy.playToTheHornSlotOf, { p0: label })}
           {...targetProps(props.hornTarget)}
         >
           {horn}
         </button>
       ) : (
-        <section className="horn-slot" aria-label="Horn slot">
+        <section className="horn-slot" aria-label={copy.hornSlot}>
           {horn}
         </section>
       )}
@@ -96,7 +102,7 @@ export function BoardRow(props: {
                   {signed(delta.to - delta.from)}
                 </span>
               ) : null}
-              {returned ? <span className="delta badge">To hand</span> : null}
+              {returned ? <span className="delta badge">{copy.toHand}</span> : null}
             </>
           );
           const unitTarget = props.unitTargets.get(unit.uid);
@@ -106,7 +112,7 @@ export function BoardRow(props: {
               key={unit.uid}
               type="button"
               className={`${cls} target`}
-              aria-label={`Target ${cardName(unit.cardId)}`}
+              aria-label={formatCopy(copy.target, { p0: cardName(unit.cardId) })}
               data-uid={unit.uid}
               data-anim-uid={unit.uid}
               data-doomed={doomed ? "true" : undefined}
@@ -143,7 +149,7 @@ export function BoardRow(props: {
       <button
         type="button"
         className={className}
-        aria-label={`Play to ${label}`}
+        aria-label={formatCopy(copy.playTo, { p0: label })}
         data-testid={testId}
         {...targetProps(props.rowTarget)}
       >

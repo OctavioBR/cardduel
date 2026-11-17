@@ -1,3 +1,4 @@
+import { formatCopy } from "@card-duel/strings";
 import {
   createContext,
   type ReactNode,
@@ -9,6 +10,7 @@ import {
   useState,
 } from "react";
 import { useDialogFocus } from "../match/useDialogFocus";
+import copy from "../strings/en.json";
 import { Card } from "./Card";
 import { cardName, cardText } from "./strings";
 
@@ -117,14 +119,14 @@ export function CardDetailProvider({ children }: { children: ReactNode }) {
           aria-modal={opened.via !== "hover" ? true : undefined}
           data-via={opened.via}
           role="dialog"
-          aria-label={`Card Detail: ${cardName(opened.cardId)}`}
+          aria-label={formatCopy(copy.cardDetail, { p0: cardName(opened.cardId) })}
           data-testid="card-detail"
         >
           <Card cardId={opened.cardId} size="detail" strength={opened.strength} noDetail />
           <p className="card-detail-text">{cardText(opened.cardId)}</p>
           {opened.via !== "hover" ? (
             <button type="button" onClick={close}>
-              Close
+              {copy.close}
             </button>
           ) : null}
         </div>

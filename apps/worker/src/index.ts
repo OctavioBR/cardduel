@@ -5,6 +5,7 @@ import { handleDecks } from "./decks";
 import { json } from "./http";
 import { ACCOUNT_ID_HEADER, USERNAME_HEADER } from "./room";
 import { generateRoomCode, normaliseRoomCode } from "./room-code";
+import copy from "./strings/en.json";
 
 export { Room } from "./room";
 
@@ -42,7 +43,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   }
   if (pathname === "/api/decks" || pathname.startsWith("/api/decks/")) {
     const session = await readSession(env.DB, request);
-    if (!session) return json({ error: "signed_out", message: "Sign in first." }, { status: 401 });
+    if (!session) return json({ error: "signed_out", message: copy.signInFirst }, { status: 401 });
     const response = await handleDecks(
       request,
       env.DB,
@@ -60,7 +61,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     const code = normaliseRoomCode(decodeURIComponent(ws[1] ?? ""));
     if (!code) return json({ error: "room_not_found" }, { status: 404 });
     const session = await readSession(env.DB, request);
-    if (!session) return closedSocket(CLOSE_SIGNED_OUT, "signed_out", "Sign in to take a Seat.");
+    if (!session) return closedSocket(CLOSE_SIGNED_OUT, "signed_out", copy.signInToTakeASeat);
     // The Room trusts only these headers, set here from the checked session.
     const headers = new Headers(request.headers);
     headers.set(ACCOUNT_ID_HEADER, session.account.id);
@@ -74,7 +75,7 @@ async function createRoom(request: Request, env: Env): Promise<Response> {
   // Creating a Room requires signing in; the creator chooses Casual or Competitive.
   const session = await readSession(env.DB, request);
   if (!session)
-    return json({ error: "signed_out", message: "Sign in to create a Room." }, { status: 401 });
+    return json({ error: "signed_out", message: copy.signInToCreateARoom }, { status: 401 });
   const body = (await request.json().catch(() => ({}))) as { competitive?: unknown };
   const competitive = body.competitive === true;
   for (let attempt = 0; attempt < 5; attempt++) {

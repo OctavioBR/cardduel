@@ -26,8 +26,9 @@ import {
   viewFor,
   withoutPreview,
 } from "@card-duel/engine";
-
+import { formatCopy } from "@card-duel/strings";
 import { writeMatchResult } from "./results";
+import copy from "./strings/en.json";
 
 export const DISCONNECT_GRACE_MS = 2 * 60 * 1000;
 export const ROOM_IDLE_MS = 24 * 60 * 60 * 1000;
@@ -95,9 +96,9 @@ export class Room extends DurableObject<Env> {
   override async fetch(request: Request): Promise<Response> {
     await this.load();
     await this.persistResult();
-    if (!this.meta) return new Response("Room not found", { status: 404 });
+    if (!this.meta) return new Response(copy.roomNotFound, { status: 404 });
     if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
-      return new Response("Expected a WebSocket upgrade", { status: 426 });
+      return new Response(copy.expectedAWebSocketUpgrade, { status: 426 });
     }
     const accountId = request.headers.get(ACCOUNT_ID_HEADER) ?? "";
     const username = request.headers.get(USERNAME_HEADER) ?? "";
@@ -108,8 +109,8 @@ export class Room extends DurableObject<Env> {
     if (seat === null) {
       // Both Seats belong to other players: accepted only to say why, then closed.
       server.accept();
-      send(server, { type: "error", code: "room_full", message: "Room full" });
-      server.close(CLOSE_ROOM_FULL, "Room full");
+      send(server, { type: "error", code: "room_full", message: copy.roomFull });
+      server.close(CLOSE_ROOM_FULL, copy.roomFull);
       return new Response(null, { status: 101, webSocket: client });
     }
 
@@ -137,7 +138,7 @@ export class Room extends DurableObject<Env> {
     await this.touch();
     const message = parseClientMessage(raw);
     if (!message) {
-      send(ws, { type: "error", code: "bad_message", message: "Unreadable message." });
+      send(ws, { type: "error", code: "bad_message", message: copy.unreadableMessage });
       return;
     }
     if (message.type === "claimWin") {
@@ -157,7 +158,7 @@ export class Room extends DurableObject<Env> {
       return;
     }
     if (!this.match) {
-      send(ws, { type: "error", code: "not_started", message: "The Match has not started." });
+      send(ws, { type: "error", code: "not_started", message: copy.theMatchHasNotStarted });
       return;
     }
     const { state } = this.match;
@@ -165,7 +166,7 @@ export class Room extends DurableObject<Env> {
       send(ws, {
         type: "error",
         code: "stale_action",
-        message: "That action was based on an outdated view.",
+        message: copy.thatActionWasBasedOnAn,
       });
       this.sendCurrent(ws, seat);
       return;
@@ -317,7 +318,7 @@ export class Room extends DurableObject<Env> {
   private async takeSeat(ws: WebSocket, seat: Seat, deckId: string): Promise<void> {
     const holder = this.seats[seat];
     if (this.match || !holder) {
-      send(ws, { type: "error", code: "invalid_deck", message: "The Match has already started." });
+      send(ws, { type: "error", code: "invalid_deck", message: copy.theMatchHasAlreadyStarted });
       return;
     }
     const row = await this.env.DB.prepare(
@@ -326,7 +327,7 @@ export class Room extends DurableObject<Env> {
       .bind(deckId, holder.accountId)
       .first<{ name: string; faction: FactionId; leader: string | null; cards: string }>();
     if (!row) {
-      send(ws, { type: "error", code: "invalid_deck", message: "That Deck was not found." });
+      send(ws, { type: "error", code: "invalid_deck", message: copy.thatDeckWasNotFound });
       return;
     }
     const version = CURRENT_CATALOG_VERSION;
@@ -342,7 +343,10 @@ export class Room extends DurableObject<Env> {
       send(ws, {
         type: "error",
         code: "invalid_deck",
-        message: `“${row.name}” is not a Valid Deck: ${problems.map((p) => p.message).join(" ")}`,
+        message: formatCopy(copy.isNotAValidDeck, {
+          p0: row.name,
+          p1: problems.map((p) => p.message).join(" "),
+        }),
       });
       return;
     }
@@ -352,7 +356,10 @@ export class Room extends DurableObject<Env> {
         send(ws, {
           type: "error",
           code: "invalid_deck",
-          message: `This is a Competitive Room and “${row.name}” is not a Competitive Deck: ${competitive.map((p) => p.message).join(" ")}`,
+          message: formatCopy(copy.thisIsACompetitiveRoomAnd, {
+            p0: row.name,
+            p1: competitive.map((p) => p.message).join(" "),
+          }),
         });
         return;
       }
