@@ -54,6 +54,22 @@ const VIEW = viewFor(
 );
 
 describe("WebSocketRoom", () => {
+  it("sends Rematch and leave requests, and clears the finished view on Deck choice", () => {
+    const { room, sockets } = harness();
+    const socket = sockets[0] as FakeSocket;
+    socket.open();
+    socket.receive({ type: "view", view: VIEW, events: [] });
+    room.rematch();
+    expect(JSON.parse(socket.sent[0] as string)).toEqual({ type: "rematch" });
+    socket.receive({ type: "rematch", accepted: true, opponentAccepted: false, declined: false });
+    expect(room.getState().rematch?.accepted).toBe(true);
+    socket.receive({ type: "lobby", lobby: { code: "ABC234", seat: 0 } });
+    expect(room.getState().view).toBeNull();
+    expect(room.getState().rematch).toBeNull();
+    room.close();
+    expect(JSON.parse(socket.sent[1] as string)).toEqual({ type: "leave" });
+  });
+
   it("connects with the session cookie and tracks lobby, views and errors", () => {
     const { room, sockets } = harness();
     const socket = sockets[0] as FakeSocket;
