@@ -1,6 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const VITE_PORT = Number(process.env.E2E_VITE_PORT ?? 5173);
+/**
+ * Fixed Match seed for the local Worker only (never deployed): with the two Starter Decks it deals
+ * Seat 0 a Brood Tender (Medic) and Wildfire (Scorch) in the opening hand, and Seat 0 plays first.
+ */
+const E2E_SEED = 29;
 const WORKER_PORT = Number(process.env.E2E_WORKER_PORT ?? 8787);
 
 /**
@@ -33,7 +38,7 @@ export default defineConfig({
     },
     {
       name: "online",
-      testMatch: /(online|deck-builder|disconnect|home|accessibility-online)\.spec\.ts/,
+      testMatch: /(online|deck-builder|disconnect|home|accessibility-online|two-players)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${WORKER_PORT}` },
     },
   ],
@@ -47,7 +52,7 @@ export default defineConfig({
       ? []
       : [
           {
-            command: `pnpm exec vite build && pnpm --filter @card-duel/worker exec wrangler d1 migrations apply DB --local && pnpm --filter @card-duel/worker exec wrangler dev --port ${WORKER_PORT}`,
+            command: `pnpm exec vite build && pnpm --filter @card-duel/worker exec wrangler d1 migrations apply DB --local && pnpm --filter @card-duel/worker exec wrangler dev --port ${WORKER_PORT} --var E2E_SEED:${E2E_SEED}`,
             url: `http://localhost:${WORKER_PORT}/api/health`,
             reuseExistingServer: !process.env.CI,
             timeout: 120_000,
