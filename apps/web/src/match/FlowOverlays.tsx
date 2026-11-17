@@ -2,6 +2,7 @@ import type { Action, MatchEvent, Seat, SeatView } from "@card-duel/engine";
 import { useCallback, useState } from "react";
 import { Card } from "../cards/Card";
 import { cardName } from "../cards/strings";
+import roomStrings from "../room/strings/en.json";
 import { Overlay } from "./Overlay";
 
 const FACTION_NAME = { swarm: "Swarm", court: "Court" } as const;
@@ -185,9 +186,13 @@ export function MatchEndOverlay({
       ? won
         ? "Your opponent Forfeited."
         : "You Forfeited."
-      : result.outcome === "draw"
-        ? "Both players lost their last Gem in the same Round."
-        : null;
+      : result.outcome === "win" && result.reason === "disconnect"
+        ? won
+          ? roomStrings.disconnectWon
+          : roomStrings.disconnectLost
+        : result.outcome === "draw"
+          ? "Both players lost their last Gem in the same Round."
+          : null;
   return (
     <Overlay title="Match over">
       <div className="match-end">

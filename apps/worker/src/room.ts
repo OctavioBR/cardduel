@@ -16,6 +16,7 @@ import {
   type LobbyInfo,
   type LoggedAction,
   type MatchEvent,
+  type MatchResult,
   type MatchSetup,
   type MatchState,
   replay,
@@ -27,6 +28,9 @@ import {
 } from "@card-duel/engine";
 
 import { writeMatchResult } from "./results";
+
+export const DISCONNECT_GRACE_MS = 2 * 60 * 1000;
+export const ROOM_IDLE_MS = 24 * 60 * 60 * 1000;
 
 /** Headers the Worker sets after checking the session; never taken from the client. */
 export const ACCOUNT_ID_HEADER = "X-Card-Duel-Account";
@@ -43,6 +47,7 @@ interface SeatState {
   /** The committed Deck, copied at seat time (ADR-0004); null until the Seat is taken. */
   deck: DeckSpec | null;
   deckName: string | null;
+  lastDeckId?: string;
 }
 
 interface RoomMeta {
@@ -65,6 +70,12 @@ interface StoredMatch {
  */
 export class Room extends DurableObject<Env> {
   private loaded = false;
+  private lastActivityAt = 0;
+  private disconnectedAt: [number | null, number | null] = [null, null];
+  private rematch: { accepted: [boolean, boolean]; declined: boolean } = {
+    accepted: [false, false],
+    declined: false,
+  };
   private meta: RoomMeta | null = null;
   private seats: [SeatState | null, SeatState | null] = [null, null];
   private match: (StoredMatch & { state: MatchState }) | null = null;
@@ -76,6 +87,8 @@ export class Room extends DurableObject<Env> {
       meta: { code, competitive } satisfies RoomMeta,
       createdAt: Date.now(),
     });
+    await this.ctx.storage.put("lastActivityAt", Date.now());
+    await this.ctx.storage.setAlarm(Date.now() + ROOM_IDLE_MS);
     return true;
   }
 
@@ -105,8 +118,11 @@ export class Room extends DurableObject<Env> {
       ws.close(1000, "Replaced by a new connection");
     this.ctx.acceptWebSocket(server, [seatTag(seat)]);
     server.serializeAttachment({ seat, accountId } satisfies Attachment);
+    this.disconnectedAt[seat] = null;
+    await this.touch();
     if (this.match) this.sendCurrent(server, seat);
     else this.broadcastLobby();
+    this.broadcastPresence();
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -116,9 +132,24 @@ export class Room extends DurableObject<Env> {
     const attachment = ws.deserializeAttachment() as Attachment | null;
     if (!attachment) return;
     const { seat } = attachment;
+    if (!this.ctx.getWebSockets(seatTag(seat)).includes(ws) || ws.readyState !== WebSocket.OPEN)
+      return;
+    await this.touch();
     const message = parseClientMessage(raw);
     if (!message) {
       send(ws, { type: "error", code: "bad_message", message: "Unreadable message." });
+      return;
+    }
+    if (message.type === "claimWin") {
+      await this.claimWin(ws, seat);
+      return;
+    }
+    if (message.type === "leave") {
+      await this.declineRematch();
+      return;
+    }
+    if (message.type === "rematch") {
+      await this.acceptRematch(ws, seat);
       return;
     }
     if (message.type === "takeSeat") {
@@ -159,11 +190,126 @@ export class Room extends DurableObject<Env> {
   }
 
   override async webSocketClose(ws: WebSocket, code: number): Promise<void> {
-    // Disconnect grace and Claim win arrive in Milestone 7.
+    await this.load();
+    const attachment = ws.deserializeAttachment() as Attachment | null;
+    if (
+      attachment &&
+      this.ctx.getWebSockets(seatTag(attachment.seat)).every((socket) => socket === ws)
+    )
+      await this.declineRematch();
     try {
       ws.close(code === 1005 ? 1000 : code, "Closed");
     } catch {
       // Already closed.
+    }
+    if (attachment && !this.present(attachment.seat) && this.match?.state.phase !== "ended") {
+      this.disconnectedAt[attachment.seat] ??= Date.now();
+      await this.touch();
+      this.broadcastPresence();
+    }
+  }
+
+  override async webSocketError(ws: WebSocket): Promise<void> {
+    await this.webSocketClose(ws, 1011);
+  }
+
+  private present(seat: Seat): boolean {
+    return this.ctx.getWebSockets(seatTag(seat)).some((ws) => ws.readyState === WebSocket.OPEN);
+  }
+
+  private async touch(): Promise<void> {
+    this.lastActivityAt = Date.now();
+    await this.ctx.storage.put({
+      lastActivityAt: this.lastActivityAt,
+      disconnectedAt: this.disconnectedAt,
+    });
+    await this.scheduleAlarm();
+  }
+
+  private async scheduleAlarm(): Promise<void> {
+    const now = Date.now();
+    const deadlines =
+      this.match && this.match.state.phase !== "ended"
+        ? this.disconnectedAt.flatMap((at) =>
+            at !== null && at + DISCONNECT_GRACE_MS > now ? [at + DISCONNECT_GRACE_MS] : [],
+          )
+        : [];
+    await this.ctx.storage.setAlarm(Math.min(this.lastActivityAt + ROOM_IDLE_MS, ...deadlines));
+  }
+
+  override async alarm(): Promise<void> {
+    await this.load();
+    await this.persistResult();
+    if (Date.now() >= this.lastActivityAt + ROOM_IDLE_MS) {
+      const present = SEATS.filter((seat) => this.present(seat));
+      if (this.match && this.match.state.phase !== "ended" && present.length === 1) {
+        await this.finishDisconnect(present[0] as Seat);
+      } else if (present.length === 2 && this.match?.state.phase !== "ended") {
+        // Two connected players still have their Room; idle expiry only abandons absent players.
+        await this.touch();
+        return;
+      }
+      // Neither present means a Void Match: no result is written.
+      for (const ws of this.ctx.getWebSockets()) ws.close(4004, "Room expired");
+      await this.ctx.storage.deleteAll();
+      this.meta = null;
+      this.match = null;
+      this.seats = [null, null];
+      return;
+    }
+    this.broadcastPresence();
+    await this.scheduleAlarm();
+  }
+
+  private async claimWin(ws: WebSocket, seat: Seat): Promise<void> {
+    const missing = this.disconnectedAt[seat === 0 ? 1 : 0];
+    if (
+      !this.match ||
+      this.match.state.phase === "ended" ||
+      missing === null ||
+      Date.now() < missing + DISCONNECT_GRACE_MS ||
+      this.present(seat === 0 ? 1 : 0)
+    ) {
+      send(ws, {
+        type: "error",
+        code: "rejected",
+        message: "A Disconnect Win cannot be claimed yet.",
+      });
+      return;
+    }
+    await this.finishDisconnect(seat);
+  }
+
+  private async finishDisconnect(winner: Seat): Promise<void> {
+    if (!this.match) return;
+    const result: MatchResult = { outcome: "win", winner, reason: "disconnect" };
+    this.match.finishedAt = Date.now();
+    this.match.state = { ...this.match.state, phase: "ended", turn: null, pending: [], result };
+    await this.ctx.storage.put({
+      snapshot: this.match.state,
+      externalResult: result,
+      finishedAt: this.match.finishedAt,
+    });
+    await this.persistResult();
+    this.broadcast([{ type: "matchEnded", result }]);
+    this.broadcastPresence();
+  }
+
+  private broadcastPresence(): void {
+    for (const seat of SEATS) {
+      const at =
+        this.match && this.match.state.phase !== "ended"
+          ? this.disconnectedAt[seat === 0 ? 1 : 0]
+          : null;
+      for (const ws of this.ctx.getWebSockets(seatTag(seat))) {
+        send(ws, {
+          type: "presence",
+          disconnect: {
+            claimAt: at === null ? null : at + DISCONNECT_GRACE_MS,
+            serverNow: Date.now(),
+          },
+        });
+      }
     }
   }
 
@@ -213,6 +359,7 @@ export class Room extends DurableObject<Env> {
     }
     holder.deck = { faction: input.faction, leader: input.leader as string, cards: input.cards };
     holder.deckName = row.name;
+    holder.lastDeckId = deckId;
     await this.ctx.storage.put("seats", this.seats);
     if (this.seats[0]?.deck && this.seats[1]?.deck) await this.startMatch(version);
     else this.broadcastLobby();
@@ -227,20 +374,32 @@ export class Room extends DurableObject<Env> {
       "catalogVersion",
       "log",
       "snapshot",
+      "rematch",
       "matchId",
       "finishedAt",
+      "lastActivityAt",
+      "disconnectedAt",
+      "externalResult",
     ]);
+    this.rematch = (stored.get("rematch") as typeof this.rematch | undefined) ?? this.rematch;
     this.meta = (stored.get("meta") as RoomMeta | undefined) ?? null;
     this.seats = (stored.get("seats") as [SeatState | null, SeatState | null] | undefined) ?? [
       null,
       null,
     ];
+    this.lastActivityAt = (stored.get("lastActivityAt") as number | undefined) ?? Date.now();
+    this.disconnectedAt = (stored.get("disconnectedAt") as
+      | [number | null, number | null]
+      | undefined) ?? [null, null];
     const setup = stored.get("setup") as MatchSetup | undefined;
     if (setup) {
       const log = (stored.get("log") as LoggedAction[] | undefined) ?? [];
       let snapshot = stored.get("snapshot") as MatchState | undefined;
       // The snapshot is a cache: rebuild from seed plus log when it is missing or behind.
       if (!snapshot || snapshot.actionCount !== log.length) snapshot = replay(setup, log);
+      const externalResult = stored.get("externalResult") as MatchResult | undefined;
+      if (externalResult)
+        snapshot = { ...snapshot, phase: "ended", turn: null, pending: [], result: externalResult };
       const catalogVersion = (stored.get("catalogVersion") as string | undefined) ?? "";
       const id = (stored.get("matchId") as string | undefined) ?? crypto.randomUUID();
       await this.ctx.storage.put("matchId", id);
@@ -302,9 +461,67 @@ export class Room extends DurableObject<Env> {
       code: this.meta?.code ?? "",
       competitive: this.meta?.competitive ?? false,
       seat,
-      you: { seated: !!mine?.deck, deckName: mine?.deckName ?? null },
+      you: {
+        seated: !!mine?.deck,
+        deckName: mine?.deckName ?? null,
+        lastDeckId: mine?.lastDeckId ?? null,
+      },
       opponent: { present: !!theirs, seated: !!theirs?.deck, username: theirs?.username ?? null },
     };
+  }
+
+  private async acceptRematch(ws: WebSocket, seat: Seat): Promise<void> {
+    if (this.match?.state.phase !== "ended" || this.rematch.declined) {
+      send(ws, { type: "error", code: "rejected", message: "Rematch is unavailable." });
+      return;
+    }
+    this.rematch.accepted[seat] = true;
+    if (this.rematch.accepted.every(Boolean)) {
+      this.match = null;
+      for (const holder of this.seats)
+        if (holder) {
+          holder.deck = null;
+          holder.deckName = null;
+        }
+      this.rematch = { accepted: [false, false], declined: false };
+      await this.ctx.storage.transaction(async (storage) => {
+        await storage.delete([
+          "setup",
+          "catalogVersion",
+          "log",
+          "snapshot",
+          "externalResult",
+          "finishedAt",
+          "matchId",
+        ]);
+        await storage.put({ seats: this.seats, rematch: this.rematch });
+      });
+      this.broadcastLobby();
+    } else {
+      await this.ctx.storage.put("rematch", this.rematch);
+      this.broadcastRematch();
+    }
+  }
+
+  private async declineRematch(): Promise<void> {
+    if (this.match?.state.phase !== "ended") return;
+    this.rematch = { accepted: [false, false], declined: true };
+    await this.ctx.storage.put("rematch", this.rematch);
+    this.broadcastRematch();
+  }
+
+  private broadcastRematch(): void {
+    for (const seat of SEATS)
+      for (const ws of this.ctx.getWebSockets(seatTag(seat))) this.sendRematch(ws, seat);
+  }
+
+  private sendRematch(ws: WebSocket, seat: Seat): void {
+    send(ws, {
+      type: "rematch",
+      accepted: this.rematch.accepted[seat],
+      opponentAccepted: this.rematch.accepted[seat === 0 ? 1 : 0],
+      declined: this.rematch.declined,
+    });
   }
 
   private broadcastLobby(): void {
@@ -330,6 +547,7 @@ export class Room extends DurableObject<Env> {
   private sendCurrent(ws: WebSocket, seat: Seat): void {
     if (this.match) send(ws, { type: "view", view: viewFor(this.match.state, seat), events: [] });
     else send(ws, { type: "lobby", lobby: this.lobbyFor(seat) });
+    if (this.match?.state.phase === "ended") this.sendRematch(ws, seat);
   }
 }
 
@@ -349,6 +567,8 @@ function parseClientMessage(raw: string | ArrayBuffer): ClientMessage | null {
   if (typeof raw !== "string") return null;
   try {
     const value = JSON.parse(raw) as Record<string, unknown>;
+    if (value?.type === "claimWin") return { type: "claimWin" };
+    if (value?.type === "rematch" || value?.type === "leave") return { type: value.type };
     if (value?.type === "takeSeat" && typeof value.deckId === "string") {
       return { type: "takeSeat", deckId: value.deckId };
     }

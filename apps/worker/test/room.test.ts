@@ -1,6 +1,7 @@
 import { env, evictDurableObject, runInDurableObject, SELF } from "cloudflare:test";
 import { CLOSE_ROOM_FULL, CLOSE_SIGNED_OUT, type SeatView } from "@card-duel/engine";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { DISCONNECT_GRACE_MS, ROOM_IDLE_MS } from "../src/room";
 import { ROOM_CODE_ALPHABET } from "../src/room-code";
 import {
   BASE,
@@ -136,6 +137,47 @@ describe("Room", () => {
     closeAll(room);
   });
 
+  it("offers a Rematch, persists acceptance through eviction, and returns both to Deck choice", async () => {
+    const room = await seatBoth(true);
+    room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+    expect(await room.sockets[0].next()).toMatchObject({ type: "error", code: "rejected" });
+    await play(room, 0, { type: "forfeit" });
+    room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+    expect(await room.sockets[0].next()).toMatchObject({ type: "rematch", accepted: true });
+    expect(await room.sockets[1].next()).toMatchObject({ type: "rematch", opponentAccepted: true });
+    await evictDurableObject(env.ROOMS.getByName(room.code));
+    room.sockets[1].ws.send(JSON.stringify({ type: "rematch" }));
+    const lobbies = await Promise.all(room.sockets.map((socket) => socket.nextLobby()));
+    for (const lobby of lobbies) {
+      expect(lobby).toMatchObject({ code: room.code, competitive: true, you: { seated: false } });
+      expect(lobby.you.lastDeckId).toBeTypeOf("string");
+    }
+    await evictDurableObject(env.ROOMS.getByName(room.code));
+    const reconnect = await TestSocket.open(room.code, room.cookies[0]);
+    expect(await reconnect.nextLobby()).toEqual(lobbies[0]);
+    await room.sockets[1].nextLobby();
+    room.sockets[0] = reconnect;
+    room.sockets[0].takeSeat(lobbies[0]?.you.lastDeckId as string);
+    await Promise.all(room.sockets.map((socket) => socket.nextLobby()));
+    room.sockets[1].takeSeat(lobbies[1]?.you.lastDeckId as string);
+    const next = await Promise.all(room.sockets.map((socket) => socket.nextView()));
+    expect(next[0]?.view).toMatchObject({ phase: "redraw", actionCount: 0 });
+    closeAll(room);
+  });
+
+  it("leaving after a Match declines a Rematch for both players", async () => {
+    const room = await seatBoth();
+    await play(room, 0, { type: "forfeit" });
+    room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+    await Promise.all(room.sockets.map((socket) => socket.next()));
+    room.sockets[1].ws.send(JSON.stringify({ type: "leave" }));
+    for (const message of await Promise.all(room.sockets.map((socket) => socket.next())))
+      expect(message).toMatchObject({ type: "rematch", declined: true, accepted: false });
+    room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+    expect(await room.sockets[0].next()).toMatchObject({ type: "error", code: "rejected" });
+    closeAll(room);
+  });
+
   it("neither player sees the other's Deck, Faction or Leader before both take a Seat", async () => {
     const cookies = [await newPlayer(), await newPlayer()];
     const deck = await starterDeck(cookies[0] as string, "swarm");
@@ -146,7 +188,7 @@ describe("Room", () => {
     await Promise.all([a.nextLobby(), b.nextLobby()]);
     a.takeSeat(deck);
     const [la, lb] = await Promise.all([a.nextLobby(), b.nextLobby()]);
-    expect(la.you).toEqual({ seated: true, deckName: "Swarm Starter" });
+    expect(la.you).toEqual({ seated: true, deckName: "Swarm Starter", lastDeckId: deck });
     expect(lb.opponent).toMatchObject({ present: true, seated: true });
     const text = JSON.stringify(lb);
     expect(text).not.toContain("swarm");
@@ -285,4 +327,119 @@ describe("Room", () => {
     for (const c of va.you.hand) expect(messageB).not.toContain(`"uid":${c.uid},`);
     closeAll(room);
   });
+});
+
+describe("Room disconnect lifecycle", () => {
+  async function disconnected(room: Seated, seat: 0 | 1) {
+    room.sockets[seat].close();
+    await expect
+      .poll(async () =>
+        runInDurableObject(env.ROOMS.getByName(room.code), async (_room, ctx) => {
+          const times = await ctx.storage.get<[number | null, number | null]>("disconnectedAt");
+          return times?.[seat] ?? null;
+        }),
+      )
+      .not.toBeNull();
+  }
+
+  async function stored(room: Seated) {
+    return env.DB.prepare("SELECT * FROM match_results WHERE room_code = ?").bind(room.code).all();
+  }
+
+  it("reconnect within grace cancels a claim, including after eviction", async () => {
+    const room = await seatBoth();
+    await disconnected(room, 1);
+    room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
+    expect(await room.sockets[0].next()).toMatchObject({ code: "rejected" });
+    await evictDurableObject(env.ROOMS.getByName(room.code));
+    const again = await TestSocket.open(room.code, room.cookies[1]);
+    expect((await again.nextView()).view.phase).toBe("turns");
+    room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
+    expect(await room.sockets[0].next()).toMatchObject({ code: "rejected" });
+    expect((await stored(room)).results).toHaveLength(0);
+    again.close();
+    closeAll(room);
+  });
+
+  it("alarm after grace makes a win claimable but never automatically awards it", async () => {
+    const room = await seatBoth();
+    await disconnected(room, 1);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + DISCONNECT_GRACE_MS + 1);
+    try {
+      await runInDurableObject(env.ROOMS.getByName(room.code), async (instance) =>
+        instance.alarm(),
+      );
+      expect((await stored(room)).results).toHaveLength(0);
+      room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
+      const { view } = await room.sockets[0].nextView();
+      expect(view.result).toEqual({ outcome: "win", winner: 0, reason: "disconnect" });
+      expect((await stored(room)).results).toHaveLength(1);
+      await evictDurableObject(env.ROOMS.getByName(room.code));
+      const again = await TestSocket.open(room.code, room.cookies[1]);
+      expect((await again.nextView()).view.result).toEqual(view.result);
+      again.close();
+    } finally {
+      clock.mockRestore();
+      closeAll(room);
+    }
+  });
+
+  it("starts a Rematch after a Disconnect Win without restoring the previous result on eviction", async () => {
+    const room = await seatBoth();
+    await disconnected(room, 1);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + DISCONNECT_GRACE_MS + 1);
+    try {
+      room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
+      expect((await room.sockets[0].nextView()).view.result).toMatchObject({
+        reason: "disconnect",
+      });
+      room.sockets[1] = await TestSocket.open(room.code, room.cookies[1]);
+      await room.sockets[1].nextView();
+      expect(await room.sockets[1].next()).toMatchObject({ type: "rematch", declined: false });
+      room.sockets[0].ws.send(JSON.stringify({ type: "rematch" }));
+      await Promise.all(room.sockets.map((socket) => socket.next()));
+      room.sockets[1].ws.send(JSON.stringify({ type: "rematch" }));
+      const lobbies = await Promise.all(room.sockets.map((socket) => socket.nextLobby()));
+      room.sockets[0].takeSeat(lobbies[0]?.you.lastDeckId as string);
+      await Promise.all(room.sockets.map((socket) => socket.nextLobby()));
+      room.sockets[1].takeSeat(lobbies[1]?.you.lastDeckId as string);
+      const views = await Promise.all(room.sockets.map((socket) => socket.nextView()));
+      expect(views[0]?.view.phase).toBe("redraw");
+      await evictDurableObject(env.ROOMS.getByName(room.code));
+      room.sockets[0] = await TestSocket.open(room.code, room.cookies[0]);
+      const restored = (await room.sockets[0].nextView()).view;
+      expect(restored.phase).toBe("redraw");
+      expect(restored.result).toBeNull();
+      expect((await stored(room)).results).toHaveLength(1);
+    } finally {
+      clock.mockRestore();
+      closeAll(room);
+    }
+  });
+
+  it.each([1, 2])(
+    "24-hour expiry with %s absent players awards a Disconnect Win or voids and deletes storage",
+    async (absent) => {
+      const room = await seatBoth();
+      await disconnected(room, 1);
+      if (absent === 2) await disconnected(room, 0);
+      const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + ROOM_IDLE_MS + 1);
+      try {
+        const size = await runInDurableObject(
+          env.ROOMS.getByName(room.code),
+          async (instance, ctx) => {
+            await instance.alarm();
+            return (await ctx.storage.list()).size;
+          },
+        );
+        expect(size).toBe(0);
+        const rows = (await stored(room)).results;
+        expect(rows).toHaveLength(absent === 1 ? 1 : 0);
+        if (absent === 1) expect(rows[0]).toMatchObject({ ended_by: "disconnect", winner_seat: 0 });
+      } finally {
+        clock.mockRestore();
+        closeAll(room);
+      }
+    },
+  );
 });

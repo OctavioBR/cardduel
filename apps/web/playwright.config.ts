@@ -23,8 +23,17 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${VITE_PORT}` },
     },
     {
+      name: "mobile",
+      testMatch: /mobile\.spec\.ts/,
+      use: {
+        ...devices["iPhone 13 landscape"],
+        defaultBrowserType: "chromium",
+        baseURL: `http://localhost:${VITE_PORT}`,
+      },
+    },
+    {
       name: "online",
-      testMatch: /(online|deck-builder|home|accessibility-online)\.spec\.ts/,
+      testMatch: /(online|deck-builder|disconnect|home|accessibility-online)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${WORKER_PORT}` },
     },
   ],

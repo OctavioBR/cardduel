@@ -54,6 +54,22 @@ const VIEW = viewFor(
 );
 
 describe("WebSocketRoom", () => {
+  it("sends Rematch and leave requests, and clears the finished view on Deck choice", () => {
+    const { room, sockets } = harness();
+    const socket = sockets[0] as FakeSocket;
+    socket.open();
+    socket.receive({ type: "view", view: VIEW, events: [] });
+    room.rematch();
+    expect(JSON.parse(socket.sent[0] as string)).toEqual({ type: "rematch" });
+    socket.receive({ type: "rematch", accepted: true, opponentAccepted: false, declined: false });
+    expect(room.getState().rematch?.accepted).toBe(true);
+    socket.receive({ type: "lobby", lobby: { code: "ABC234", seat: 0 } });
+    expect(room.getState().view).toBeNull();
+    expect(room.getState().rematch).toBeNull();
+    room.close();
+    expect(JSON.parse(socket.sent[1] as string)).toEqual({ type: "leave" });
+  });
+
   it("connects with the session cookie and tracks lobby, views and errors", () => {
     const { room, sockets } = harness();
     const socket = sockets[0] as FakeSocket;
@@ -91,6 +107,18 @@ describe("WebSocketRoom", () => {
       actionCount: 7,
       action: { type: "pass" },
     });
+  });
+
+  it("tracks server disconnect deadlines and sends a claim without an engine action", () => {
+    const { room, sockets } = harness();
+    const socket = sockets[0] as FakeSocket;
+    socket.open();
+    socket.receive({ type: "presence", disconnect: { claimAt: 123000, serverNow: 3000 } });
+    expect(room.getState().disconnect).toEqual({ claimAt: 123000, serverNow: 3000 });
+    room.claimWin();
+    expect(JSON.parse(socket.sent[0] as string)).toEqual({ type: "claimWin" });
+    socket.receive({ type: "presence", disconnect: { claimAt: null, serverNow: 4000 } });
+    expect(room.getState().disconnect?.claimAt).toBeNull();
   });
 
   it("commits a Deck to take a Seat", () => {

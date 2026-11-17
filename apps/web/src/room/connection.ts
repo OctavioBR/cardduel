@@ -1,5 +1,6 @@
 import type {
   Action,
+  DisconnectInfo,
   LobbyInfo,
   MatchEvent,
   Seat,
@@ -16,6 +17,7 @@ export interface RoomError {
 
 /** What the UI renders. Everything about the Match comes from `view` (ADR-0002). */
 export interface RoomClientState {
+  rematch?: { accepted: boolean; opponentAccepted: boolean; declined: boolean } | null;
   status: ConnectionStatus;
   seat: Seat | null;
   /** The Room code while waiting for the opponent to take their Seat. */
@@ -24,6 +26,7 @@ export interface RoomClientState {
   view: SeatView | null;
   /** The last error, cleared by the next view. */
   error: RoomError | null;
+  disconnect: DisconnectInfo | null;
 }
 
 export interface RoomUpdate {
@@ -52,6 +55,7 @@ export const INITIAL_STATE: RoomClientState = {
   lobby: null,
   view: null,
   error: null,
+  disconnect: null,
 };
 
 /** Shared listener bookkeeping for connection implementations. */

@@ -2,6 +2,7 @@ import {
   type Action,
   CLOSE_ROOM_FULL,
   CLOSE_ROOM_NOT_FOUND,
+  CLOSE_SIGNED_OUT,
   type ClientMessage,
   type ServerMessage,
 } from "@card-duel/engine";
@@ -61,7 +62,19 @@ export class WebSocketRoom implements RoomConnection {
       this.socket.send(JSON.stringify({ type: "takeSeat", deckId } satisfies ClientMessage));
   }
 
+  claimWin(): void {
+    if (this.socket?.readyState === WebSocket.OPEN)
+      this.socket.send(JSON.stringify({ type: "claimWin" } satisfies ClientMessage));
+  }
+
+  rematch(): void {
+    if (this.socket?.readyState === WebSocket.OPEN)
+      this.socket.send(JSON.stringify({ type: "rematch" }));
+  }
+
   close(): void {
+    if (this.socket?.readyState === WebSocket.OPEN)
+      this.socket.send(JSON.stringify({ type: "leave" }));
     this.closedByUser = true;
     if (this.timer !== null) this.clearTimer(this.timer);
     this.socket?.close(1000, "Left the Room");
@@ -88,8 +101,16 @@ export class WebSocketRoom implements RoomConnection {
       return;
     }
     switch (message.type) {
+      case "presence":
+        this.emitter.update({ disconnect: message.disconnect });
+        break;
+      case "rematch":
+        this.emitter.update({ rematch: message });
+        break;
       case "lobby":
         this.emitter.update({
+          view: null,
+          rematch: null,
           seat: message.lobby.seat,
           lobby: message.lobby,
           waitingCode: message.lobby.code,
@@ -117,7 +138,7 @@ export class WebSocketRoom implements RoomConnection {
   private onClose(code: number): void {
     if (this.closedByUser) return;
     // These closes are final: retrying cannot help.
-    if (code === CLOSE_ROOM_FULL || code === CLOSE_ROOM_NOT_FOUND) {
+    if (code === CLOSE_ROOM_FULL || code === CLOSE_ROOM_NOT_FOUND || code === CLOSE_SIGNED_OUT) {
       this.emitter.update({ status: "closed" });
       return;
     }

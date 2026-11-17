@@ -43,7 +43,7 @@ export interface SideState {
 }
 
 export type MatchResult =
-  | { outcome: "win"; winner: Seat; reason: "gems" | "forfeit" }
+  | { outcome: "win"; winner: Seat; reason: "gems" | "forfeit" | "disconnect" }
   | { outcome: "draw" };
 
 export type Phase = "redraw" | "turns" | "ended";
