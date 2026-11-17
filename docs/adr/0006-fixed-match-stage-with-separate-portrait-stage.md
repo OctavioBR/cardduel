@@ -11,4 +11,6 @@ The Match screen is laid out once at a logical 1520×720 (19:9) and scaled unifo
 
 - The stage was first 16:9 (1280×720). It was widened to 19:9, keeping the 720 height, so the battlefield gets the extra width and modern phones in landscape fill the screen with less letterboxing; 16:9 windows now letterbox top and bottom instead.
 
+- The stage then became flexible between 16:11 and 20:9 so common windows stop letterboxing: it takes the window's shape inside that range and only letterboxes outside it. 1520×720 stays the reference layout. Wider windows keep the 720 height and gain width; squarer ones keep about the reference area, with a 1360 minimum width so a full starting hand fits, and the extra height goes to the Rows. The layout is still scaled uniformly, never reflowed: the Board's columns and Rows stretch, cards keep their size.
+
 - Hit-testing for drag-and-drop happens inside a CSS-transformed container, which is why drag is built on pointer events rather than HTML5 drag-and-drop or dnd-kit.

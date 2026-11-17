@@ -1,4 +1,6 @@
-/* Match stage layout at the logical 1520x720, 19:9 (ADR-0006), Clean modern direction (#33). */
+/* Match stage layout around the logical 1520x720 (ADR-0006), Clean modern direction (#33).
+   The stage takes the window's shape from 16:11 to 20:9: extra width goes to the battlefield
+   and the hand, extra height to the Rows. */
 .board {
   position: absolute;
   inset: 0;
@@ -202,7 +204,8 @@
   display: grid;
   grid-template-columns: 54px 50px 1fr;
   align-items: center;
-  height: 82px;
+  flex: 1 1 82px;
+  min-height: 82px;
   width: 100%;
   box-sizing: border-box;
   padding: 0;
@@ -346,8 +349,11 @@ button.pile:hover .pile-stack {
   z-index: 20;
 }
 .overlay {
+  box-sizing: border-box;
   width: 900px;
-  max-height: 600px;
+  max-width: calc(100% - 48px);
+  max-height: calc(100% - 48px);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -355,6 +361,9 @@ button.pile:hover .pile-stack {
   background: var(--cd-panel);
   border: 1px solid var(--cd-line);
   border-radius: 12px;
+}
+.overlay.wide {
+  width: 1340px;
 }
 .overlay header {
   display: flex;
@@ -608,11 +617,17 @@ button.known-hand {
 .reveal-vs strong {
   font-size: 28px;
 }
+/* The hand scrolls when it cannot fit, so Keep hand always stays in view. */
 .redraw {
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: center;
+  min-height: 0;
+}
+.redraw > p,
+.redraw > button {
+  flex-shrink: 0;
 }
 .redraw p,
 .redraw-wait {
@@ -621,6 +636,7 @@ button.known-hand {
 }
 .redraw-hand {
   justify-content: center;
+  min-height: 0;
 }
 .redraw-card {
   padding: 0;
@@ -689,14 +705,14 @@ button.danger {
   font-size: 12px;
   line-height: 1.35;
 }
-.coin-you,
-.coin-opponent {
+.who-you,
+.who-opponent {
   font-weight: 700;
 }
-.coin-you {
+.who-you {
   color: var(--cd-raised);
 }
-.coin-opponent {
+.who-opponent {
   color: var(--cd-lowered);
 }
 .opponent-passed {

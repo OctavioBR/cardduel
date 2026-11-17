@@ -1,6 +1,6 @@
 import type { Action, MatchEvent, Seat, SeatView } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
-import { useCallback, useState } from "react";
+import { Fragment, type ReactNode, useCallback, useState } from "react";
 import { Card } from "../cards/Card";
 import { cardName } from "../cards/strings";
 import roomStrings from "../room/strings/en.json";
@@ -8,6 +8,22 @@ import copy from "../strings/en.json";
 import { Overlay } from "./Overlay";
 
 const FACTION_NAME = { swarm: copy.swarm, court: copy.court } as const;
+
+/** Fills a copy template's `{name}` slots with elements, for copy that colours a word. */
+function formatParts(template: string, values: Readonly<Record<string, ReactNode>>): ReactNode[] {
+  return template.split(/(\{\w+\})/).map((part, i) => {
+    const name = /^\{(\w+)\}$/.exec(part)?.[1];
+    const value = name !== undefined && name in values ? values[name] : part;
+    // biome-ignore lint/suspicious/noArrayIndexKey: the parts of a fixed template never reorder.
+    return <Fragment key={i}>{value}</Fragment>;
+  });
+}
+
+/** "you" in green and "your opponent" in red, as on the coin flip. */
+const WHO = {
+  you: <span className="who-you">{copy.roundResultYou}</span>,
+  opponent: <span className="who-opponent">{copy.roundResultYourOpponent}</span>,
+};
 
 /**
  * A callback ref that focuses the element each time it mounts: the main action of an overlay,
@@ -32,7 +48,7 @@ export function OpeningOverlay({
   const focusRef = useFocusOnMount<HTMLButtonElement>();
   const { returned, done } = view.you.redraw;
   return (
-    <Overlay title={copy.matchStart}>
+    <Overlay title={copy.matchStart} wide>
       <div className="reveal" data-testid="reveal">
         <div className="reveal-side">
           <span className="reveal-label">
@@ -47,12 +63,12 @@ export function OpeningOverlay({
             {copy.coinFlip}{" "}
             {view.roundStarter === "you" ? (
               <>
-                <span className="coin-you">{copy.coinFlipYou}</span>
+                <span className="who-you">{copy.coinFlipYou}</span>
                 {copy.coinFlipYouTakeTheFirstTurn}
               </>
             ) : (
               <>
-                <span className="coin-opponent">{copy.coinFlipYourOpponent}</span>
+                <span className="who-opponent">{copy.coinFlipYourOpponent}</span>
                 {copy.coinFlipOpponentTakesTheFirstTurn}
               </>
             )}
@@ -157,28 +173,29 @@ export function RoundResultOverlay({
   const title =
     summary.winner === null
       ? formatCopy(copy.roundTie, { p0: summary.round })
-      : summary.winner === "you"
-        ? formatCopy(copy.roundYouWin, { p0: summary.round })
-        : formatCopy(copy.roundYourOpponentWins, { p0: summary.round });
+      : formatParts(
+          summary.winner === "you" ? copy.roundResultYouWin : copy.roundResultOpponentWins,
+          { ...WHO, p0: summary.round },
+        );
   return (
     <Overlay title={title} onClose={onContinue}>
       <div className="round-result" data-testid="round-result">
         <div className="round-scores">
           <span>
-            {copy.you2}
+            <span className="who-you">{copy.you2}</span>
             <strong>{summary.scores.you}</strong>
           </span>
           <span>
-            {copy.opponent2}
+            <span className="who-opponent">{copy.opponent2}</span>
             <strong>{summary.scores.opponent}</strong>
           </span>
         </div>
         <p>
-          {copy.gemsLostYou}
-          {summary.gemsLost.you}
-          {copy.yourOpponent}
-          {summary.gemsLost.opponent}
-          {copy.label2}
+          {formatParts(copy.gemsLost, {
+            ...WHO,
+            p0: summary.gemsLost.you,
+            p1: summary.gemsLost.opponent,
+          })}
         </p>
         {summary.passives.map((p) => (
           <p key={p} className="passive-note">

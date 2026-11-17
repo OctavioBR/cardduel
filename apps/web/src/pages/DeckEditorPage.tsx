@@ -6,7 +6,7 @@ import { Link, useParams } from "react-router";
 import { Card } from "../cards/Card";
 import { CardDetailProvider } from "../cards/CardDetail";
 import { abilityLabel } from "../cards/icons";
-import { cardDef, cardName, catalog } from "../cards/strings";
+import { cardDef, cardName, cardText, catalog } from "../cards/strings";
 import { type Deck, deckApi } from "../decks/api";
 import { countCopies, deckCounters, deckGroups, type PoolFilters, poolCards } from "../decks/pool";
 import { type DropZone, useTileDrag } from "../decks/useTileDrag";
@@ -154,7 +154,11 @@ function Editor({ initial }: { initial: Deck }) {
           {initial.faction === "swarm" ? copy.swarm : copy.court}
         </span>
         <div className="editor-actions">
-          <span className="save-state" role="status" data-testid="save-state">
+          <span
+            className={`save-state${saving === "idle" && dirty ? " unsaved" : ""}`}
+            role="status"
+            data-testid="save-state"
+          >
             {saving === "saving"
               ? copy.saving
               : saving === "error"
@@ -266,8 +270,14 @@ function Editor({ initial }: { initial: Deck }) {
                   name="leader"
                   checked={leader === l.id}
                   onChange={() => edit("leader", l.id)}
+                  aria-describedby={`leader-text-${l.id}`}
                 />
-                {cardName(l.id)}
+                <span className="leader-option">
+                  <span className="leader-option-name">{cardName(l.id)}</span>
+                  <span className="leader-option-text" id={`leader-text-${l.id}`}>
+                    {cardText(l.id)}
+                  </span>
+                </span>
               </label>
             ))}
           </fieldset>

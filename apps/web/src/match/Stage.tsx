@@ -1,19 +1,51 @@
 import { type ReactNode, useLayoutEffect, useState } from "react";
 import en from "../strings/en.json";
 
+/** The reference layout, 19:9 (ADR-0006): the stage is never shorter than this. */
 export const STAGE_WIDTH = 1520;
 export const STAGE_HEIGHT = 720;
+/** The stage takes the window's shape between these; outside them it letterboxes. */
+export const MIN_ASPECT = 16 / 11;
+export const MAX_ASPECT = 20 / 9;
+/** Narrowest logical width: a full starting hand still fits without scrolling. */
+const MIN_WIDTH = 1360;
 
-/** Uniform scale that fits the logical stage into the window, letterboxed (ADR-0006). */
-export function fitScale(width: number, height: number): number {
-  return Math.min(width / STAGE_WIDTH, height / STAGE_HEIGHT);
+export interface StageSize {
+  width: number;
+  height: number;
+  scale: number;
 }
 
-/** The Match screen's fixed 19:9 stage, laid out at 1520×720 and scaled to fit. */
+/**
+ * Logical stage size for a window, and the uniform scale that fits it (ADR-0006).
+ * Wider than 19:9 the stage keeps its 720 height and gains width; squarer than 19:9 it keeps
+ * roughly the reference area, trading width for height, so the board grows taller rather than
+ * cards shrinking.
+ */
+export function stageSize(windowWidth: number, windowHeight: number): StageSize {
+  const aspect = Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, windowWidth / windowHeight));
+  let width: number;
+  let height: number;
+  if (aspect >= STAGE_WIDTH / STAGE_HEIGHT) {
+    height = STAGE_HEIGHT;
+    width = STAGE_HEIGHT * aspect;
+  } else {
+    width = Math.max(MIN_WIDTH, Math.sqrt(STAGE_WIDTH * STAGE_HEIGHT * aspect));
+    height = width / aspect;
+  }
+  const scale = Math.min(windowWidth / width, windowHeight / height);
+  return { width, height, scale };
+}
+
+/** The Match screen's stage: laid out at a logical size near 1520×720 and scaled to fit. */
 export function Stage({ children }: { children: ReactNode }) {
-  const [scale, setScale] = useState(1);
+  const [size, setSize] = useState<StageSize>({
+    width: STAGE_WIDTH,
+    height: STAGE_HEIGHT,
+    scale: 1,
+  });
   useLayoutEffect(() => {
-    const update = () => setScale(fitScale(window.innerWidth, window.innerHeight));
+    const update = () => setSize(stageSize(window.innerWidth, window.innerHeight));
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -27,9 +59,9 @@ export function Stage({ children }: { children: ReactNode }) {
         className="stage"
         data-testid="stage"
         style={{
-          width: STAGE_WIDTH,
-          height: STAGE_HEIGHT,
-          transform: `translate(-50%, -50%) scale(${scale})`,
+          width: size.width,
+          height: size.height,
+          transform: `translate(-50%, -50%) scale(${size.scale})`,
         }}
       >
         {children}
