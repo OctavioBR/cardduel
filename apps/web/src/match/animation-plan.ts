@@ -1,6 +1,6 @@
 import type { MatchEvent, Seat } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 
 /** One visual step of the queue; steps play one after another. */
 export type AnimationStep =

@@ -1,6 +1,6 @@
+import { formatCopy } from "@card-duel/strings";
 import { json } from "../http";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 import { hashPassword, verifyPassword } from "./password";
 import {
   type Account,

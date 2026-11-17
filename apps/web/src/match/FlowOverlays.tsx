@@ -1,10 +1,10 @@
 import type { Action, MatchEvent, Seat, SeatView } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { useCallback, useState } from "react";
 import { Card } from "../cards/Card";
 import { cardName } from "../cards/strings";
 import roomStrings from "../room/strings/en.json";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 import { Overlay } from "./Overlay";
 
 const FACTION_NAME = { swarm: copy.swarm, court: copy.court } as const;

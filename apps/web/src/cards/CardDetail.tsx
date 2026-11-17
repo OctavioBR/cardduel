@@ -1,3 +1,4 @@
+import { formatCopy } from "@card-duel/strings";
 import {
   createContext,
   type ReactNode,
@@ -10,7 +11,6 @@ import {
 } from "react";
 import { useDialogFocus } from "../match/useDialogFocus";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 import { Card } from "./Card";
 import { cardName, cardText } from "./strings";
 

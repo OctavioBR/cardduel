@@ -1,7 +1,7 @@
 import type { CardRef, FactionId, LeaderView } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { cardName } from "../cards/strings";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 
 const FACTION_NAME: Record<FactionId, string> = { swarm: copy.swarm, court: copy.court };
 

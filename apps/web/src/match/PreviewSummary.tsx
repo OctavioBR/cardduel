@@ -1,6 +1,6 @@
 import type { PlayPreview, SeatView } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 
 /** One-line Play Preview: Score changes, cards destroyed and cards drawn. */
 export function PreviewSummary({

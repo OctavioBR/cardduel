@@ -1,8 +1,8 @@
 import type { CardRef, DeckCount, FactionId } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { useState } from "react";
 import { Card } from "../cards/Card";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 import { Overlay } from "./Overlay";
 
 type Browse = "yourDiscard" | "opponentDiscard" | "yourDeck" | null;

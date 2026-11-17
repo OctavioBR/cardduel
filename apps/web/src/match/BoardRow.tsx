@@ -1,10 +1,10 @@
 import type { RowId, RowView } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { Card } from "../cards/Card";
 import { ROW_LABEL, RowIcon } from "../cards/icons";
 import { cardName } from "../cards/strings";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 import { type PreviewEffects, signed } from "./preview-effects";
 import type { Target } from "./targets";
 

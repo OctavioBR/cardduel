@@ -26,9 +26,9 @@ import {
   viewFor,
   withoutPreview,
 } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { writeMatchResult } from "./results";
 import copy from "./strings/en.json";
-import { formatCopy } from "./strings/format";
 
 export const DISCONNECT_GRACE_MS = 2 * 60 * 1000;
 export const ROOM_IDLE_MS = 24 * 60 * 60 * 1000;

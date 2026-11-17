@@ -1,7 +1,7 @@
 import type { CardDefinition } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { cardName } from "./catalog";
 import copy from "./strings/en.json";
-import { formatCopy } from "./strings/format";
 import type { Catalog, DeckInput, DeckProblem } from "./types";
 
 /**

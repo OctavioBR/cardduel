@@ -1,9 +1,9 @@
 import type { FactionId } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { type Deck, deckApi } from "../decks/api";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 
 const FACTIONS: { id: FactionId; name: string }[] = [
   { id: "swarm", name: copy.swarm },

@@ -1,6 +1,6 @@
 import type { CardDefinition, RowId } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 import { PlaceholderArt } from "./Art";
 import { useCardDetailTrigger } from "./CardDetail";
 import { AbilityIcon, abilityLabel, ROW_LABEL, RowIcon } from "./icons";

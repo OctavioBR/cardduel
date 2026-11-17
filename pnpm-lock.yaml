@@ -193,6 +193,9 @@ importers:
       '@card-duel/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@card-duel/strings':
+        specifier: workspace:*
+        version: link:../../packages/strings
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -236,6 +239,9 @@ importers:
       '@card-duel/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@card-duel/strings':
+        specifier: workspace:*
+        version: link:../../packages/strings
     devDependencies:
       '@cloudflare/vitest-plugin':
         specifier: 1.8.2
@@ -252,8 +258,13 @@ importers:
       '@card-duel/engine':
         specifier: workspace:*
         version: link:../engine
+      '@card-duel/strings':
+        specifier: workspace:*
+        version: link:../strings
 
   packages/engine: {}
+
+  packages/strings: {}
 
 packages:
 

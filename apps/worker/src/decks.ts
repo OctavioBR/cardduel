@@ -6,10 +6,10 @@ import {
   getCatalog,
 } from "@card-duel/catalog";
 import type { FactionId } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import type { Account } from "./auth/session";
 import { json } from "./http";
 import copy from "./strings/en.json";
-import { formatCopy } from "./strings/format";
 
 const FACTIONS: FactionId[] = ["swarm", "court"];
 export const MAX_DECK_NAME = 40;

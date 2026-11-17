@@ -1,12 +1,12 @@
 import type { Action, RowId, SeatView } from "@card-duel/engine";
 import { ROWS } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { Card } from "../cards/Card";
 import { useCardDetailPress } from "../cards/CardDetail";
 import { cardDef, cardName, cardText } from "../cards/strings";
 import accessibility from "../strings/accessibility.en.json";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 import { BoardRow, type TargetHandlers } from "./BoardRow";
 import { ChoiceOverlay } from "./ChoiceOverlay";
 import {

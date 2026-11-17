@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@card-duel/engine": "workspace:*",
-    "@card-duel/catalog": "workspace:*"
+    "@card-duel/catalog": "workspace:*",
+    "@card-duel/strings": "workspace:*"
   }
 }

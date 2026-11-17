@@ -1,7 +1,7 @@
 import type { DeckProblem } from "@card-duel/catalog";
 import type { FactionId } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 
 export interface Deck {
   id: string;

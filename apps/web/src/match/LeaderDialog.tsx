@@ -1,9 +1,9 @@
 import type { Action, SeatView } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { Card } from "../cards/Card";
 import { ROW_LABEL } from "../cards/icons";
 import { cardName, cardText } from "../cards/strings";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 import { Overlay } from "./Overlay";
 import { leaderState } from "./PlayerPanel";
 import { PreviewSummary } from "./PreviewSummary";

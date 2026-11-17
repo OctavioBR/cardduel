@@ -2,7 +2,7 @@
 
 Production web copy lives in `apps/web/src/strings/en.json`; feature namespaces may also provide their own `strings/en.json`. Account and Room API messages live in the Worker equivalent. Deck validation copy lives in the catalog package and Match rejection copy in the engine package. Card names and ability text remain in the versioned catalog language data.
 
-Dynamic messages use `formatCopy` with named replacement values. Replacement text is literal: usernames containing `$&` or braces cannot change a message template. Keep whitespace that belongs between adjacent JSX expressions in the language entry. Choose separate complete templates for singular and plural copy.
+Dynamic messages use `formatCopy` from `@card-duel/strings` with named replacement values. Replacement text is literal: usernames containing `$&` or braces cannot change a message template. Keep whitespace that belongs between adjacent JSX expressions in the language entry. Choose separate complete templates for singular and plural copy.
 
 ## Literal audit exclusions
 

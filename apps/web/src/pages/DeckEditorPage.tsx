@@ -1,5 +1,6 @@
 import { checkCompetitiveDeck, checkValidDeck } from "@card-duel/catalog";
 import type { CardDefinition, UnitAbility } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import { Card } from "../cards/Card";
@@ -10,7 +11,6 @@ import { type Deck, deckApi } from "../decks/api";
 import { countCopies, deckCounters, deckGroups, type PoolFilters, poolCards } from "../decks/pool";
 import { type DropZone, useTileDrag } from "../decks/useTileDrag";
 import copy from "../strings/en.json";
-import { formatCopy } from "../strings/format";
 
 const ABILITIES: UnitAbility[] = [
   "agile",
