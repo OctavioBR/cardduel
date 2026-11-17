@@ -33,7 +33,7 @@ export default defineConfig({
     },
     {
       name: "online",
-      testMatch: /(online|deck-builder)\.spec\.ts/,
+      testMatch: /(online|deck-builder|home)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${WORKER_PORT}` },
     },
   ],

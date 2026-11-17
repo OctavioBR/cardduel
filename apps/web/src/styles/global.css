@@ -205,6 +205,25 @@ button.link {
   text-decoration: underline;
 }
 
+.home-record {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.home-record div {
+  background: var(--cd-panel);
+  border-radius: var(--cd-radius);
+  padding: 0.75rem;
+}
+.home-record dt {
+  color: var(--cd-muted);
+}
+.home-record dd {
+  margin: 0.25rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
 /* Decks and the Deck builder (#46) */
 .page.wide {
   max-width: 80rem;
