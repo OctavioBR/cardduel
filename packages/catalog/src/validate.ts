@@ -23,7 +23,10 @@ export const V1_LEADER_KINDS = [
   "returnFromDiscard",
   "drawChosenFromDeck",
   "lookAtOpponentHand",
+  "passive",
 ] as const;
+/** Passive Leader kinds approved in the card set review (#29). */
+export const V1_PASSIVE_LEADER_KINDS = ["steadyGround"] as const;
 const FACTIONS = ["swarm", "court"] as const;
 const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -146,6 +149,12 @@ function validateCard(card: CardDefinition): string[] {
       const type = card.ability?.type as string;
       if (!(V1_LEADER_KINDS as readonly string[]).includes(type)) {
         errors.push(`Leader ability "${type}" is not an approved v1 kind.`);
+      }
+      if (card.ability?.type === "passive") {
+        const passive = card.ability.passive as string | undefined;
+        if (!(V1_PASSIVE_LEADER_KINDS as readonly string[]).includes(passive ?? "")) {
+          errors.push(`Leader passive "${passive}" is not an approved v1 kind.`);
+        }
       }
       if (card.ability?.type === "scorchRow" && !ROWS.includes(card.ability.row)) {
         errors.push("a Scorch-Row Leader needs a valid Row.");

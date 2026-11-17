@@ -36,10 +36,16 @@ describe("Card Catalog v1", () => {
     }
   });
 
-  it("has three Leaders per Faction and the v1 Neutral Special Cards", () => {
-    for (const faction of ["swarm", "court"]) {
-      expect(v1.cards.filter((c) => c.kind === "leader" && c.faction === faction)).toHaveLength(3);
-    }
+  it("has three Swarm Leaders, four Court Leaders (one passive) and the v1 Neutral Special Cards", () => {
+    const leaders = (faction: string) =>
+      v1.cards.filter((c) => c.kind === "leader" && c.faction === faction);
+    expect(leaders("swarm")).toHaveLength(3);
+    expect(leaders("court")).toHaveLength(4);
+    expect(
+      v1.cards.flatMap((c) =>
+        c.kind === "leader" && c.ability.type === "passive" ? [c.ability.passive] : [],
+      ),
+    ).toEqual(["steadyGround"]);
     const effects = v1.cards.flatMap((c) =>
       c.kind === "special"
         ? [c.effect.type === "weather" ? `weather:${c.effect.rows.join("+")}` : c.effect.type]

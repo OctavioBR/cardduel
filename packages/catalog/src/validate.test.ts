@@ -62,7 +62,7 @@ describe("validateCatalog", () => {
           kind: "leader",
           faction: "court",
           maxCopies: 2,
-          ability: { type: "passive" } as never,
+          ability: { type: "passive", passive: "secondWind" } as never,
         },
       ],
       strings: { en: { ...data.strings.en, ghost: { name: "Ghost", text: "" } } },
@@ -80,7 +80,7 @@ describe("validateCatalog", () => {
     expect(errors).toContain('Card "summoner": maxCopies must be at least 1.');
     expect(errors).toContain('Card "mardroeme": effect "mardroeme" is not in v1.');
     expect(errors).toContain(
-      'Card "passive-lord": Leader ability "passive" is not an approved v1 kind.',
+      'Card "passive-lord": Leader passive "secondWind" is not an approved v1 kind.',
     );
     expect(errors).toContain('Card "passive-lord": a Leader has maxCopies 1.');
     expect(errors).toContain(

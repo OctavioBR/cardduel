@@ -25,6 +25,17 @@ export function weatheredRows(state: MatchState): Set<RowId> {
   return rows;
 }
 
+/** Whether Weather lowers non-Hero Units on this Seat's Row; false under Steady Ground. */
+function weatherLowers(state: MatchState, seat: Seat, row: RowId, weathered: Set<RowId>): boolean {
+  if (!weathered.has(row)) return false;
+  const leader = state.defs[state.sides[seat].leader];
+  const steady =
+    leader?.kind === "leader" &&
+    leader.ability.type === "passive" &&
+    leader.ability.passive === "steadyGround";
+  return !(steady && row === "siege");
+}
+
 /**
  * Current Strength of every card in a battlefield Row, keyed by uid. Recomputed from the
  * battlefield in this order: Weather, Tight Bond, Morale Boost, Horn. Heroes ignore all of
@@ -33,7 +44,7 @@ export function weatheredRows(state: MatchState): Set<RowId> {
 export function computeStrengths(state: MatchState): Map<Uid, number> {
   const result = new Map<Uid, number>();
   const weathered = weatheredRows(state);
-  for (const side of state.sides) {
+  for (const [seat, side] of state.sides.entries()) {
     for (const row of ROWS) {
       const rowState = side.rows[row];
       const units = rowState.units.map((uid) => ({ uid, def: defOf(state, uid) }));
@@ -53,7 +64,7 @@ export function computeStrengths(state: MatchState): Map<Uid, number> {
           result.set(uid, def.strength);
           continue;
         }
-        let strength = weathered.has(row) ? 1 : def.strength;
+        let strength = weatherLowers(state, seat as Seat, row, weathered) ? 1 : def.strength;
         if (def.abilities.includes("tightBond")) {
           strength *= units.filter((u) => u.def.id === def.id).length;
         }
