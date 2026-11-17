@@ -1,7 +1,7 @@
 import { formatCopy } from "@card-duel/strings";
 import { json } from "../http";
 import copy from "../strings/en.json";
-import { hashPassword, verifyPassword } from "./password";
+import { hashPassword, needsRehash, verifyPassword } from "./password";
 import {
   type Account,
   clearedSessionCookie,
@@ -156,6 +156,16 @@ export async function signIn(request: Request, db: D1Database): Promise<Response
   }
 
   await db.prepare("DELETE FROM sign_in_failures WHERE username_key = ?").bind(key).run();
+  if (needsRehash({ iterations: row.password_iterations })) {
+    // One costly sign-in moves an account stored at an older count to the current one.
+    const fresh = await hashPassword(creds.password);
+    await db
+      .prepare(
+        "UPDATE accounts SET password_hash = ?, password_salt = ?, password_iterations = ?, password_algorithm = ? WHERE id = ?",
+      )
+      .bind(fresh.hash, fresh.salt, fresh.iterations, fresh.algorithm, row.id)
+      .run();
+  }
   const cookie = await createSession(db, row.id);
   return withCookie(json({ account: { id: row.id, username: row.username } }), cookie);
 }
