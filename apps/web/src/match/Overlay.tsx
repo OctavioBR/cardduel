@@ -6,10 +6,13 @@ import { useDialogFocus } from "./useDialogFocus";
 export function Overlay({
   title,
   onClose,
+  wide = false,
   children,
 }: {
-  title: string;
+  title: ReactNode;
   onClose?: () => void;
+  /** Room for a full ten-card hand of tiles in one line. */
+  wide?: boolean;
   children: ReactNode;
 }) {
   const id = useId();
@@ -18,7 +21,7 @@ export function Overlay({
   return (
     <div className="overlay-backdrop">
       <div
-        className="overlay"
+        className={wide ? "overlay wide" : "overlay"}
         role="dialog"
         aria-modal="true"
         aria-labelledby={id}

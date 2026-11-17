@@ -3,8 +3,8 @@ import copy from "../strings/en.json";
 import { type AuthMode, useAuth } from "./AuthContext";
 
 /**
- * Sign in or sign up in one form, switchable in place, so a shared Room link can sign a
- * player up without leaving the page.
+ * Sign in or sign up in one form, switchable in place, so a player sent to sign in from a
+ * shared Room link can create an account without losing where they were going.
  */
 export function AuthForm({
   initialMode = "signup",

@@ -4,7 +4,7 @@ import { keepHand, settled } from "./board";
 test("every piece of the view is visible on the stage, and piles open their overlays", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.setViewportSize({ width: 1520, height: 720 });
   await page.goto("/dev/local?seed=7&deck=starter");
   const radios = page.getByTestId("seat-toggle").getByRole("radio");
   for (const seat of [0, 1]) {
@@ -13,7 +13,7 @@ test("every piece of the view is visible on the stage, and piles open their over
   }
   await settled(page);
   const stage = page.getByTestId("stage");
-  await expect(stage).toHaveCSS("width", "1280px");
+  await expect(stage).toHaveCSS("width", "1520px");
 
   for (const who of ["you", "opponent"]) {
     const panel = page.getByTestId(`panel-${who}`);

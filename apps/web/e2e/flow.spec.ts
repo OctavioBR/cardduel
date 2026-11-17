@@ -47,9 +47,8 @@ test("a full Local Room Match passes through every overlay", async ({ page }) =>
   await result.getByRole("button", { name: "Continue" }).click();
   await expect(result).toBeHidden();
 
-  // Forfeit from the menu, confirmed on the page.
-  await page.getByRole("button", { name: "Menu" }).click();
-  await page.getByRole("dialog", { name: "Menu" }).getByRole("button", { name: "Forfeit" }).click();
+  // Forfeit, confirmed on the page.
+  await page.getByRole("button", { name: "Forfeit", exact: true }).click();
   const confirm = page.getByRole("dialog", { name: "Forfeit this Match?" });
   await expect(confirm).toBeVisible();
   await confirm.getByRole("button", { name: "Forfeit" }).click();

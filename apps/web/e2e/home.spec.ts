@@ -67,11 +67,7 @@ test("Home refreshes Records after a Forfeit", async ({ browser }) => {
     await expect(alice.getByTestId("board")).toBeVisible();
     await alice.getByRole("button", { name: "Keep hand" }).click();
     await bob.getByRole("button", { name: "Keep hand" }).click();
-    await alice.getByRole("button", { name: "Menu", exact: true }).click();
-    await alice
-      .getByRole("dialog", { name: "Menu" })
-      .getByRole("button", { name: "Forfeit" })
-      .click();
+    await alice.getByRole("button", { name: "Forfeit", exact: true }).click();
     await alice
       .getByRole("dialog", { name: "Forfeit this Match?" })
       .getByRole("button", { name: "Forfeit" })

@@ -1,0 +1,28 @@
+<!-- Source of public/og-image.png: rsvg-convert -w 1200 -h 630 brand/og-image.svg -o public/og-image.png -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <title>Card Duel</title>
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="50%" r="70%">
+      <stop offset="0" stop-color="#23252c"/>
+      <stop offset="1" stop-color="#16171b"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <g transform="translate(60 95)">
+    <g transform="rotate(-14 170 220)">
+      <rect x="40" y="40" width="200" height="290" rx="18" fill="#f0662e"/>
+      <rect x="62" y="62" width="156" height="246" rx="10" fill="none" stroke="#16171b" stroke-opacity=".35" stroke-width="6"/>
+    </g>
+    <g transform="rotate(14 170 220)">
+      <rect x="140" y="40" width="200" height="290" rx="18" fill="#1d6fc2" stroke="#16171b" stroke-width="10"/>
+      <rect x="162" y="62" width="156" height="246" rx="10" fill="none" stroke="#f3f4f6" stroke-opacity=".35" stroke-width="6"/>
+    </g>
+  </g>
+  <g font-family="DejaVu Sans, Noto Sans, Arial, sans-serif" fill="#f3f4f6">
+    <text x="510" y="290" font-size="104" font-weight="800" letter-spacing="-3">Card Duel</text>
+    <text x="514" y="356" font-size="30" fill="#9ca3af">A two-player card game for the browser.</text>
+    <text x="514" y="402" font-size="30" fill="#9ca3af">Build a Deck. Win two Rounds.</text>
+    <rect x="514" y="444" width="120" height="10" rx="5" fill="#f0662e"/>
+    <rect x="644" y="444" width="120" height="10" rx="5" fill="#1d6fc2"/>
+  </g>
+</svg>

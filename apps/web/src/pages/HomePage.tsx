@@ -41,10 +41,6 @@ export function HomePage() {
   const [competitive, setCompetitive] = useState(false);
 
   const create = async () => {
-    if (!account) {
-      navigate("/signin?next=%2F");
-      return;
-    }
     setCreating(true);
     setError(null);
     try {
@@ -103,17 +99,19 @@ export function HomePage() {
       ) : null}
       <section>
         <h2>{en.createHeading}</h2>
-        <label>
-          <input
-            type="checkbox"
-            checked={competitive}
-            onChange={(e) => setCompetitive(e.target.checked)}
-          />{" "}
-          {en.competitive}
-        </label>
-        <button type="button" onClick={create} disabled={creating}>
-          {en.create}
-        </button>
+        <div className="create-room">
+          <button type="button" onClick={create} disabled={creating}>
+            {en.create}
+          </button>
+          <label>
+            <input
+              type="checkbox"
+              checked={competitive}
+              onChange={(e) => setCompetitive(e.target.checked)}
+            />{" "}
+            {en.competitive}
+          </label>
+        </div>
       </section>
       <section>
         <h2>{en.joinHeading}</h2>

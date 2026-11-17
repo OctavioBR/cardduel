@@ -92,6 +92,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build the client
+        env:
+          SITE_URL: ${{ vars.PRODUCTION_URL }}
         run: pnpm build
       - name: Apply D1 migrations
         working-directory: apps/worker

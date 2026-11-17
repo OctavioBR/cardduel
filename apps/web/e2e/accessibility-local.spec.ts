@@ -12,25 +12,25 @@ test("Match, menus, Card Detail and Play Previews pass axe", async ({ page }) =>
   await page.getByRole("button", { name: "War Drum" }).click();
   await page.getByRole("button", { name: /Play to the Horn slot of Your Close Row/ }).focus();
   await check();
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page.getByRole("button", { name: "Forfeit", exact: true }).click();
   await check();
 });
 
 test("dialogs trap Tab, restore focus and isolate background controls", async ({ page }) => {
   await page.goto("/dev/local?scenario=horn");
-  const menu = page.getByRole("button", { name: "Menu", exact: true });
-  await menu.focus();
+  // The board's Forfeit button; its confirmation dialog has a Forfeit button of its own.
+  const forfeit = page.locator("button.forfeit-button");
+  await forfeit.focus();
   await page.keyboard.press("Enter");
-  const dialog = page.getByRole("dialog", { name: "Menu", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Forfeit this Match?", exact: true });
   await expect(dialog.getByRole("button", { name: "Close" })).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("button", { name: "Forfeit" })).toBeFocused();
+  await expect(dialog.getByRole("button", { name: "Keep playing" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(dialog.getByRole("button", { name: "Close" })).toBeFocused();
-  await expect(menu).toHaveJSProperty("inert", true);
-  expect(await menu.evaluate((el) => !!el.closest("[inert]"))).toBe(true);
+  expect(await forfeit.evaluate((el) => !!el.closest("[inert]"))).toBe(true);
   await page.keyboard.press("Escape");
-  await expect(menu).toBeFocused();
+  await expect(forfeit).toBeFocused();
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("i");
   const detail = page.getByTestId("card-detail");

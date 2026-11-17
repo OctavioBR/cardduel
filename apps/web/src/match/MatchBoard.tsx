@@ -10,14 +10,15 @@ import copy from "../strings/en.json";
 import { BoardRow, type TargetHandlers } from "./BoardRow";
 import { ChoiceOverlay } from "./ChoiceOverlay";
 import {
+  ForfeitButton,
   MatchEndOverlay,
-  MatchMenu,
   OpeningOverlay,
   RoundResultOverlay,
   type RoundSummary,
   roundSummary,
 } from "./FlowOverlays";
 import { LeaderDialog } from "./LeaderDialog";
+import { lastActionText } from "./last-action";
 import { Overlay } from "./Overlay";
 import { Piles } from "./Piles";
 import { PlayerPanel } from "./PlayerPanel";
@@ -35,6 +36,8 @@ export interface MatchBoardProps {
   onLeave?: () => void;
   /** Offer a Rematch (wired with Rooms in Milestone 7). */
   onRematch?: (() => void) | undefined;
+  /** Where a Rematch stands, shown in the Match end dialog. */
+  rematchStatus?: string | null | undefined;
 }
 
 /** How long "Confirm Pass" waits for the second press. */
@@ -56,7 +59,15 @@ export function weatheredRows(view: SeatView): Set<RowId> {
  * shows the server's Play Preview; tapping a target plays it. Targets and outcomes come
  * only from the view (ADR-0002); there are no optimistic updates.
  */
-export function MatchBoard({ view, send, error, events, onLeave, onRematch }: MatchBoardProps) {
+export function MatchBoard({
+  view,
+  send,
+  error,
+  events,
+  onLeave,
+  onRematch,
+  rematchStatus,
+}: MatchBoardProps) {
   // A selection belongs to one view: a new view (new action count) clears it.
   const [selection, setSelection] = useState<{ uid: number; at: number } | null>(null);
   const selected = selection?.at === view.actionCount ? selection.uid : null;
@@ -71,12 +82,18 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
   const confirmingPass = passConfirm?.at === view.actionCount;
   const [leaderOpen, setLeaderOpen] = useState(false);
   const [roundResult, setRoundResult] = useState<RoundSummary | null>(null);
+  // The last Turn either player took, kept until a batch records a newer one.
+  const [lastAction, setLastAction] = useState<string | null>(null);
   const shownBatch = useRef<number | undefined>(undefined);
+  const latestView = useRef(view);
+  latestView.current = view;
   useEffect(() => {
     if (!events || events.seq === shownBatch.current) return;
     shownBatch.current = events.seq;
     const summary = roundSummary(events.events, view.seat);
     if (summary) setRoundResult(summary);
+    const action = lastActionText(events.events, view.seat, latestView.current);
+    if (action) setLastAction(action);
   }, [events, view.seat]);
   const [knownOpen, setKnownOpen] = useState(false);
   const pointerType = useRef<string>("mouse");
@@ -286,9 +303,6 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
       }}
     >
       <div className="anim-layer" aria-hidden="true" />
-      {view.phase !== "ended" ? (
-        <MatchMenu onForfeit={() => sendLocked({ type: "forfeit" })} disabled={false} />
-      ) : null}
       <aside className="side">
         <PlayerPanel
           who="opponent"
@@ -303,6 +317,9 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
           knownHand={view.opponent.knownHand}
           onKnownHand={() => setKnownOpen(true)}
         />
+        {view.phase !== "ended" ? (
+          <ForfeitButton onForfeit={() => sendLocked({ type: "forfeit" })} />
+        ) : null}
         <div className="round-info">
           <section className="weather-zone" aria-label={copy.weather}>
             {view.weather.length === 0 ? <span className="empty">{copy.noWeather}</span> : null}
@@ -317,6 +334,11 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
             {view.round}
           </div>
           <TurnLabel view={view} />
+          {lastAction && view.phase !== "redraw" ? (
+            <div className="last-action" role="status" data-testid="last-action">
+              {lastAction}
+            </div>
+          ) : null}
           {view.opponentChoosing ? (
             <div className="notice">{copy.yourOpponentIsChoosing}</div>
           ) : null}
@@ -422,13 +444,6 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
       />
 
       <section className="hand" aria-label={copy.yourHand}>
-        {effects && effects.drawn > 0 ? (
-          <span className="draw-preview" data-testid="draw-preview">
-            {copy.label3}
-            {effects.drawn}
-            {copy.cards}
-          </span>
-        ) : null}
         {view.you.hand.map((card) => {
           const redraw = view.phase === "redraw";
           const legal = redraw
@@ -508,7 +523,12 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
         </Overlay>
       ) : null}
       {view.phase === "ended" && view.result && !animating ? (
-        <MatchEndOverlay view={view} onRematch={onRematch} onLeave={onLeave ?? (() => {})} />
+        <MatchEndOverlay
+          view={view}
+          onRematch={onRematch}
+          onLeave={onLeave ?? (() => {})}
+          rematchStatus={rematchStatus}
+        />
       ) : null}
     </div>
   );

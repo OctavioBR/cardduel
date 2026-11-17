@@ -18,7 +18,7 @@ async function center(locator: Locator) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
-test("build a Valid Deck from scratch; Competitive warnings appear; changes survive a reload", async ({
+test("build a Valid Deck from scratch; Competitive warnings appear; saved changes survive a reload", async ({
   page,
 }) => {
   await newDeck(page);
@@ -38,7 +38,15 @@ test("build a Valid Deck from scratch; Competitive warnings appear; changes surv
   const spent = page.locator('[data-testid="pool-tile"]:disabled').first();
   await expect(spent).toContainText("×0");
 
+  // Edits stay local until Save; Undo steps back through them.
+  await expect(page.getByTestId("save-state")).toHaveText("Unsaved changes");
+  await page.getByRole("button", { name: "Undo" }).click();
+  expect(await units(page)).toBe(21);
+  await page.locator('[data-testid="pool-tile"]:enabled').first().click();
+  expect(await units(page)).toBe(22);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByTestId("save-state")).toHaveText("Saved");
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
   await page.reload();
   await expect(page.getByTestId("count-units")).toHaveText("22/22");
   await expect(page.getByRole("radio", { name: "Queen of the Deep Hive" })).toBeChecked();

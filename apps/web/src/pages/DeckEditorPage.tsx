@@ -1,12 +1,12 @@
 import { checkCompetitiveDeck, checkValidDeck } from "@card-duel/catalog";
 import type { CardDefinition, UnitAbility } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { Card } from "../cards/Card";
 import { CardDetailProvider } from "../cards/CardDetail";
 import { abilityLabel } from "../cards/icons";
-import { cardDef, cardName, catalog } from "../cards/strings";
+import { cardDef, cardName, cardText, catalog } from "../cards/strings";
 import { type Deck, deckApi } from "../decks/api";
 import { countCopies, deckCounters, deckGroups, type PoolFilters, poolCards } from "../decks/pool";
 import { type DropZone, useTileDrag } from "../decks/useTileDrag";
@@ -22,10 +22,27 @@ const ABILITIES: UnitAbility[] = [
   "scorch",
   "spy",
 ];
-/** Changes save on their own this long after the last edit. */
-const SAVE_DELAY_MS = 400;
+/** What the Deck builder edits; nothing reaches the server until Save. */
+interface Draft {
+  name: string;
+  leader: string | null;
+  cards: string[];
+}
 
-type SaveState = "saved" | "saving" | "error";
+/** An earlier Draft that Undo returns to, and the field whose edit replaced it. */
+interface Step {
+  draft: Draft;
+  field: keyof Draft;
+}
+
+function sameDraft(a: Draft, b: Draft): boolean {
+  return (
+    a.name === b.name &&
+    a.leader === b.leader &&
+    a.cards.length === b.cards.length &&
+    a.cards.every((c, i) => c === b.cards[i])
+  );
+}
 
 export function DeckEditorPage() {
   const { id = "" } = useParams();
@@ -44,32 +61,51 @@ export function DeckEditorPage() {
 }
 
 function Editor({ initial }: { initial: Deck }) {
-  const [name, setName] = useState(initial.name);
-  const [leader, setLeader] = useState(initial.leader);
-  const [cards, setCards] = useState(initial.cards);
+  const [draft, setDraft] = useState<Draft>({
+    name: initial.name,
+    leader: initial.leader,
+    cards: initial.cards,
+  });
+  const [saved, setSaved] = useState<Draft>(draft);
+  const [history, setHistory] = useState<Step[]>([]);
+  const [saving, setSaving] = useState<"idle" | "saving" | "error">("idle");
   const [filters, setFilters] = useState<PoolFilters>({ row: "all", type: "all", ability: "all" });
-  const [save, setSave] = useState<SaveState>("saved");
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dirty = useRef(false);
+  const { name, leader, cards } = draft;
+  const dirty = !sameDraft(draft, saved);
 
-  // Changes save automatically, debounced.
+  // Leaving the page (reload, close, typed URL) with unsaved changes asks first.
   useEffect(() => {
-    if (!dirty.current) return;
-    setSave("saving");
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      deckApi.save(initial.id, { name, leader, cards }).then(
-        () => setSave("saved"),
-        () => setSave("error"),
-      );
-    }, SAVE_DELAY_MS);
-  }, [name, leader, cards, initial.id]);
-  const edit =
-    <T,>(set: (v: T) => void) =>
-    (v: T) => {
-      dirty.current = true;
-      set(v);
-    };
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
+  /** Applies one edit, remembering the Draft before it for Undo. Typing a name is one step. */
+  const edit = <K extends keyof Draft>(field: K, value: Draft[K]) => {
+    if (saving === "error") setSaving("idle");
+    setHistory((h) =>
+      field === "name" && h.at(-1)?.field === "name" ? h : [...h, { draft, field }],
+    );
+    setDraft({ ...draft, [field]: value });
+  };
+  const undo = () => {
+    const step = history.at(-1);
+    if (!step) return;
+    setHistory(history.slice(0, -1));
+    setDraft(step.draft);
+  };
+  const save = () => {
+    const sent = draft;
+    setSaving("saving");
+    deckApi.save(initial.id, sent).then(
+      () => {
+        setSaved(sent);
+        setSaving("idle");
+      },
+      () => setSaving("error"),
+    );
+  };
 
   const all = catalog?.cards ?? [];
   const leaders = all.filter((c) => c.kind === "leader" && c.faction === initial.faction);
@@ -87,12 +123,12 @@ function Editor({ initial }: { initial: Deck }) {
 
   const add = (def: CardDefinition) => {
     if ((copies.get(def.id) ?? 0) >= def.maxCopies) return;
-    edit(setCards)([...cards, def.id]);
+    edit("cards", [...cards, def.id]);
   };
   const remove = (cardId: string) => {
     const i = cards.lastIndexOf(cardId);
     if (i < 0) return;
-    edit(setCards)([...cards.slice(0, i), ...cards.slice(i + 1)]);
+    edit("cards", [...cards.slice(0, i), ...cards.slice(i + 1)]);
   };
   const drag = useTileDrag((cardId, _from: DropZone, to: DropZone) => {
     const def = cardDef(cardId);
@@ -110,20 +146,43 @@ function Editor({ initial }: { initial: Deck }) {
           <input
             value={name}
             maxLength={40}
-            onChange={(e) => edit(setName)(e.target.value)}
+            onChange={(e) => edit("name", e.target.value)}
             aria-label={copy.deckName}
           />
         </label>
         <span className={`faction-badge f-${initial.faction}`}>
           {initial.faction === "swarm" ? copy.swarm : copy.court}
         </span>
-        <span className="save-state" role="status" data-testid="save-state">
-          {save === "saving"
-            ? copy.saving
-            : save === "error"
-              ? copy.notSavedCheckYourConnection
-              : copy.saved}
-        </span>
+        <div className="editor-actions">
+          <span
+            className={`save-state${saving === "idle" && dirty ? " unsaved" : ""}`}
+            role="status"
+            data-testid="save-state"
+          >
+            {saving === "saving"
+              ? copy.saving
+              : saving === "error"
+                ? copy.notSavedCheckYourConnection
+                : dirty
+                  ? copy.unsavedChanges
+                  : copy.saved}
+          </span>
+          <button
+            type="button"
+            onClick={undo}
+            disabled={history.length === 0 || saving === "saving"}
+          >
+            {copy.undo}
+          </button>
+          <button
+            type="button"
+            className="primary"
+            onClick={save}
+            disabled={!dirty || saving === "saving"}
+          >
+            {copy.save}
+          </button>
+        </div>
       </div>
 
       <div className="editor-columns">
@@ -210,9 +269,15 @@ function Editor({ initial }: { initial: Deck }) {
                   type="radio"
                   name="leader"
                   checked={leader === l.id}
-                  onChange={() => edit(setLeader)(l.id)}
+                  onChange={() => edit("leader", l.id)}
+                  aria-describedby={`leader-text-${l.id}`}
                 />
-                {cardName(l.id)}
+                <span className="leader-option">
+                  <span className="leader-option-name">{cardName(l.id)}</span>
+                  <span className="leader-option-text" id={`leader-text-${l.id}`}>
+                    {cardText(l.id)}
+                  </span>
+                </span>
               </label>
             ))}
           </fieldset>

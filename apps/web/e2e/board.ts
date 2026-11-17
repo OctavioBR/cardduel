@@ -89,6 +89,13 @@ export async function signUpVia(page: Page, username: string, next = "/"): Promi
   await expect(page).toHaveURL(new RegExp(`${next.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
 }
 
+/** On the sign-in page a signed-out player is sent to, switches to sign-up and submits it. */
+export async function signUpFromSignIn(page: Page, username: string): Promise<void> {
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await page.getByRole("button", { name: "Create an account" }).click();
+  await fillAuthForm(page, username);
+}
+
 /** Fills and submits the sign-up form that is on the page. */
 export async function fillAuthForm(
   page: Page,

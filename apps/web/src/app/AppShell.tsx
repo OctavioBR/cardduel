@@ -38,17 +38,8 @@ function AccountMenu() {
     };
   }, [open]);
 
-  if (account === undefined) return null;
-  if (account === null) {
-    return (
-      <nav className="account-links" aria-label={copy.account}>
-        <Link to="/signin">{copy.signIn}</Link>
-        <Link to="/signup" className="button-link">
-          {copy.signUp}
-        </Link>
-      </nav>
-    );
-  }
+  // Signed-out players only ever see sign-in and sign-up, which need no account links.
+  if (!account) return null;
   return (
     <div className="account-menu" ref={ref}>
       <Link to="/decks" className="nav-link">
