@@ -1,4 +1,5 @@
 import { type ReactNode, useLayoutEffect, useState } from "react";
+import en from "../strings/en.json";
 
 export const STAGE_WIDTH = 1280;
 export const STAGE_HEIGHT = 720;
@@ -19,6 +20,9 @@ export function Stage({ children }: { children: ReactNode }) {
   }, []);
   return (
     <div className="stage-viewport">
+      <div className="rotate-notice" role="status" data-testid="rotate-notice">
+        <p>{en.rotateDevice}</p>
+      </div>
       <div
         className="stage"
         data-testid="stage"

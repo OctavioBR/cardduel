@@ -427,3 +427,26 @@ button.link {
 .nav-link {
   color: var(--cd-text);
 }
+
+/* Only Match screens use Stage; fluid pages stay usable in portrait. */
+.rotate-notice {
+  display: none;
+}
+@media (pointer: coarse) and (orientation: portrait) and (max-width: 767px) {
+  .stage-viewport .stage {
+    display: none;
+  }
+  .rotate-notice {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+    text-align: center;
+    font-size: 1.25rem;
+  }
+}
+/* Prevent native gestures from interrupting Row and Card interactions. */
+.stage {
+  touch-action: manipulation;
+}

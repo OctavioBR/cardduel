@@ -100,6 +100,39 @@ describe("Room", () => {
     }
     expect(room.views[0].phase).toBe("ended");
     expect(room.views[1].result).toEqual(room.views[0].result);
+    const rows = await env.DB.prepare("SELECT * FROM match_results WHERE room_code = ?")
+      .bind(room.code)
+      .all();
+    expect(rows.results).toHaveLength(1);
+    expect(rows.results[0]).toMatchObject({
+      outcome: room.views[0].result?.outcome,
+      ended_by: "gems",
+    });
+    closeAll(room);
+  });
+
+  it("persists a Forfeit and does not duplicate it after eviction and reconnect", async () => {
+    const room = await seatBoth();
+    await play(room, 0, { type: "forfeit" });
+    await evictDurableObject(env.ROOMS.getByName(room.code));
+    const again = await TestSocket.open(room.code, room.cookies[0]);
+    expect((await again.nextView()).view.phase).toBe("ended");
+    const rows = await env.DB.prepare("SELECT * FROM match_results WHERE room_code = ?")
+      .bind(room.code)
+      .all<{ player0_id: string; player1_id: string }>();
+    expect(rows.results).toHaveLength(1);
+    const row = rows.results[0];
+    expect(
+      await env.DB.prepare("SELECT losses FROM records WHERE account_id = ?")
+        .bind(row?.player0_id)
+        .first(),
+    ).toEqual({ losses: 1 });
+    expect(
+      await env.DB.prepare("SELECT wins FROM records WHERE account_id = ?")
+        .bind(row?.player1_id)
+        .first(),
+    ).toEqual({ wins: 1 });
+    again.close();
     closeAll(room);
   });
 
