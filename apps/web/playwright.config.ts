@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const VITE_PORT = 5173;
-const WORKER_PORT = 8787;
+const VITE_PORT = Number(process.env.E2E_VITE_PORT ?? 5173);
+const WORKER_PORT = Number(process.env.E2E_WORKER_PORT ?? 8787);
 
 /**
  * Two kinds of end-to-end tests:
@@ -21,6 +21,15 @@ export default defineConfig({
       testMatch:
         /(local-room|gallery|stage|preview|choices|drag|card-detail|animations|flow)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${VITE_PORT}` },
+    },
+    {
+      name: "mobile",
+      testMatch: /mobile\.spec\.ts/,
+      use: {
+        ...devices["iPhone 13 landscape"],
+        defaultBrowserType: "chromium",
+        baseURL: `http://localhost:${VITE_PORT}`,
+      },
     },
     {
       name: "online",
