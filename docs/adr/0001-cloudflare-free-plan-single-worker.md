@@ -4,5 +4,5 @@ Hosting cost must be as close to zero as possible, so the whole backend targets 
 
 ## Consequences
 
-- The Free plan caps CPU at ~10ms per request. Anything CPU-heavy (notably password hashing, see ADR-0005) must be tuned to fit or will be throttled. Moving to Workers Paid ($5/month, 30s CPU) is the planned escape hatch before a public launch, not a redesign.
+- The Free plan caps CPU at ~10ms per request. Anything CPU-heavy (notably password hashing, see ADR-0005) must be tuned to fit or will be throttled. Moving to Workers Paid ($5/month, 30s CPU) is the escape hatch, not a redesign. The launch check chose to stay on Free and tune password hashing to fit instead (ADR-0007).
 - Daily Free quotas (100k requests, 13,000 GB-s Durable Object duration) shape later choices, e.g. WebSocket hibernation in ADR-0002.

@@ -1,6 +1,6 @@
 import { env, SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { PBKDF2_ITERATIONS } from "../src/auth/password";
+import { hashPassword, PBKDF2_ITERATIONS } from "../src/auth/password";
 import { SESSION_COOKIE, SESSION_TTL_MS } from "../src/auth/session";
 
 const BASE = "https://card-duel.test";
@@ -112,6 +112,26 @@ describe("sign in and sign out", () => {
     expect(wrong.status).toBe(401);
     expect(unknown.status).toBe(401);
     expect(await wrong.json()).toEqual(await unknown.json());
+  });
+
+  it("re-hashes an account stored at an older iteration count on sign-in", async () => {
+    await signUp("Lovelace", "analytical engine");
+    const old = await hashPassword("analytical engine", 50_000);
+    await env.DB.prepare(
+      "UPDATE accounts SET password_hash = ?, password_salt = ?, password_iterations = ? WHERE username_key = 'lovelace'",
+    )
+      .bind(old.hash, old.salt, old.iterations)
+      .run();
+    const iterations = () =>
+      env.DB.prepare(
+        "SELECT password_iterations FROM accounts WHERE username_key = 'lovelace'",
+      ).first<number>("password_iterations");
+
+    const signIn = () =>
+      post("/api/auth/signin", { username: "Lovelace", password: "analytical engine" });
+    expect((await signIn()).status).toBe(200);
+    expect(await iterations()).toBe(PBKDF2_ITERATIONS);
+    expect((await signIn()).status).toBe(200);
   });
 
   it("signs out: the session is deleted and the cookie cleared", async () => {

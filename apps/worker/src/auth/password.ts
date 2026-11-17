@@ -1,11 +1,13 @@
 /**
  * Password hashing with PBKDF2-SHA256 through WebCrypto (ADR-0005). The Workers runtime caps
- * iterations at 100k; the Free plan allows about 10 ms of CPU per request (ADR-0001).
- * Measured: 100k iterations take about 9.7 ms, 50k about 4.9 ms on a laptop, so 50k leaves
- * room for the rest of a sign-in. Each stored hash records its parameters, so the count can
- * rise (on Workers Paid) without breaking old accounts.
+ * iterations at 100k; the Free plan allows 10 ms of CPU per request (ADR-0001).
+ * Measured in production: 50k iterations made sign-in cost 19-21 ms of CPU, about 4x a
+ * laptop. 20k (about 8 ms) is what fits the Free plan, below current PBKDF2-SHA256 guidance
+ * (ADR-0007). Each stored hash records its parameters, and sign-in re-hashes any account
+ * stored at another count, so the count can change (up on Workers Paid) without breaking
+ * old accounts.
  */
-export const PBKDF2_ITERATIONS = 50_000;
+export const PBKDF2_ITERATIONS = 20_000;
 export const PASSWORD_ALGORITHM = "PBKDF2-SHA256";
 const SALT_BYTES = 16;
 const HASH_BITS = 256;
@@ -24,6 +26,11 @@ export async function hashPassword(
   const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   const hash = await derive(password, salt, iterations);
   return { hash: toBase64(hash), salt: toBase64(salt), iterations, algorithm: PASSWORD_ALGORITHM };
+}
+
+/** True when a verified hash should be replaced by one at the current iteration count. */
+export function needsRehash(stored: Pick<StoredPassword, "iterations">): boolean {
+  return stored.iterations !== PBKDF2_ITERATIONS;
 }
 
 export async function verifyPassword(password: string, stored: StoredPassword): Promise<boolean> {
