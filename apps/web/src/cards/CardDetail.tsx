@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useDialogFocus } from "../match/useDialogFocus";
 import { Card } from "./Card";
 import { cardName, cardText } from "./strings";
 
@@ -43,7 +44,9 @@ export function CardDetailProvider({ children }: { children: ReactNode }) {
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const press = useRef(false);
 
+  const dialogRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpened(null), []);
+  useDialogFocus(dialogRef, !!opened && opened.via !== "hover", close);
   const api = useMemo<CardDetailApi>(
     () => ({
       open: (o) => {
@@ -109,6 +112,10 @@ export function CardDetailProvider({ children }: { children: ReactNode }) {
       {opened ? (
         <div
           className="card-detail"
+          ref={dialogRef}
+          tabIndex={-1}
+          aria-modal={opened.via !== "hover" ? true : undefined}
+          data-via={opened.via}
           role="dialog"
           aria-label={`Card Detail: ${cardName(opened.cardId)}`}
           data-testid="card-detail"

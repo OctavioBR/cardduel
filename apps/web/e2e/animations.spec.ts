@@ -77,3 +77,16 @@ test("with reduced motion, cards only fade", async ({ browser }) => {
   expect(new Set(props)).toEqual(new Set(["opacity"]));
   await context.close();
 });
+
+test("enabling reduced motion finishes in-flight movement", async ({ page }) => {
+  await page.goto("/dev/local?scenario=horn");
+  await playWarDrum(page);
+  await expect(page.getByTestId("board")).toHaveAttribute("data-animating", "true");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.getByTestId("board")).not.toHaveAttribute("data-animating", "true");
+  expect(
+    await page.evaluate(
+      () => document.getAnimations().filter((a) => a.playState === "running").length,
+    ),
+  ).toBe(0);
+});

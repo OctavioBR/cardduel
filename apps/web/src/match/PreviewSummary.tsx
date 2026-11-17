@@ -21,7 +21,12 @@ export function PreviewSummary({
   if (preview.destroyed.length) parts.push(`destroys ${preview.destroyed.length}`);
   if (preview.drawn) parts.push(`+${preview.drawn} card${preview.drawn === 1 ? "" : "s"}`);
   return (
-    <span className="preview-summary" data-testid="preview-summary">
+    <span
+      className="preview-summary"
+      data-testid="preview-summary"
+      role="status"
+      aria-live="polite"
+    >
       {parts.join(" · ")}
     </span>
   );

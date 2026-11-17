@@ -3,7 +3,8 @@ import { ROWS } from "@card-duel/engine";
 import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { Card } from "../cards/Card";
 import { useCardDetailPress } from "../cards/CardDetail";
-import { cardDef, cardName } from "../cards/strings";
+import { cardDef, cardName, cardText } from "../cards/strings";
+import accessibility from "../strings/accessibility.en.json";
 import { BoardRow, type TargetHandlers } from "./BoardRow";
 import { ChoiceOverlay } from "./ChoiceOverlay";
 import {
@@ -425,6 +426,7 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
               type="button"
               className={`hand-card${selected === card.uid ? " selected" : ""}`}
               disabled={locked || !legal}
+              aria-describedby={`hand-description-${card.uid}`}
               aria-pressed={redraw ? undefined : selected === card.uid}
               aria-label={`${redraw ? "Return " : ""}${cardName(card.cardId)}${seen.has(card.uid) ? " (seen by opponent)" : ""}`}
               data-hand-uid={card.uid}
@@ -439,6 +441,12 @@ export function MatchBoard({ view, send, error, events, onLeave, onRematch }: Ma
               data-testid="hand-card"
             >
               <Card cardId={card.cardId} size="hand" />
+              <span className="visually-hidden" id={`hand-description-${card.uid}`}>
+                {(() => {
+                  const definition = cardDef(card.cardId);
+                  return `${definition?.kind === "unit" ? `${accessibility.strength} ${definition.strength}. ` : ""}${cardText(card.cardId)}`;
+                })()}
+              </span>
               {seen.has(card.uid) ? <span className="seen-badge">Seen</span> : null}
             </button>
           );

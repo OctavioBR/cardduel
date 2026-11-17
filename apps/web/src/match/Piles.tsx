@@ -71,7 +71,13 @@ export function Piles(props: {
               <p className="overlay-empty">Your deck is empty.</p>
             ) : null}
             {props.yourDeck.map((entry) => (
-              <Card key={entry.cardId} cardId={entry.cardId} size="tile" count={entry.count} />
+              <Card
+                key={entry.cardId}
+                cardId={entry.cardId}
+                size="tile"
+                keyboardDetail
+                count={entry.count}
+              />
             ))}
           </div>
         </Overlay>
@@ -94,7 +100,7 @@ function CardsOverlay({
       <div className="overlay-cards">
         {cards.length === 0 ? <p className="overlay-empty">No cards.</p> : null}
         {cards.map((c) => (
-          <Card key={c.uid} cardId={c.cardId} size="tile" />
+          <Card key={c.uid} cardId={c.cardId} size="tile" keyboardDetail />
         ))}
       </div>
     </Overlay>
