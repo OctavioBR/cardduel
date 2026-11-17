@@ -1,23 +1,24 @@
 # AGENTS.md
 
+## Content
+
+Name every card, Faction and UI concept from `GLOSSARY.md`; the README's naming is historical. `assets/` is reference only: never ship it or derive card content from it.
+
+## Before pushing
+
+Run `pnpm check` (what CI runs: typecheck, lint, test, e2e). e2e needs Playwright Chromium once: `pnpm --filter @card-duel/web exec playwright install chromium`.
+
+## Docs by task
+
+- Writing user-facing text or error messages: `docs/agents/ui-copy.md`
+- UI or keyboard/screen-reader changes: `docs/accessibility/v1.md`
+- Domain terms and past decisions: `GLOSSARY.md`, `docs/adr/` (see `docs/agents/domain.md`)
+
+## Cloudflare
+
+Worker dev, deploy and D1 migrations: the `apps/worker` scripts (Wrangler). Account-level resources outside the Worker: `cf` CLI.
+
 ## Agent skills
 
-### Issue tracker
-
-Issues are tracked in GitHub Issues (OctavioBR/gwent) via the `gh` CLI. See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Default canonical labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
-
-### Cloudflare
-
-CLI `cf` can be used to manage the Cloudflare account.
-
-### Always keep CI green
-
-Run both `pnpm typecheck lint test e2e` locally before pushing
+- Issue tracker: GitHub Issues via `gh`; see `docs/agents/issue-tracker.md`.
+- Triage labels: see `docs/agents/triage-labels.md`.
