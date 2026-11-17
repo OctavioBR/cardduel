@@ -1,4 +1,10 @@
 {
+  "reconnecting": "Reconnecting…",
+  "opponentDisconnected": "Your opponent disconnected.",
+  "graceCountdown": "You can claim a Disconnect Win in {seconds}s.",
+  "claimWin": "Claim win",
+  "disconnectWon": "You won because your opponent stayed disconnected.",
+  "disconnectLost": "You lost because you stayed disconnected.",
   "rematchDeclined": "Rematch declined. Your opponent left the Room.",
   "rematchWaiting": "Rematch offered. Waiting for your opponent.",
   "rematchOffer": "Your opponent offered a Rematch. Choose Rematch to accept."

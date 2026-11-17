@@ -718,3 +718,26 @@ button.danger {
   font-size: 12px;
   font-weight: 700;
 }
+
+.disconnect-banner {
+  position: absolute;
+  top: 45px;
+  left: 300px;
+  right: 300px;
+  z-index: 50;
+  padding: 12px;
+  background: var(--cd-surface, #181e27);
+  color: var(--cd-text);
+  border: 1px solid currentColor;
+  text-align: center;
+}
+.reconnecting-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: #10141dee;
+  display: grid;
+  place-items: center;
+  color: var(--cd-text);
+  font-size: 24px;
+}

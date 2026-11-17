@@ -20,6 +20,7 @@ export class TestSocket {
   constructor(readonly ws: WebSocket) {
     ws.addEventListener("message", (event) => {
       const message = JSON.parse(event.data as string) as ServerMessage;
+      if (message.type === "presence") return;
       const waiter = this.waiters.shift();
       if (waiter) waiter(message);
       else this.queue.push(message);
