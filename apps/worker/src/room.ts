@@ -431,7 +431,13 @@ export class Room extends DurableObject<Env> {
   private async startMatch(catalogVersion: string): Promise<void> {
     const [a, b] = this.seats;
     if (!a?.deck || !b?.deck) return;
-    const seed = crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+    // E2E_SEED is set only by `wrangler dev --var` in the Playwright config, so end-to-end
+    // tests get a known deal. No deployed config sets it, so production seeds stay random.
+    const fixed = (this.env as { E2E_SEED?: string }).E2E_SEED;
+    const seed =
+      fixed !== undefined && /^\d+$/.test(fixed)
+        ? Number(fixed)
+        : (crypto.getRandomValues(new Uint32Array(1))[0] ?? 0);
     const setup: MatchSetup = {
       seed,
       decks: [a.deck, b.deck],
