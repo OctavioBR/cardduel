@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useAuth } from "../auth/AuthContext";
-import { AuthForm } from "../auth/AuthForm";
 import { CardDetailProvider } from "../cards/CardDetail";
 import { type Deck, deckApi } from "../decks/api";
 import { MatchBoard } from "../match/MatchBoard";
@@ -14,29 +12,9 @@ import copy from "../strings/en.json";
 
 import en from "../strings/home.en.json";
 
+/** A Room by its code. The router signs players in first (RequireAuth). */
 export function RoomPage() {
   const { code = "" } = useParams();
-  const { account } = useAuth();
-  if (account === undefined) {
-    return (
-      <main className="page">
-        <p>{copy.loading}</p>
-      </main>
-    );
-  }
-  if (account === null) {
-    // A shared Room link while signed out: sign up (or in) right here, then go on to the Seat.
-    return (
-      <main className="page narrow">
-        <h1>
-          {copy.room}
-          {code.toUpperCase()}
-        </h1>
-        <p>{copy.youNeedAnAccountToTake}</p>
-        <AuthForm initialMode="signup" />
-      </main>
-    );
-  }
   return <RoomConnectionPage code={code} />;
 }
 
@@ -71,6 +49,15 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
                   ? undefined
                   : () => connection.rematch()
               }
+              rematchStatus={
+                state.rematch?.declined
+                  ? roomStrings.rematchDeclined
+                  : state.rematch?.accepted
+                    ? roomStrings.rematchWaiting
+                    : state.rematch?.opponentAccepted
+                      ? roomStrings.rematchOffer
+                      : null
+              }
               onLeave={() => {
                 connection.close();
                 navigate("/");
@@ -80,16 +67,6 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
         </div>
         {state.status === "open" && state.view.phase !== "ended" ? (
           <DisconnectBanner disconnect={state.disconnect} onClaim={() => connection.claimWin()} />
-        ) : null}
-        {state.rematch &&
-        (state.rematch.accepted || state.rematch.opponentAccepted || state.rematch.declined) ? (
-          <p role="status" data-testid="rematch-status" className="result-banner">
-            {state.rematch.declined
-              ? roomStrings.rematchDeclined
-              : state.rematch.accepted
-                ? roomStrings.rematchWaiting
-                : roomStrings.rematchOffer}
-          </p>
         ) : null}
         {state.status === "reconnecting" ? (
           <div className="reconnecting-overlay" role="status">
@@ -205,7 +182,7 @@ function DeckPicker({
           {copy.decksCreateOneInMyDecks}
         </p>
       ) : (
-        <ul>
+        <ul className="deck-choices">
           {decks
             .filter(
               (d) =>
@@ -216,6 +193,7 @@ function DeckPicker({
               <li key={deck.id}>
                 <button
                   type="button"
+                  className={`deck-choice f-${deck.faction}`}
                   aria-pressed={deck.id === lastDeckId}
                   onClick={() => onChoose(deck.id)}
                 >

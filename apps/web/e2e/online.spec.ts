@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { fillAuthForm, keepHand, signUpVia, uniqueName } from "./board";
+import { keepHand, signUpFromSignIn, signUpVia, uniqueName } from "./board";
 
 async function copyStarter(page: Page, faction: "swarm" | "court") {
   await page.waitForFunction(async () => {
@@ -58,17 +58,17 @@ test("a third player sees Room full", async ({ browser }) => {
   await first.getByRole("button", { name: /Swarm Starter/ }).click();
   const url = first.url();
   await second.goto(url);
-  await fillAuthForm(second, uniqueName("second"));
+  await signUpFromSignIn(second, uniqueName("second"));
   await copyStarter(second, "court");
   await second.reload();
   await second.getByRole("button", { name: /Court Starter/ }).click();
   await expect(second.getByTestId("board")).toBeVisible();
   await third.goto(url);
-  await fillAuthForm(third, uniqueName("third"));
+  await signUpFromSignIn(third, uniqueName("third"));
   await expect(third.getByRole("heading", { name: "Room full" })).toBeVisible();
 });
 
-test("a signed-out player opens a Room link, signs up on that page and lands in the Room", async ({
+test("a signed-out player opens a Room link, is sent to sign in, signs up and lands in the Room", async ({
   browser,
 }) => {
   const host = await (await browser.newContext()).newPage();
@@ -81,8 +81,8 @@ test("a signed-out player opens a Room link, signs up on that page and lands in 
 
   const guest = await (await browser.newContext()).newPage();
   await guest.goto(url);
-  await expect(guest.getByText("You need an account to take a Seat")).toBeVisible();
-  await fillAuthForm(guest, uniqueName("guest"));
+  await expect(guest).toHaveURL(/\/signin\?next=%2Fr%2F[2-9A-Z]{6}$/);
+  await signUpFromSignIn(guest, uniqueName("guest"));
   await expect(guest).toHaveURL(url);
   await copyStarter(guest, "court");
   await guest.reload();
@@ -96,11 +96,13 @@ test("sign in, and sign out from the account menu", async ({ page }) => {
   await signUpVia(page, name);
   await page.getByRole("button", { name }).click();
   await page.getByRole("menuitem", { name: "Sign out" }).click();
-  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
-  await page.getByRole("link", { name: "Sign in" }).click();
+  // Signed out, every page sends the player to sign in; the header offers no account links.
+  await expect(page).toHaveURL(/\/signin\?next=%2F$/);
+  await expect(page.getByRole("banner").getByRole("link", { name: "Sign in" })).toHaveCount(0);
   await page.getByLabel("Username").fill(name.toUpperCase());
   await page.getByLabel("Password").fill("correct horse battery");
   await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name })).toBeVisible();
   await page.goto("/signin");
   await page.getByLabel("Username").fill(name);
@@ -127,11 +129,7 @@ test("Rematch offer, acceptance with last Deck selected, and leaving decline", a
   async function forfeit() {
     await keepHand(alice);
     await keepHand(bob);
-    await alice.getByRole("button", { name: "Menu", exact: true }).click();
-    await alice
-      .getByRole("dialog", { name: "Menu", exact: true })
-      .getByRole("button", { name: "Forfeit" })
-      .click();
+    await alice.getByRole("button", { name: "Forfeit", exact: true }).click();
     await alice
       .getByRole("dialog", { name: "Forfeit this Match?" })
       .getByRole("button", { name: "Forfeit" })

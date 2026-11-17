@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router";
 import copy from "../strings/en.json";
 import { useAuth } from "./AuthContext";
 
-/** Pages that need an account send signed-out players to sign in, then back. */
+/** Every page but sign-in and sign-up needs an account: signed-out players sign in, then come back. */
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { account } = useAuth();
   const location = useLocation();

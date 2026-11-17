@@ -41,10 +41,6 @@ export function HomePage() {
   const [competitive, setCompetitive] = useState(false);
 
   const create = async () => {
-    if (!account) {
-      navigate("/signin?next=%2F");
-      return;
-    }
     setCreating(true);
     setError(null);
     try {

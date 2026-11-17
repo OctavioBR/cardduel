@@ -16,7 +16,6 @@ export interface PreviewEffects {
   ghosts: Map<string, Ghost[]>;
   rowDelta: { you: Record<RowId, number>; opponent: Record<RowId, number> };
   totalDelta: { you: number; opponent: number };
-  drawn: number;
 }
 
 export function previewEffects(view: SeatView, action: LegalAction | null): PreviewEffects | null {
@@ -46,7 +45,6 @@ export function previewEffects(view: SeatView, action: LegalAction | null): Prev
       you: preview.totals.you - view.board.you.score,
       opponent: preview.totals.opponent - view.board.opponent.score,
     },
-    drawn: preview.drawn,
   };
 }
 

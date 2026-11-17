@@ -45,9 +45,17 @@ export function OpeningOverlay({
           <strong>{copy.vs}</strong>
           <span data-testid="coin-flip">
             {copy.coinFlip}{" "}
-            {view.roundStarter === "you"
-              ? copy.youTakeTheFirstTurn
-              : copy.opponentTakesTheFirstTurn}
+            {view.roundStarter === "you" ? (
+              <>
+                <span className="coin-you">{copy.coinFlipYou}</span>
+                {copy.coinFlipYouTakeTheFirstTurn}
+              </>
+            ) : (
+              <>
+                <span className="coin-opponent">{copy.coinFlipYourOpponent}</span>
+                {copy.coinFlipOpponentTakesTheFirstTurn}
+              </>
+            )}
           </span>
         </div>
         <div className="reveal-side">
@@ -189,10 +197,13 @@ export function MatchEndOverlay({
   view,
   onRematch,
   onLeave,
+  rematchStatus,
 }: {
   view: SeatView;
   onRematch?: (() => void) | undefined;
   onLeave: () => void;
+  /** Where a Rematch stands (offered, waiting, declined), shown above the actions. */
+  rematchStatus?: string | null | undefined;
 }) {
   const result = view.result;
   if (!result) return null;
@@ -225,6 +236,11 @@ export function MatchEndOverlay({
           {view.opponent.gems}
           {copy.label2}
         </p>
+        {rematchStatus ? (
+          <p role="status" data-testid="rematch-status" className="rematch-status">
+            {rematchStatus}
+          </p>
+        ) : null}
         <div className="match-end-actions">
           <button type="button" className="primary" onClick={onRematch} disabled={!onRematch}>
             {copy.rematch}
@@ -238,44 +254,34 @@ export function MatchEndOverlay({
   );
 }
 
-/** A menu with Forfeit, confirmed on the page (no browser dialogs). */
-export function MatchMenu({ onForfeit, disabled }: { onForfeit: () => void; disabled: boolean }) {
-  const [open, setOpen] = useState<"menu" | "confirm" | null>(null);
+/** Forfeit, confirmed on the page (no browser dialogs). */
+export function ForfeitButton({ onForfeit }: { onForfeit: () => void }) {
+  const [open, setOpen] = useState(false);
   return (
     <>
       <button
         type="button"
-        className="menu-button"
-        onClick={() => setOpen("menu")}
-        disabled={disabled}
+        className="forfeit-button"
+        onClick={() => setOpen(true)}
         aria-haspopup="dialog"
       >
-        {copy.menu}
+        {copy.forfeit}
       </button>
-      {open === "menu" ? (
-        <Overlay title={copy.menu} onClose={() => setOpen(null)}>
-          <div className="menu-items">
-            <button type="button" onClick={() => setOpen("confirm")}>
-              {copy.forfeit}
-            </button>
-          </div>
-        </Overlay>
-      ) : null}
-      {open === "confirm" ? (
-        <Overlay title={copy.forfeitThisMatch} onClose={() => setOpen(null)}>
+      {open ? (
+        <Overlay title={copy.forfeitThisMatch} onClose={() => setOpen(false)}>
           <p>{copy.yourOpponentWinsAndItCounts}</p>
           <div className="match-end-actions">
             <button
               type="button"
               className="danger"
               onClick={() => {
-                setOpen(null);
+                setOpen(false);
                 onForfeit();
               }}
             >
               {copy.forfeit}
             </button>
-            <button type="button" onClick={() => setOpen(null)}>
+            <button type="button" onClick={() => setOpen(false)}>
               {copy.keepPlaying}
             </button>
           </div>

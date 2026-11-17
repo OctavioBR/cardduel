@@ -11,7 +11,14 @@ export const routes: RouteObject[] = [
   {
     element: <AppShell />,
     children: [
-      { path: "/", element: <HomePage /> },
+      {
+        path: "/",
+        element: (
+          <RequireAuth>
+            <HomePage />
+          </RequireAuth>
+        ),
+      },
       { path: "/signin", element: <AuthPage mode="signin" /> },
       { path: "/signup", element: <AuthPage mode="signup" /> },
       {
@@ -32,7 +39,14 @@ export const routes: RouteObject[] = [
       },
     ],
   },
-  { path: "/r/:code", element: <RoomPage /> },
+  {
+    path: "/r/:code",
+    element: (
+      <RequireAuth>
+        <RoomPage />
+      </RequireAuth>
+    ),
+  },
 ];
 
 // Development-only routes. `import.meta.env.DEV` is statically false in production builds,

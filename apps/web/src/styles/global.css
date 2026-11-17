@@ -125,22 +125,6 @@ button:disabled {
   text-decoration: none;
   font-size: 1.15rem;
 }
-.account-links {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-.account-links a {
-  color: var(--cd-text);
-}
-.account-links a.button-link {
-  padding: 0.4rem 0.9rem;
-  border-radius: var(--cd-radius);
-  background: var(--cd-text);
-  color: #111;
-  text-decoration: none;
-  font-weight: 700;
-}
 .account-menu {
   position: relative;
 }
@@ -293,6 +277,34 @@ button.link {
   color: var(--cd-text);
   max-width: 100%;
 }
+/* Choosing a Deck for a Seat: each Deck in its Faction's colour. */
+.deck-choices {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.deck-choice {
+  font-weight: 700;
+  border: 0;
+}
+.deck-choice.f-swarm {
+  background: var(--cd-swarm);
+  color: #111;
+}
+.deck-choice.f-court {
+  background: var(--cd-court);
+  color: #fff;
+}
+.deck-choice:hover {
+  filter: brightness(1.1);
+}
+.deck-choice[aria-pressed="true"] {
+  outline: 2px solid var(--cd-text);
+  outline-offset: 2px;
+}
 .faction-badge {
   padding: 0.2rem 0.6rem;
   border-radius: 1rem;
@@ -307,23 +319,33 @@ button.link {
   background: var(--cd-court);
   color: #fff;
 }
-.save-state {
+.editor-actions {
   margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.save-state {
   font-size: 0.85rem;
   color: var(--cd-muted);
 }
+/* Card pool and Deck side by side, half the width each; stacked on narrow screens. */
 .editor-columns {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  align-items: flex-start;
+  align-items: start;
+}
+@media (max-width: 48rem) {
+  .editor-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .pool {
-  flex: 999 1 30rem;
   min-width: 0;
 }
 .deck-panel {
-  flex: 1 1 22rem;
   min-width: 0;
   background: var(--cd-panel);
   border-radius: 10px;

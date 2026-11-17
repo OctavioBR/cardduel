@@ -1,4 +1,4 @@
-/* Match stage layout at the logical 1280x720 (ADR-0006), Clean modern direction (#33). */
+/* Match stage layout at the logical 1520x720, 19:9 (ADR-0006), Clean modern direction (#33). */
 .board {
   position: absolute;
   inset: 0;
@@ -220,8 +220,9 @@
   cursor: pointer;
 }
 .horn-slot {
-  width: 44px;
-  height: 62px;
+  box-sizing: border-box;
+  width: 48px;
+  height: 64px;
   margin-left: 6px;
   display: grid;
   place-items: center;
@@ -232,8 +233,14 @@
   color: var(--cd-muted);
   overflow: hidden;
 }
+/* The Horn token is drawn at 3/4 size in a box of that size, so it centres in the slot. */
+.horn-slot > [data-anim-uid] {
+  width: 42px;
+  height: 54px;
+}
 .horn-slot .cd-card {
   transform: scale(0.75);
+  transform-origin: top left;
 }
 .row-label {
   display: flex;
@@ -372,30 +379,6 @@ button.pile:hover .pile-stack {
   position: relative;
 }
 
-.result-banner,
-.redraw-panel {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 20px 32px;
-  background: var(--cd-panel);
-  border: 2px solid var(--cd-text);
-  border-radius: 12px;
-  z-index: 15;
-}
-.result-banner {
-  font-size: 32px;
-  font-weight: 800;
-}
-.redraw-panel p {
-  margin: 0;
-}
-
 /* Tap to play with Play Previews (#35) */
 .field {
   position: relative;
@@ -475,15 +458,6 @@ button.pile:hover .pile-stack {
 .battlefield-target span {
   background: var(--cd-panel);
   padding: 4px 12px;
-  border-radius: 8px;
-}
-.draw-preview {
-  flex: none;
-  align-self: center;
-  font-weight: 800;
-  color: #111;
-  background: var(--cd-raised);
-  padding: 4px 8px;
   border-radius: 8px;
 }
 .pass-button.confirming {
@@ -696,19 +670,34 @@ button.danger {
   font-size: 34px;
   font-weight: 800;
 }
-.match-end-actions,
-.menu-items {
+.match-end-actions {
   display: flex;
   gap: 10px;
   justify-content: center;
 }
-.menu-button {
-  position: absolute;
-  top: 8px;
-  left: 248px;
-  z-index: 5;
+.forfeit-button {
+  align-self: flex-start;
   padding: 4px 10px;
   font-size: 12px;
+}
+.rematch-status {
+  font-weight: 700;
+}
+.last-action {
+  max-width: 100%;
+  color: var(--cd-text);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.coin-you,
+.coin-opponent {
+  font-weight: 700;
+}
+.coin-you {
+  color: var(--cd-raised);
+}
+.coin-opponent {
+  color: var(--cd-lowered);
 }
 .opponent-passed {
   color: var(--cd-text);
