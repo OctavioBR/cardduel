@@ -13,7 +13,9 @@ export type ClientMessage =
     }
   /** Take your Seat by committing one of your saved Decks (GLOSSARY.md: Seat). */
   | { type: "takeSeat"; deckId: string }
-  | { type: "claimWin" };
+  | { type: "claimWin" }
+  | { type: "rematch" }
+  | { type: "leave" };
 
 export type ServerErrorCode =
   | "room_full"
@@ -33,7 +35,7 @@ export interface LobbyInfo {
   code: string;
   competitive: boolean;
   seat: Seat;
-  you: { seated: boolean; deckName: string | null };
+  you: { seated: boolean; deckName: string | null; lastDeckId?: string | null };
   opponent: { present: boolean; seated: boolean; username: string | null };
 }
 
@@ -45,6 +47,7 @@ export interface DisconnectInfo {
 
 /** Messages a Room sends to one Seat. */
 export type ServerMessage =
+  | { type: "rematch"; accepted: boolean; opponentAccepted: boolean; declined: boolean }
   | { type: "lobby"; lobby: LobbyInfo }
   | { type: "presence"; disconnect: DisconnectInfo }
   /** Your complete view, plus the filtered events that led to it (empty on reconnect). */

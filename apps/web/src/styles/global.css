@@ -205,6 +205,25 @@ button.link {
   text-decoration: underline;
 }
 
+.home-record {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.home-record div {
+  background: var(--cd-panel);
+  border-radius: var(--cd-radius);
+  padding: 0.75rem;
+}
+.home-record dt {
+  color: var(--cd-muted);
+}
+.home-record dd {
+  margin: 0.25rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
 /* Decks and the Deck builder (#46) */
 .page.wide {
   max-width: 80rem;
@@ -426,4 +445,27 @@ button.link {
 }
 .nav-link {
   color: var(--cd-text);
+}
+
+/* Only Match screens use Stage; fluid pages stay usable in portrait. */
+.rotate-notice {
+  display: none;
+}
+@media (pointer: coarse) and (orientation: portrait) and (max-width: 767px) {
+  .stage-viewport .stage {
+    display: none;
+  }
+  .rotate-notice {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+    text-align: center;
+    font-size: 1.25rem;
+  }
+}
+/* Prevent native gestures from interrupting Row and Card interactions. */
+.stage {
+  touch-action: manipulation;
 }

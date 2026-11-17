@@ -28,6 +28,18 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (request.method === "POST" && pathname === "/api/auth/signout")
     return signOut(request, env.DB);
   if (request.method === "GET" && pathname === "/api/me") return me(request, env.DB);
+  if (pathname === "/api/record" && request.method === "GET") {
+    const session = await readSession(env.DB, request);
+    if (!session) return json({ error: "signed_out", message: "Sign in first." }, { status: 401 });
+    const record = await env.DB.prepare(
+      "SELECT wins, losses, draws, disconnect_wins AS disconnectWins, disconnect_losses AS disconnectLosses FROM records WHERE account_id = ?",
+    )
+      .bind(session.account.id)
+      .first();
+    const response = json({ record });
+    if (session.refreshedCookie) response.headers.append("Set-Cookie", session.refreshedCookie);
+    return response;
+  }
   if (pathname === "/api/decks" || pathname.startsWith("/api/decks/")) {
     const session = await readSession(env.DB, request);
     if (!session) return json({ error: "signed_out", message: "Sign in first." }, { status: 401 });

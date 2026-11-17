@@ -11,6 +11,8 @@ import roomStrings from "../room/strings/en.json";
 import { useEventBatch, useRoom } from "../room/useRoom";
 import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
 
+import en from "../strings/home.en.json";
+
 export function RoomPage() {
   const { code = "" } = useParams();
   const { account } = useAuth();
@@ -47,6 +49,7 @@ function RoomConnectionPage({ code }: { code: string }) {
 
 function RoomScreen({ code, connection }: { code: string; connection: WebSocketRoom }) {
   const navigate = useNavigate();
+  const [copyStatus, setCopyStatus] = useState("");
   const state = useRoom(connection);
   const events = useEventBatch(connection);
   if (state.view) {
@@ -59,12 +62,30 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
               send={(a) => connection.send(a)}
               error={state.error?.message ?? null}
               events={events}
-              onLeave={() => navigate("/")}
+              onRematch={
+                state.rematch?.accepted || state.rematch?.declined
+                  ? undefined
+                  : () => connection.rematch()
+              }
+              onLeave={() => {
+                connection.close();
+                navigate("/");
+              }}
             />
           </CardDetailProvider>
         </div>
         {state.status === "open" && state.view.phase !== "ended" ? (
           <DisconnectBanner disconnect={state.disconnect} onClaim={() => connection.claimWin()} />
+        ) : null}
+        {state.rematch &&
+        (state.rematch.accepted || state.rematch.opponentAccepted || state.rematch.declined) ? (
+          <p role="status" data-testid="rematch-status" className="result-banner">
+            {state.rematch.declined
+              ? roomStrings.rematchDeclined
+              : state.rematch.accepted
+                ? roomStrings.rematchWaiting
+                : roomStrings.rematchOffer}
+          </p>
         ) : null}
         {state.status === "reconnecting" ? (
           <div className="reconnecting-overlay" role="status">
@@ -92,6 +113,7 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
           <p>You chose {state.lobby.you.deckName}. Waiting for your opponent to choose a Deck.</p>
         ) : (
           <DeckPicker
+            lastDeckId={state.lobby?.you.lastDeckId ?? null}
             competitive={state.lobby?.competitive ?? false}
             onChoose={(id) => connection.takeSeat(id)}
           />
@@ -107,6 +129,20 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
         <p>
           <code data-testid="room-link">{link}</code>
         </p>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(link);
+              setCopyStatus(en.copied);
+            } catch {
+              setCopyStatus(en.copyError);
+            }
+          }}
+        >
+          {en.copyLink}
+        </button>
+        <p role="status">{copyStatus}</p>
       </main>
     );
   }
@@ -118,9 +154,11 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
 }
 
 function DeckPicker({
+  lastDeckId,
   competitive,
   onChoose,
 }: {
+  lastDeckId: string | null;
   competitive: boolean;
   onChoose: (id: string) => void;
 }) {
@@ -151,7 +189,11 @@ function DeckPicker({
             )
             .map((deck) => (
               <li key={deck.id}>
-                <button type="button" onClick={() => onChoose(deck.id)}>
+                <button
+                  type="button"
+                  aria-pressed={deck.id === lastDeckId}
+                  onClick={() => onChoose(deck.id)}
+                >
                   {deck.name} — {deck.faction}
                 </button>
               </li>

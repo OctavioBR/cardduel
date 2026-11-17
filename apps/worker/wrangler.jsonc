@@ -14,13 +14,13 @@
   "durable_objects": {
     "bindings": [{ "name": "ROOMS", "class_name": "Room" }]
   },
-  // Accounts, Decks, Match results and Records (ADR-0005). The production database id comes
-  // from the provisioning issue (#6); local development and tests use a local D1.
+  // Accounts, Decks, Match results and Records (ADR-0005). Production D1 provisioned
+  // in #6; local development and tests use a local D1.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "card-duel",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "6342b7bf-4ef6-424a-9c68-01663a26690a",
       "migrations_dir": "migrations"
     }
   ],

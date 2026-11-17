@@ -47,6 +47,7 @@ interface SeatState {
   /** The committed Deck, copied at seat time (ADR-0004); null until the Seat is taken. */
   deck: DeckSpec | null;
   deckName: string | null;
+  lastDeckId?: string;
 }
 
 interface RoomMeta {
@@ -71,6 +72,10 @@ export class Room extends DurableObject<Env> {
   private loaded = false;
   private lastActivityAt = 0;
   private disconnectedAt: [number | null, number | null] = [null, null];
+  private rematch: { accepted: [boolean, boolean]; declined: boolean } = {
+    accepted: [false, false],
+    declined: false,
+  };
   private meta: RoomMeta | null = null;
   private seats: [SeatState | null, SeatState | null] = [null, null];
   private match: (StoredMatch & { state: MatchState }) | null = null;
@@ -139,6 +144,14 @@ export class Room extends DurableObject<Env> {
       await this.claimWin(ws, seat);
       return;
     }
+    if (message.type === "leave") {
+      await this.declineRematch();
+      return;
+    }
+    if (message.type === "rematch") {
+      await this.acceptRematch(ws, seat);
+      return;
+    }
     if (message.type === "takeSeat") {
       await this.takeSeat(ws, seat, message.deckId);
       return;
@@ -178,12 +191,17 @@ export class Room extends DurableObject<Env> {
 
   override async webSocketClose(ws: WebSocket, code: number): Promise<void> {
     await this.load();
+    const attachment = ws.deserializeAttachment() as Attachment | null;
+    if (
+      attachment &&
+      this.ctx.getWebSockets(seatTag(attachment.seat)).every((socket) => socket === ws)
+    )
+      await this.declineRematch();
     try {
       ws.close(code === 1005 ? 1000 : code, "Closed");
     } catch {
       // Already closed.
     }
-    const attachment = ws.deserializeAttachment() as Attachment | null;
     if (attachment && !this.present(attachment.seat) && this.match?.state.phase !== "ended") {
       this.disconnectedAt[attachment.seat] ??= Date.now();
       await this.touch();
@@ -341,6 +359,7 @@ export class Room extends DurableObject<Env> {
     }
     holder.deck = { faction: input.faction, leader: input.leader as string, cards: input.cards };
     holder.deckName = row.name;
+    holder.lastDeckId = deckId;
     await this.ctx.storage.put("seats", this.seats);
     if (this.seats[0]?.deck && this.seats[1]?.deck) await this.startMatch(version);
     else this.broadcastLobby();
@@ -355,12 +374,14 @@ export class Room extends DurableObject<Env> {
       "catalogVersion",
       "log",
       "snapshot",
+      "rematch",
       "matchId",
       "finishedAt",
       "lastActivityAt",
       "disconnectedAt",
       "externalResult",
     ]);
+    this.rematch = (stored.get("rematch") as typeof this.rematch | undefined) ?? this.rematch;
     this.meta = (stored.get("meta") as RoomMeta | undefined) ?? null;
     this.seats = (stored.get("seats") as [SeatState | null, SeatState | null] | undefined) ?? [
       null,
@@ -440,9 +461,67 @@ export class Room extends DurableObject<Env> {
       code: this.meta?.code ?? "",
       competitive: this.meta?.competitive ?? false,
       seat,
-      you: { seated: !!mine?.deck, deckName: mine?.deckName ?? null },
+      you: {
+        seated: !!mine?.deck,
+        deckName: mine?.deckName ?? null,
+        lastDeckId: mine?.lastDeckId ?? null,
+      },
       opponent: { present: !!theirs, seated: !!theirs?.deck, username: theirs?.username ?? null },
     };
+  }
+
+  private async acceptRematch(ws: WebSocket, seat: Seat): Promise<void> {
+    if (this.match?.state.phase !== "ended" || this.rematch.declined) {
+      send(ws, { type: "error", code: "rejected", message: "Rematch is unavailable." });
+      return;
+    }
+    this.rematch.accepted[seat] = true;
+    if (this.rematch.accepted.every(Boolean)) {
+      this.match = null;
+      for (const holder of this.seats)
+        if (holder) {
+          holder.deck = null;
+          holder.deckName = null;
+        }
+      this.rematch = { accepted: [false, false], declined: false };
+      await this.ctx.storage.transaction(async (storage) => {
+        await storage.delete([
+          "setup",
+          "catalogVersion",
+          "log",
+          "snapshot",
+          "externalResult",
+          "finishedAt",
+          "matchId",
+        ]);
+        await storage.put({ seats: this.seats, rematch: this.rematch });
+      });
+      this.broadcastLobby();
+    } else {
+      await this.ctx.storage.put("rematch", this.rematch);
+      this.broadcastRematch();
+    }
+  }
+
+  private async declineRematch(): Promise<void> {
+    if (this.match?.state.phase !== "ended") return;
+    this.rematch = { accepted: [false, false], declined: true };
+    await this.ctx.storage.put("rematch", this.rematch);
+    this.broadcastRematch();
+  }
+
+  private broadcastRematch(): void {
+    for (const seat of SEATS)
+      for (const ws of this.ctx.getWebSockets(seatTag(seat))) this.sendRematch(ws, seat);
+  }
+
+  private sendRematch(ws: WebSocket, seat: Seat): void {
+    send(ws, {
+      type: "rematch",
+      accepted: this.rematch.accepted[seat],
+      opponentAccepted: this.rematch.accepted[seat === 0 ? 1 : 0],
+      declined: this.rematch.declined,
+    });
   }
 
   private broadcastLobby(): void {
@@ -468,6 +547,7 @@ export class Room extends DurableObject<Env> {
   private sendCurrent(ws: WebSocket, seat: Seat): void {
     if (this.match) send(ws, { type: "view", view: viewFor(this.match.state, seat), events: [] });
     else send(ws, { type: "lobby", lobby: this.lobbyFor(seat) });
+    if (this.match?.state.phase === "ended") this.sendRematch(ws, seat);
   }
 }
 
@@ -488,6 +568,7 @@ function parseClientMessage(raw: string | ArrayBuffer): ClientMessage | null {
   try {
     const value = JSON.parse(raw) as Record<string, unknown>;
     if (value?.type === "claimWin") return { type: "claimWin" };
+    if (value?.type === "rematch" || value?.type === "leave") return { type: value.type };
     if (value?.type === "takeSeat" && typeof value.deckId === "string") {
       return { type: "takeSeat", deckId: value.deckId };
     }
