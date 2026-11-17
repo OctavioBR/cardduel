@@ -40,8 +40,11 @@ export type LeaderAbility =
   | { type: "lookAtOpponentHand" }
   | { type: "passive"; passive: PassiveLeaderKind };
 
-/** Passive Leader kinds approved in the card set review (#29). None are approved yet. */
-export type PassiveLeaderKind = never;
+/**
+ * Passive Leader kinds approved in the card set review (#29). Steady Ground: Weather never
+ * lowers Units on the Leader's Controller's Siege Row.
+ */
+export type PassiveLeaderKind = "steadyGround";
 
 interface CardBase {
   id: CardId;

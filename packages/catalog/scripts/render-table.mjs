@@ -71,7 +71,11 @@ for (const faction of ["swarm", "court", "neutral"]) {
     out.push("| Leader | Ability kind | Text |", "|---|---|---|");
     for (const c of leaders) {
       const kind =
-        c.ability.type === "scorchRow" ? `scorchRow (${ROW[c.ability.row]})` : c.ability.type;
+        c.ability.type === "scorchRow"
+          ? `scorchRow (${ROW[c.ability.row]})`
+          : c.ability.type === "passive"
+            ? `passive (${c.ability.passive})`
+            : c.ability.type;
       out.push(`| ${cell(name(c.id))} | ${kind} | ${cell(en[c.id]?.text ?? "")} |`);
     }
     out.push("");

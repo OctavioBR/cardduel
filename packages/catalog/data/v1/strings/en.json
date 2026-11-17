@@ -223,6 +223,10 @@
     "name": "The Regent",
     "text": "Draw a card of your choice from your deck, then shuffle it."
   },
+  "court-leader-castellan": {
+    "name": "The Castellan",
+    "text": "Passive: Weather never lowers Units on your Siege Row."
+  },
   "neutral-black-ice": {
     "name": "Black Ice",
     "text": "Weather: sets every non-Hero Unit on both Close Rows to 1."

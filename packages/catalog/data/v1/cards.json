@@ -560,6 +560,16 @@
     }
   },
   {
+    "id": "court-leader-castellan",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "passive",
+      "passive": "steadyGround"
+    }
+  },
+  {
     "id": "neutral-black-ice",
     "kind": "special",
     "faction": "neutral",
