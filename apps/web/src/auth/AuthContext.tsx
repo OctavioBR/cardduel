@@ -57,13 +57,24 @@ function ManagedAuth({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     if (!isSignedIn || !userId) {
       setProfile(null);
+      setError(null);
       return;
     }
     setError(null);
     try {
       const response = await fetch("/api/me", { cache: "no-store" });
-      const body = (await response.json()) as { account: Account | null };
-      if (!response.ok || !body.account) throw new Error();
+      const body = (await response.json().catch(() => null)) as {
+        account?: Account | null;
+        message?: string;
+      } | null;
+      if (!response.ok) {
+        setError(body?.message ?? copy.couldNotLoadProfile);
+        return;
+      }
+      if (!body?.account) {
+        setError(copy.couldNotVerifySignIn);
+        return;
+      }
       setProfile({ userId, account: body.account });
     } catch {
       setError(copy.couldNotReachTheServerTry);

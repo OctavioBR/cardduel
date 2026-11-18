@@ -30,6 +30,8 @@ APP_ORIGIN=http://localhost:5173,http://localhost:8787
 
 Run `pnpm dev`. The Worker dev script preserves the localhost origin instead of inferring the production Custom Domain. Vite proxies the API and Room WebSockets to the Worker. Keep the allowed origins explicit; do not include arbitrary preview domains. The Worker rejects cross-origin mutations and WebSocket upgrades. The local profile is created on the first verified `/api/me` request, and an incomplete profile must choose a Display name before accessing Decks or Rooms.
 
+If sign-up succeeds but the game cannot verify the sign-in, check the response to `/api/me`. On localhost only, the `X-Card-Duel-Auth` response header gives a non-sensitive SDK reason code. `publishable-key-invalid` means the Worker's `CLERK_PUBLISHABLE_KEY` is malformed: copy the same `pk_test_…` value used by the frontend, keeping the separate `sk_test_…` secret in `CLERK_SECRET_KEY`, and restart `pnpm dev`. Missing or malformed configuration returns 503; a rejected session returns `account: null`. These cases have separate messages from a network failure. Never share request cookies or Authorization headers when reporting a problem.
+
 ## Production
 
 1. Configure the production Clerk instance and Google OAuth connection. Deploy neither development nor test-fixture keys to production.
@@ -45,5 +47,7 @@ Before enabling production, smoke-test email/password registration and verificat
 `pnpm check` runs type checking, lint, unit/Worker tests and Playwright. Install Chromium once with `pnpm --filter @card-duel/web exec playwright install chromium`.
 
 The Worker tests validate actual RS256 session signatures, issuer, expiry and authorized-party claims using a dedicated public test key. Playwright runs Vite in explicit `test` mode, replacing Clerk's remote UI with a controlled fixture. A Playwright route signs fixture sessions outside the browser; the Worker still runs the production verification code. The generated ignored `wrangler.e2e.json` supplies test-only credentials and the local origin. Playwright assets are built into the ignored `dist-e2e` directory, leaving production `dist` untouched. Normal Vite builds always use the real Clerk SDK. These tests cover game integration; they do not claim to exercise Google's consent screen, Clerk email delivery or Clerk's remote UI accessibility. The documented real-provider smoke test covers those boundaries.
+
+Playwright supplies an explicit empty Worker environment and stores its local D1 data in `.wrangler/e2e`, so a developer's `.dev.vars` and development database do not affect the test provider.
 
 Official references: [React setup](https://clerk.com/docs/react/getting-started/quickstart), [password recovery](https://clerk.com/docs/guides/development/custom-flows/authentication/forgot-password), [session verification](https://clerk.com/docs/reference/backend/authenticate-request).

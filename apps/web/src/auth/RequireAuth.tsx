@@ -11,7 +11,7 @@ export function RequireAuth({
   children: ReactNode;
   allowIncomplete?: boolean;
 }) {
-  const { account, error, reload } = useAuth();
+  const { account, error, reload, signOut } = useAuth();
   const location = useLocation();
   if (error)
     return (
@@ -19,6 +19,9 @@ export function RequireAuth({
         <p role="alert">{error}</p>
         <button type="button" onClick={() => void reload()}>
           {copy.tryAgain}
+        </button>
+        <button type="button" onClick={() => void signOut()}>
+          {copy.signOut}
         </button>
       </main>
     );

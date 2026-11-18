@@ -13,25 +13,44 @@ export async function readSession(
   db: D1Database,
   request: Request,
   env: ClerkEnv,
+  diagnose?: (reason: string) => void,
 ): Promise<{ account: Account } | null> {
-  if (!env.CLERK_PUBLISHABLE_KEY || !env.APP_ORIGIN || !env.CLERK_SECRET_KEY) return null;
+  if (!env.CLERK_PUBLISHABLE_KEY || !env.APP_ORIGIN || !env.CLERK_SECRET_KEY) {
+    diagnose?.("configuration-missing");
+    return null;
+  }
   // Pin the issuer to this instance as well as checking signature and authorized party.
   let userId: string | null;
   try {
+    const publishableKey = env.CLERK_PUBLISHABLE_KEY.trim();
+    if (!/^pk_(test|live)_/.test(publishableKey)) {
+      diagnose?.("publishable-key-invalid");
+      return null;
+    }
     const clerk = createClerkClient({
-      publishableKey: env.CLERK_PUBLISHABLE_KEY,
+      publishableKey,
       secretKey: env.CLERK_SECRET_KEY || undefined,
       jwtKey: env.CLERK_JWT_KEY || undefined,
     });
-    const encoded = env.CLERK_PUBLISHABLE_KEY.replace(/^pk_(test|live)_/, "");
-    const issuer = `https://${atob(encoded).replace(/\$$/, "")}`;
+    const encoded = publishableKey.replace(/^pk_(test|live)_/, "");
+    let issuer: string;
+    try {
+      const decoded = atob(encoded);
+      if (!decoded.endsWith("$")) throw new Error("Invalid publishable key format");
+      issuer = `https://${decoded.slice(0, -1)}`;
+    } catch {
+      diagnose?.("publishable-key-invalid");
+      return null;
+    }
     const state = await clerk.authenticateRequest(request, {
       acceptsToken: "session_token",
       authorizedParties: env.APP_ORIGIN.split(",").map((origin) => origin.trim()),
       issuer,
     });
     userId = state.isAuthenticated ? state.toAuth().userId : null;
-  } catch {
+    if (!userId) diagnose?.(state.reason ?? "session-inactive");
+  } catch (error) {
+    diagnose?.(`verification-error-${error instanceof Error ? error.name : "unknown"}`);
     return null;
   }
   if (!userId) return null;

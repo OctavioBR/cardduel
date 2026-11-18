@@ -1,5 +1,6 @@
 import { env, SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
+import { me as readProfile } from "../src/auth/routes";
 import { BASE, newIdentity, sessionToken } from "./identity";
 
 function me(cookie = "") {
@@ -14,6 +15,25 @@ function update(cookie: string, displayName: unknown, origin = BASE, extra = {})
 }
 
 describe("Clerk authentication", () => {
+  it("reports missing or invalid configuration without exposing configured values", async () => {
+    for (const [key, reason] of [
+      ["", "configuration-missing"],
+      ["sk_test_wrong_key_type", "publishable-key-invalid"],
+      ["pk_test_invalid%", "publishable-key-invalid"],
+    ]) {
+      const bindings = { ...env, CLERK_PUBLISHABLE_KEY: key ?? "" };
+      const response = await readProfile(new Request("http://localhost:8787/api/me"), bindings);
+      expect(response.status).toBe(503);
+      expect(response.headers.get("X-Card-Duel-Auth")).toBe(reason);
+      expect(await response.json()).toEqual({
+        error: "auth_unavailable",
+        message: "Sign in is unavailable. Please try again later.",
+      });
+      const production = await readProfile(new Request(`${BASE}/api/me`), bindings);
+      expect(production.headers.has("X-Card-Duel-Auth")).toBe(false);
+    }
+  });
+
   it("creates one game profile and Record per verified identity under concurrent retries", async () => {
     const cookie = `__clerk_db_jwt=fixture; __client_uat=1; __session=${await sessionToken("user_race", BASE)}`;
     const responses = await Promise.all([me(cookie), me(cookie), me(cookie)]);

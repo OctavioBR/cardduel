@@ -236,5 +236,7 @@
   "displayNameHint": "1–30 characters. Spaces are welcome, and other players can use the same name.",
   "displayNameSaved": "Display name saved.",
   "accountSettings": "Account settings",
-  "signInAndSecurity": "Sign-in and security"
+  "signInAndSecurity": "Sign-in and security",
+  "couldNotLoadProfile": "Could not load your profile. Try again.",
+  "couldNotVerifySignIn": "Your sign-in could not be verified. Try again, or sign out and sign in again."
 }

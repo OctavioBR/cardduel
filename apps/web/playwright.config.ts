@@ -57,7 +57,7 @@ export default defineConfig({
       ? []
       : [
           {
-            command: `pnpm exec vite build --mode test --outDir dist-e2e && pnpm --filter @card-duel/worker exec wrangler d1 migrations apply DB --local --config wrangler.e2e.json && pnpm --filter @card-duel/worker exec wrangler dev --infer-origin-from-routes=false --port ${WORKER_PORT} --config wrangler.e2e.json`,
+            command: `pnpm exec vite build --mode test --outDir dist-e2e && pnpm --filter @card-duel/worker exec wrangler d1 migrations apply DB --local --persist-to .wrangler/e2e --config wrangler.e2e.json --env-file test/empty.env && pnpm --filter @card-duel/worker exec wrangler dev --infer-origin-from-routes=false --port ${WORKER_PORT} --persist-to .wrangler/e2e --config wrangler.e2e.json --env-file test/empty.env`,
             env: { VITE_CLERK_PUBLISHABLE_KEY: publishableKey },
             url: `http://localhost:${WORKER_PORT}/api/health`,
             reuseExistingServer: !process.env.CI,

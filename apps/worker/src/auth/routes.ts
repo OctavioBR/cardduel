@@ -3,8 +3,21 @@ import copy from "../strings/en.json";
 import { readSession } from "./session";
 
 export async function me(request: Request, env: Env): Promise<Response> {
-  const session = await readSession(env.DB, request, env);
-  return json({ account: session?.account ?? null });
+  let reason = "authenticated";
+  const session = await readSession(env.DB, request, env, (value) => {
+    reason = value;
+  });
+  const configurationError =
+    reason === "configuration-missing" || reason === "publishable-key-invalid";
+  const response = configurationError
+    ? json({ error: "auth_unavailable", message: copy.signInUnavailable }, { status: 503 })
+    : json({ account: session?.account ?? null });
+  // Local diagnostics report only SDK reason codes, never credentials or token claims.
+  const hostname = new URL(request.url).hostname;
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]") {
+    response.headers.set("X-Card-Duel-Auth", reason);
+  }
+  return response;
 }
 
 export function validDisplayName(value: unknown): string | null {

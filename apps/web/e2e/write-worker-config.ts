@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { publicKey, publishableKey } from "../../../tools/testing/clerk";
 export function writeWorkerConfig(port: number, seed: number) {
   // Wrangler inherits paths relative to this file, which sits beside the real config.
@@ -12,5 +12,9 @@ export function writeWorkerConfig(port: number, seed: number) {
     APP_ORIGIN: `http://localhost:${port}`,
     E2E_SEED: seed,
   };
-  writeFileSync(new URL("../../worker/wrangler.e2e.json", import.meta.url), JSON.stringify(config));
+  const target = new URL("../../worker/wrangler.e2e.json", import.meta.url);
+  const contents = JSON.stringify(config);
+  // Playwright loads this config in each worker; don't trigger Wrangler reloads for identical data.
+  if (existsSync(target) && readFileSync(target, "utf8") === contents) return;
+  writeFileSync(target, contents);
 }

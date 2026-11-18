@@ -28,5 +28,6 @@
   "invalidDisplayName": "Choose a display name of 1–30 characters without control characters or line breaks.",
   "chooseDisplayName": "Choose your display name first.",
   "requestNotAllowed": "This request is not allowed.",
-  "roomUpdated": "This Room closed after an update. Create a new Room."
+  "roomUpdated": "This Room closed after an update. Create a new Room.",
+  "signInUnavailable": "Sign in is unavailable. Please try again later."
 }
