@@ -61,6 +61,23 @@ button:disabled {
   background: #0d0e11;
 }
 
+/* The stage stays clear of the side safe areas (notch or Dynamic Island in landscape). The home
+   indicator only overlays the hand strip's lower edge, so the bottom inset is not reserved. */
+.stage-area {
+  position: absolute;
+  inset: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+}
+
+.stage-scroll-room {
+  display: none;
+}
+@media (pointer: coarse) and (orientation: landscape) {
+  .stage-scroll-room {
+    display: block;
+    height: 150lvh;
+  }
+}
+
 .stage {
   position: absolute;
   left: 50%;

@@ -24,10 +24,11 @@
   --tint: var(--cd-neutral);
 }
 
+/* Strength with the Row icon right beside it. */
 .cd-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 5px;
   min-height: 18px;
 }
 .cd-strength {
@@ -66,13 +67,20 @@
   gap: 3px;
   justify-content: center;
   color: var(--cd-text);
-  min-height: 11px;
+}
+/* Over the art's top corner, under Strength; the shadow keeps thin strokes readable on art. */
+.cd-art-box .cd-icons {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  filter: drop-shadow(0 0 1.5px #000) drop-shadow(0 0 1px #000);
 }
 .cd-icon {
   display: block;
   flex: none;
 }
 .cd-art-box {
+  position: relative;
   flex: 1;
   min-height: 0;
   border-radius: 4px;
@@ -189,8 +197,17 @@
   color: var(--cd-text);
   max-height: none;
 }
-.cd-detail .cd-icons {
+.cd-detail .cd-top {
+  gap: 10px;
+}
+.cd-detail .cd-art-box .cd-icons {
+  top: 8px;
+  left: 8px;
   gap: 8px;
+  padding: 6px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--cd-card) 50%, transparent);
+  filter: none;
 }
 
 /* Card Detail (#39). Inside the CSS-scaled Match stage, fixed positioning is relative to the stage. */

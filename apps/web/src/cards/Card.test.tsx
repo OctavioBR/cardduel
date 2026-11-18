@@ -51,6 +51,13 @@ describe("Card", () => {
     );
   });
 
+  it("shows the Rows a Weather card affects", () => {
+    const html = renderToStaticMarkup(<Card cardId="neutral-thunderhead" size="hand" />);
+    expect(html).toContain('aria-label="Ranged"');
+    expect(html).toContain('aria-label="Siege"');
+    expect(html).toContain('aria-label="Thunderhead, Ranged and Siege"');
+  });
+
   it("describes the card for assistive technology", () => {
     const html = renderToStaticMarkup(<Card cardId="swarm-hive-drone" size="token" strength={3} />);
     expect(html).toContain('aria-label="Hive Drone, Strength 3, Ranged, Muster"');

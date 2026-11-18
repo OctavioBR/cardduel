@@ -214,6 +214,7 @@
   "roundOpponentWins": "Round {p0}: opponent wins",
   "seenByOpponent": " (seen by opponent)",
   "or": " or ",
+  "and": " and ",
   "coinFlipYou": "you",
   "coinFlipYouTakeTheFirstTurn": " take the first Turn",
   "coinFlipYourOpponent": "your opponent",

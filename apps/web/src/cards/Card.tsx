@@ -21,8 +21,9 @@ export interface CardProps {
   keyboardDetail?: boolean;
 }
 
-/** Rows a card's icon shows: both for Agile. */
+/** Rows a card's icons show: both for Agile, and the Rows a Weather card affects. */
 function rowsOf(def: CardDefinition): RowId[] {
+  if (def.kind === "special") return def.effect.type === "weather" ? def.effect.rows : [];
   if (def.kind !== "unit") return [];
   return def.abilities.includes("agile") ? ["close", "ranged"] : [def.row];
 }
@@ -57,12 +58,25 @@ export function Card({ cardId, size, strength, count, noDetail, keyboardDetail }
     shown !== null ? formatCopy(copy.strength, { p0: shown }) : null,
     rowsOf(def)
       .map((r) => ROW_LABEL[r])
-      .join(copy.or) || null,
+      // Agile fits either Row; Weather affects every Row it names.
+      .join(effect === "weather" ? copy.and : copy.or) || null,
     hero ? copy.hero : null,
     ...abilities.map(abilityLabel),
   ]
     .filter(Boolean)
     .join(", ");
+
+  // Ability icons: over the art's top corner, under Strength; at the token's foot (no art).
+  const iconSize = size === "detail" ? 24 : 14;
+  const icons =
+    hero || abilities.length > 0 ? (
+      <div className="cd-icons">
+        {hero ? <AbilityIcon name="hero" size={iconSize} /> : null}
+        {abilities.map((a) => (
+          <AbilityIcon key={a} name={a} size={iconSize} />
+        ))}
+      </div>
+    ) : null;
 
   return (
     <div
@@ -88,17 +102,14 @@ export function Card({ cardId, size, strength, count, noDetail, keyboardDetail }
           ))}
         </span>
       </div>
-      {size !== "token" ? (
+      {size === "token" ? (
+        icons
+      ) : (
         <div className="cd-art-box">
           <PlaceholderArt cardId={cardId} image={def.image} />
+          {icons}
         </div>
-      ) : null}
-      <div className="cd-icons">
-        {hero ? <AbilityIcon name="hero" size={size === "detail" ? 18 : 11} /> : null}
-        {abilities.map((a) => (
-          <AbilityIcon key={a} name={a} size={size === "detail" ? 18 : 11} />
-        ))}
-      </div>
+      )}
       {size !== "token" ? <div className="cd-name">{name}</div> : null}
       {size === "hand" || size === "tile" || size === "detail" ? (
         <div className="cd-text">{cardText(cardId)}</div>

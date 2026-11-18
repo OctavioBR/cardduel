@@ -1,4 +1,4 @@
-import { type ReactNode, useLayoutEffect, useState } from "react";
+import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
 import en from "../strings/en.json";
 
 /** The reference layout, 19:9 (ADR-0006): the stage is never shorter than this. */
@@ -37,35 +37,53 @@ export function stageSize(windowWidth: number, windowHeight: number): StageSize 
   return { width, height, scale };
 }
 
-/** The Match screen's stage: laid out at a logical size near 1520×720 and scaled to fit. */
+/**
+ * The Match screen's stage: laid out at a logical size near 1520×720 and scaled to fit the area
+ * inside the side safe areas (notch or Dynamic Island in landscape).
+ */
 export function Stage({ children }: { children: ReactNode }) {
+  const area = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<StageSize>({
     width: STAGE_WIDTH,
     height: STAGE_HEIGHT,
     scale: 1,
   });
   useLayoutEffect(() => {
-    const update = () => setSize(stageSize(window.innerWidth, window.innerHeight));
+    const el = area.current;
+    if (!el) return;
+    const update = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (width > 0 && height > 0) setSize(stageSize(width, height));
+    };
     update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    // Fires when the area itself changes: window resizes, rotation, browser toolbars collapsing.
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
   return (
-    <div className="stage-viewport">
-      <div className="rotate-notice" role="status" data-testid="rotate-notice">
-        <p>{en.rotateDevice}</p>
+    <>
+      <div className="stage-viewport">
+        <div className="rotate-notice" role="status" data-testid="rotate-notice">
+          <p>{en.rotateDevice}</p>
+        </div>
+        <div className="stage-area" ref={area}>
+          <div
+            className="stage"
+            data-testid="stage"
+            style={{
+              width: size.width,
+              height: size.height,
+              transform: `translate(-50%, -50%) scale(${size.scale})`,
+            }}
+          >
+            {children}
+          </div>
+        </div>
       </div>
-      <div
-        className="stage"
-        data-testid="stage"
-        style={{
-          width: size.width,
-          height: size.height,
-          transform: `translate(-50%, -50%) scale(${size.scale})`,
-        }}
-      >
-        {children}
-      </div>
-    </div>
+      {/* Scroll room on touch screens in landscape: a swipe on the board lets the mobile browser
+          collapse its toolbars, and the stage grows into the freed height. */}
+      <div className="stage-scroll-room" aria-hidden="true" />
+    </>
   );
 }
