@@ -1,4 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
+import { publishableKey } from "../../tools/testing/clerk";
+import { writeWorkerConfig } from "./e2e/write-worker-config";
 
 const VITE_PORT = Number(process.env.E2E_VITE_PORT ?? 5173);
 /**
@@ -7,6 +9,7 @@ const VITE_PORT = Number(process.env.E2E_VITE_PORT ?? 5173);
  */
 const E2E_SEED = 29;
 const WORKER_PORT = Number(process.env.E2E_WORKER_PORT ?? 8787);
+writeWorkerConfig(WORKER_PORT, E2E_SEED);
 
 /**
  * Two kinds of end-to-end tests:
@@ -38,13 +41,15 @@ export default defineConfig({
     },
     {
       name: "online",
-      testMatch: /(online|deck-builder|disconnect|home|accessibility-online|two-players)\.spec\.ts/,
+      testMatch:
+        /(online|deck-builder|disconnect|home|accessibility-online|two-players|account)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: `http://localhost:${WORKER_PORT}` },
     },
   ],
   webServer: [
     {
-      command: `pnpm exec vite --port ${VITE_PORT} --strictPort`,
+      command: `pnpm exec vite --mode test --port ${VITE_PORT} --strictPort`,
+      env: { VITE_CLERK_PUBLISHABLE_KEY: publishableKey },
       url: `http://localhost:${VITE_PORT}/dev/local`,
       reuseExistingServer: !process.env.CI,
     },
@@ -52,7 +57,8 @@ export default defineConfig({
       ? []
       : [
           {
-            command: `pnpm exec vite build && pnpm --filter @card-duel/worker exec wrangler d1 migrations apply DB --local && pnpm --filter @card-duel/worker exec wrangler dev --port ${WORKER_PORT} --var E2E_SEED:${E2E_SEED}`,
+            command: `pnpm exec vite build --mode test --outDir dist-e2e && pnpm --filter @card-duel/worker exec wrangler d1 migrations apply DB --local --persist-to .wrangler/e2e --config wrangler.e2e.json --env-file test/empty.env && pnpm --filter @card-duel/worker exec wrangler dev --infer-origin-from-routes=false --port ${WORKER_PORT} --persist-to .wrangler/e2e --config wrangler.e2e.json --env-file test/empty.env`,
+            env: { VITE_CLERK_PUBLISHABLE_KEY: publishableKey },
             url: `http://localhost:${WORKER_PORT}/api/health`,
             reuseExistingServer: !process.env.CI,
             timeout: 120_000,

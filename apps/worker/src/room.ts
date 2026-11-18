@@ -8,6 +8,7 @@ import {
 import {
   applyAction,
   CLOSE_ROOM_FULL,
+  CLOSE_ROOM_NOT_FOUND,
   type ClientMessage,
   createMatch,
   type DeckSpec,
@@ -35,7 +36,7 @@ export const ROOM_IDLE_MS = 24 * 60 * 60 * 1000;
 
 /** Headers the Worker sets after checking the session; never taken from the client. */
 export const ACCOUNT_ID_HEADER = "X-Card-Duel-Account";
-export const USERNAME_HEADER = "X-Card-Duel-Username";
+export const DISPLAY_NAME_HEADER = "X-Card-Duel-Display-Name";
 
 interface Attachment {
   seat: Seat;
@@ -44,7 +45,7 @@ interface Attachment {
 
 interface SeatState {
   accountId: string;
-  username: string;
+  displayName: string;
   /** The committed Deck, copied at seat time (ADR-0004); null until the Seat is taken. */
   deck: DeckSpec | null;
   deckName: string | null;
@@ -52,6 +53,7 @@ interface SeatState {
 }
 
 interface RoomMeta {
+  managedAuth?: true;
   code: string;
   competitive: boolean;
 }
@@ -85,7 +87,7 @@ export class Room extends DurableObject<Env> {
   async create(code: string, competitive = false): Promise<boolean> {
     if (await this.ctx.storage.get<RoomMeta>("meta")) return false;
     await this.ctx.storage.put({
-      meta: { code, competitive } satisfies RoomMeta,
+      meta: { code, competitive, managedAuth: true } satisfies RoomMeta,
       createdAt: Date.now(),
     });
     await this.ctx.storage.put("lastActivityAt", Date.now());
@@ -96,16 +98,16 @@ export class Room extends DurableObject<Env> {
   override async fetch(request: Request): Promise<Response> {
     await this.load();
     await this.persistResult();
-    if (!this.meta) return new Response(copy.roomNotFound, { status: 404 });
+    if (!this.meta?.managedAuth) return new Response(copy.roomNotFound, { status: 404 });
     if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
       return new Response(copy.expectedAWebSocketUpgrade, { status: 426 });
     }
     const accountId = request.headers.get(ACCOUNT_ID_HEADER) ?? "";
-    const username = request.headers.get(USERNAME_HEADER) ?? "";
+    const displayName = decodeURIComponent(request.headers.get(DISPLAY_NAME_HEADER) ?? "");
     const pair = new WebSocketPair();
     const [client, server] = [pair[0], pair[1]];
 
-    const seat = await this.seatFor(accountId, username);
+    const seat = await this.seatFor(accountId, displayName);
     if (seat === null) {
       // Both Seats belong to other players: accepted only to say why, then closed.
       server.accept();
@@ -192,6 +194,7 @@ export class Room extends DurableObject<Env> {
 
   override async webSocketClose(ws: WebSocket, code: number): Promise<void> {
     await this.load();
+    if (!this.meta) return;
     const attachment = ws.deserializeAttachment() as Attachment | null;
     if (
       attachment &&
@@ -240,6 +243,7 @@ export class Room extends DurableObject<Env> {
 
   override async alarm(): Promise<void> {
     await this.load();
+    if (!this.meta) return;
     await this.persistResult();
     if (Date.now() >= this.lastActivityAt + ROOM_IDLE_MS) {
       const present = SEATS.filter((seat) => this.present(seat));
@@ -390,6 +394,18 @@ export class Room extends DurableObject<Env> {
     ]);
     this.rematch = (stored.get("rematch") as typeof this.rematch | undefined) ?? this.rematch;
     this.meta = (stored.get("meta") as RoomMeta | undefined) ?? null;
+    // Old accounts are archived, so the authorized cutover ends their existing Rooms.
+    // Keep stored data for reference; never write old results into the new account tables.
+    if (this.meta && !this.meta.managedAuth) {
+      this.meta = null;
+      this.loaded = true;
+      await this.ctx.storage.deleteAlarm();
+      for (const ws of this.ctx.getWebSockets()) {
+        send(ws, { type: "error", code: "room_not_found", message: copy.roomUpdated });
+        ws.close(CLOSE_ROOM_NOT_FOUND, copy.roomUpdated);
+      }
+      return;
+    }
     this.seats = (stored.get("seats") as [SeatState | null, SeatState | null] | undefined) ?? [
       null,
       null,
@@ -417,13 +433,20 @@ export class Room extends DurableObject<Env> {
   }
 
   /** The Seat for an account: its own on reconnect, else a free one, else null (Room full). */
-  private async seatFor(accountId: string, username: string): Promise<Seat | null> {
+  private async seatFor(accountId: string, displayName: string): Promise<Seat | null> {
     if (!accountId) return null;
     const existing = this.seats.findIndex((s) => s?.accountId === accountId);
-    if (existing === 0 || existing === 1) return existing;
+    if (existing === 0 || existing === 1) {
+      const seat = this.seats[existing];
+      if (seat && seat.displayName !== displayName) {
+        seat.displayName = displayName;
+        await this.ctx.storage.put("seats", this.seats);
+      }
+      return existing;
+    }
     const free = this.seats.indexOf(null);
     if (free !== 0 && free !== 1) return null;
-    this.seats[free] = { accountId, username, deck: null, deckName: null };
+    this.seats[free] = { accountId, displayName, deck: null, deckName: null };
     await this.ctx.storage.put("seats", this.seats);
     return free;
   }
@@ -479,7 +502,11 @@ export class Room extends DurableObject<Env> {
         deckName: mine?.deckName ?? null,
         lastDeckId: mine?.lastDeckId ?? null,
       },
-      opponent: { present: !!theirs, seated: !!theirs?.deck, username: theirs?.username ?? null },
+      opponent: {
+        present: !!theirs,
+        seated: !!theirs?.deck,
+        displayName: theirs?.displayName ?? null,
+      },
     };
   }
 

@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { sessionToken } from "../../../tools/testing/clerk";
 
 export async function actionCount(page: Page): Promise<number> {
   return Number(await page.getByTestId("board").getAttribute("data-action-count"));
@@ -77,32 +78,42 @@ export async function roundResultShown(page: Page): Promise<boolean> {
     .catch(() => false);
 }
 
-/** A username unique to this test run (the local D1 persists between runs). */
+/** Unique identity for each test; public display names need not be unique. */
 export function uniqueName(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
-
-/** Signs up through the /signup page and returns to the given path. */
-export async function signUpVia(page: Page, username: string, next = "/"): Promise<void> {
+const installed = new WeakSet<Page>();
+export async function installClerkFixture(page: Page) {
+  if (installed.has(page)) return;
+  installed.add(page);
+  await page.route("https://clerk-fixture.invalid/session", async (route) => {
+    const { email } = route.request().postDataJSON() as { email: string };
+    await route.fulfill({
+      json: { token: await sessionToken(`user_${email}`, new URL(page.url()).origin) },
+    });
+  });
+}
+export async function signUpVia(page: Page, displayName: string, next = "/"): Promise<void> {
+  await installClerkFixture(page);
   await page.goto(`/signup?next=${encodeURIComponent(next)}`);
-  await fillAuthForm(page, username);
+  await fillAuthForm(page, displayName);
   await expect(page).toHaveURL(new RegExp(`${next.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
 }
-
-/** On the sign-in page a signed-out player is sent to, switches to sign-up and submits it. */
-export async function signUpFromSignIn(page: Page, username: string): Promise<void> {
+export async function signUpFromSignIn(page: Page, displayName: string): Promise<void> {
+  await installClerkFixture(page);
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-  await page.getByRole("button", { name: "Create an account" }).click();
-  await fillAuthForm(page, username);
+  await page.getByRole("link", { name: "Create an account" }).click();
+  await fillAuthForm(page, displayName);
 }
-
-/** Fills and submits the sign-up form that is on the page. */
 export async function fillAuthForm(
   page: Page,
-  username: string,
+  displayName: string,
   password = "correct horse battery",
 ): Promise<void> {
-  await page.getByLabel("Username").fill(username);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign up" }).click();
+  await page.getByLabel("Email", { exact: true }).fill(`${uniqueName("email")}@example.test`);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign up", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Choose your display name" })).toBeVisible();
+  await page.getByLabel("Display name", { exact: true }).fill(displayName);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
 }

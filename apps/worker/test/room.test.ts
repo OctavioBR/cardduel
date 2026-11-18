@@ -60,7 +60,10 @@ function closeAll(room: Seated): void {
 
 describe("POST /api/rooms", () => {
   it("requires signing in, and returns a 6-character code from the unambiguous alphabet", async () => {
-    const signedOut = await SELF.fetch(`${BASE}/api/rooms`, { method: "POST" });
+    const signedOut = await SELF.fetch(`${BASE}/api/rooms`, {
+      method: "POST",
+      headers: { Origin: BASE },
+    });
     expect(signedOut.status).toBe(401);
     const code = await createRoom(await newPlayer());
     expect(code).toHaveLength(6);
@@ -69,7 +72,7 @@ describe("POST /api/rooms", () => {
 
   it("refuses WebSockets to a Room that was never created", async () => {
     const res = await SELF.fetch(`${BASE}/api/rooms/ZZZZZZ/ws`, {
-      headers: { Upgrade: "websocket", Cookie: await newPlayer() },
+      headers: { Upgrade: "websocket", Origin: BASE, Cookie: await newPlayer() },
     });
     expect(res.status).toBe(404);
   });
@@ -356,7 +359,13 @@ describe("Room disconnect lifecycle", () => {
     expect((await again.nextView()).view.phase).toBe("turns");
     room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
     expect(await room.sockets[0].next()).toMatchObject({ code: "rejected" });
-    expect((await stored(room)).results).toHaveLength(0);
+    expect(
+      (
+        await env.DB.prepare("SELECT id FROM match_results WHERE room_code = ?")
+          .bind(room.code)
+          .all()
+      ).results,
+    ).toHaveLength(0);
     again.close();
     closeAll(room);
   });
@@ -369,7 +378,13 @@ describe("Room disconnect lifecycle", () => {
       await runInDurableObject(env.ROOMS.getByName(room.code), async (instance) =>
         instance.alarm(),
       );
-      expect((await stored(room)).results).toHaveLength(0);
+      expect(
+        (
+          await env.DB.prepare("SELECT id FROM match_results WHERE room_code = ?")
+            .bind(room.code)
+            .all()
+        ).results,
+      ).toHaveLength(0);
       room.sockets[0].ws.send(JSON.stringify({ type: "claimWin" }));
       const { view } = await room.sockets[0].nextView();
       expect(view.result).toEqual({ outcome: "win", winner: 0, reason: "disconnect" });
@@ -442,4 +457,48 @@ describe("Room disconnect lifecycle", () => {
       }
     },
   );
+});
+
+it("shows duplicate Unicode display names and refreshes a name on reconnect", async () => {
+  const first = await newPlayer("雪 Geralt");
+  const second = await newPlayer("雪 Geralt");
+  const code = await createRoom(first);
+  const a = await TestSocket.open(code, first);
+  await a.nextLobby();
+  const b = await TestSocket.open(code, second);
+  const initial = await b.nextLobby();
+  expect(initial.opponent.displayName).toBe("雪 Geralt");
+  await a.nextLobby();
+  const response = await SELF.fetch(`${BASE}/api/me/profile`, {
+    method: "PATCH",
+    headers: { Cookie: first, Origin: BASE, "Content-Type": "application/json" },
+    body: JSON.stringify({ displayName: "Émile" }),
+  });
+  expect(response.status).toBe(200);
+  a.close();
+  const again = await TestSocket.open(code, first);
+  await again.nextLobby();
+  expect((await b.nextLobby()).opponent.displayName).toBe("Émile");
+  again.close();
+  b.close();
+});
+
+it("ends pre-Clerk Rooms without writing their Matches into fresh account data", async () => {
+  const room = await seatBoth();
+  const stub = env.ROOMS.getByName(room.code);
+  await runInDurableObject(stub, async (_instance, ctx) => {
+    await ctx.storage.put("meta", { code: room.code, competitive: false });
+  });
+  await evictDurableObject(stub);
+  const alarm = await runInDurableObject(stub, async (instance, ctx) => {
+    await instance.alarm();
+    return ctx.storage.getAlarm();
+  });
+  expect(alarm).toBeNull();
+  expect((await room.sockets[0].next()).type).toBe("error");
+  expect(
+    (await env.DB.prepare("SELECT id FROM match_results WHERE room_code = ?").bind(room.code).all())
+      .results,
+  ).toHaveLength(0);
+  closeAll(room);
 });

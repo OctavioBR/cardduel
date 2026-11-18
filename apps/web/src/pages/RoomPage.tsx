@@ -112,7 +112,7 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
         )}
         {state.lobby?.opponent.present ? (
           <p>
-            {state.lobby.opponent.username}
+            {state.lobby.opponent.displayName}
             {copy.isHere}
             {state.lobby.opponent.seated ? copy.opponentHasChosen : ""}
             {copy.label2}

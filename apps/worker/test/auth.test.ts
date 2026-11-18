@@ -1,217 +1,148 @@
 import { env, SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { hashPassword, PBKDF2_ITERATIONS } from "../src/auth/password";
-import { SESSION_COOKIE, SESSION_TTL_MS } from "../src/auth/session";
+import { me as readProfile } from "../src/auth/routes";
+import { BASE, newIdentity, sessionToken } from "./identity";
 
-const BASE = "https://card-duel.test";
-
-function post(path: string, body: unknown, cookie?: string) {
-  return SELF.fetch(`${BASE}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...(cookie ? { Cookie: cookie } : {}) },
-    body: JSON.stringify(body),
-  });
-}
-
-function cookieFrom(res: Response): string {
-  const header = res.headers.get("Set-Cookie") ?? "";
-  const value = header.split(";")[0] ?? "";
-  if (!value.startsWith(`${SESSION_COOKIE}=`)) throw new Error(`No session cookie in ${header}`);
-  return value;
-}
-
-async function signUp(username: string, password = "correct horse") {
-  const res = await post("/api/auth/signup", { username, password });
-  return { res, cookie: res.status === 201 ? cookieFrom(res) : "" };
-}
-
-function meWith(cookie: string) {
+function me(cookie = "") {
   return SELF.fetch(`${BASE}/api/me`, { headers: { Cookie: cookie } });
 }
-
-describe("sign up", () => {
-  it("creates an account, a Record and a session cookie", async () => {
-    const { res, cookie } = await signUp("Ada_Lovelace");
-    expect(res.status).toBe(201);
-    expect(await res.json()).toMatchObject({ account: { username: "Ada_Lovelace" } });
-    const header = res.headers.get("Set-Cookie") ?? "";
-    expect(header).toContain("HttpOnly");
-    expect(header).toContain("Secure");
-    expect(header).toContain("SameSite=Lax");
-    expect(header).toContain(`Max-Age=${SESSION_TTL_MS / 1000}`);
-    expect(await (await meWith(cookie)).json()).toMatchObject({
-      account: { username: "Ada_Lovelace" },
-    });
-    const record = await env.DB.prepare(
-      "SELECT wins FROM records r JOIN accounts a ON a.id = r.account_id WHERE a.username = ?",
-    )
-      .bind("Ada_Lovelace")
-      .first();
-    expect(record).toEqual({ wins: 0 });
+function update(cookie: string, displayName: unknown, origin = BASE, extra = {}) {
+  return SELF.fetch(`${BASE}/api/me/profile`, {
+    method: "PATCH",
+    headers: { Cookie: cookie, Origin: origin, "Content-Type": "application/json" },
+    body: JSON.stringify({ displayName, ...extra }),
   });
+}
 
-  it("rejects duplicate usernames ignoring case", async () => {
-    await signUp("Grace");
-    const { res } = await signUp("gRACE");
-    expect(res.status).toBe(409);
-    expect(await res.json()).toMatchObject({ error: "username_taken" });
-  });
-
-  it("validates usernames and passwords", async () => {
-    for (const username of ["ab", "a".repeat(21), "with space", "dash-name", "émile"]) {
-      expect((await signUp(username)).res.status, username).toBe(400);
+describe("Clerk authentication", () => {
+  it("reports missing or invalid configuration without exposing configured values", async () => {
+    for (const [key, reason] of [
+      ["", "configuration-missing"],
+      ["sk_test_wrong_key_type", "publishable-key-invalid"],
+      ["pk_test_invalid%", "publishable-key-invalid"],
+    ]) {
+      const bindings = { ...env, CLERK_PUBLISHABLE_KEY: key ?? "" };
+      const response = await readProfile(new Request("http://localhost:8787/api/me"), bindings);
+      expect(response.status).toBe(503);
+      expect(response.headers.get("X-Card-Duel-Auth")).toBe(reason);
+      expect(await response.json()).toEqual({
+        error: "auth_unavailable",
+        message: "Sign in is unavailable. Please try again later.",
+      });
+      const production = await readProfile(new Request(`${BASE}/api/me`), bindings);
+      expect(production.headers.has("X-Card-Duel-Auth")).toBe(false);
     }
-    expect((await signUp("ok_name", "short")).res.status).toBe(400);
-    expect((await signUp("ok_name", "exactly8")).res.status).toBe(201);
   });
 
-  it("stores the hash with its parameters, never the password", async () => {
-    await signUp("Hopper", "s3cret password");
-    const row = await env.DB.prepare(
-      "SELECT password_hash, password_salt, password_iterations, password_algorithm FROM accounts WHERE username_key = 'hopper'",
-    ).first<{
-      password_hash: string;
-      password_salt: string;
-      password_iterations: number;
-      password_algorithm: string;
-    }>();
-    expect(row?.password_iterations).toBe(PBKDF2_ITERATIONS);
-    expect(row?.password_algorithm).toBe("PBKDF2-SHA256");
-    expect(atob(row?.password_salt ?? "")).toHaveLength(16);
-    expect(atob(row?.password_hash ?? "")).toHaveLength(32);
-    expect(JSON.stringify(row)).not.toContain("s3cret");
+  it("creates one game profile and Record per verified identity under concurrent retries", async () => {
+    const cookie = `__clerk_db_jwt=fixture; __client_uat=1; __session=${await sessionToken("user_race", BASE)}`;
+    const responses = await Promise.all([me(cookie), me(cookie), me(cookie)]);
+    const bodies = await Promise.all(responses.map((response) => response.json()));
+    expect(bodies[0]).toMatchObject({ account: { displayName: null } });
+    expect(bodies[1]).toEqual(bodies[0]);
+    expect(bodies[2]).toEqual(bodies[0]);
+    expect(
+      await env.DB.prepare(
+        "SELECT COUNT(*) AS n FROM accounts WHERE clerk_user_id = 'user_race'",
+      ).first(),
+    ).toEqual({ n: 1 });
+    expect(await env.DB.prepare("SELECT COUNT(*) AS n FROM records").first()).toEqual({ n: 1 });
   });
-
-  it("requires JSON", async () => {
-    const res = await SELF.fetch(`${BASE}/api/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: "username=a&password=b",
-    });
-    expect(res.status).toBe(415);
-  });
-});
-
-describe("sign in and sign out", () => {
-  it("signs in with the right password, case-insensitively by username", async () => {
-    await signUp("Turing", "enigma machine");
-    const res = await post("/api/auth/signin", { username: "turing", password: "enigma machine" });
-    expect(res.status).toBe(200);
-    expect(await (await meWith(cookieFrom(res))).json()).toMatchObject({
-      account: { username: "Turing" },
-    });
-  });
-
-  it("rejects a wrong password and an unknown username the same way", async () => {
-    await signUp("Lamarr", "frequency hop");
-    const wrong = await post("/api/auth/signin", { username: "Lamarr", password: "nope nope" });
-    const unknown = await post("/api/auth/signin", {
-      username: "Nobody",
-      password: "frequency hop",
-    });
-    expect(wrong.status).toBe(401);
-    expect(unknown.status).toBe(401);
-    expect(await wrong.json()).toEqual(await unknown.json());
-  });
-
-  it("re-hashes an account stored at an older iteration count on sign-in", async () => {
-    await signUp("Lovelace", "analytical engine");
-    const old = await hashPassword("analytical engine", 50_000);
-    await env.DB.prepare(
-      "UPDATE accounts SET password_hash = ?, password_salt = ?, password_iterations = ? WHERE username_key = 'lovelace'",
-    )
-      .bind(old.hash, old.salt, old.iterations)
-      .run();
-    const iterations = () =>
-      env.DB.prepare(
-        "SELECT password_iterations FROM accounts WHERE username_key = 'lovelace'",
-      ).first<number>("password_iterations");
-
-    const signIn = () =>
-      post("/api/auth/signin", { username: "Lovelace", password: "analytical engine" });
-    expect((await signIn()).status).toBe(200);
-    expect(await iterations()).toBe(PBKDF2_ITERATIONS);
-    expect((await signIn()).status).toBe(200);
-  });
-
-  it("signs out: the session is deleted and the cookie cleared", async () => {
-    const { cookie } = await signUp("Noether");
-    const res = await post("/api/auth/signout", {}, cookie);
-    expect(res.headers.get("Set-Cookie")).toContain("Max-Age=0");
-    expect(await (await meWith(cookie)).json()).toEqual({ account: null });
-  });
-
-  it("/api/me without a valid session answers with no account", async () => {
-    const res = await SELF.fetch(`${BASE}/api/me`);
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ account: null });
-    expect(await (await meWith(`${SESSION_COOKIE}=forged`)).json()).toEqual({ account: null });
-  });
-});
-
-describe("throttling", () => {
-  it("blocks a username after 5 failed sign-ins, even with the right password, and resets on success", async () => {
-    await signUp("Babbage", "difference engine");
-    for (let i = 0; i < 5; i++) {
+  it("rejects missing, forged, expired, wrong-issuer and wrong-origin tokens", async () => {
+    const valid = await sessionToken("user_rejected", BASE);
+    const corrupt = `${valid.slice(0, -8)}AAAAAAAA`;
+    for (const token of [
+      "",
+      "forged",
+      corrupt,
+      await sessionToken("user_expired", BASE, { exp: 1 }),
+      await sessionToken("user_issuer", BASE, { iss: "https://attacker.invalid" }),
+      await sessionToken("user_origin", "https://attacker.invalid"),
+      await sessionToken("user_pending", BASE, { sts: "pending" }),
+    ]) {
       expect(
-        (await post("/api/auth/signin", { username: "Babbage", password: "wrong password" }))
-          .status,
-      ).toBe(401);
+        await (await me(`__clerk_db_jwt=fixture; __client_uat=1; __session=${token}`)).json(),
+      ).toEqual({ account: null });
+      expect(
+        await (
+          await SELF.fetch(`${BASE}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
+        ).json(),
+      ).toEqual({ account: null });
     }
-    const blocked = await post("/api/auth/signin", {
-      username: "babbage",
-      password: "difference engine",
-    });
-    expect(blocked.status).toBe(429);
-    expect(Number(blocked.headers.get("Retry-After"))).toBeGreaterThan(0);
-
-    // Once the window has passed, the right password works and clears the count.
-    await env.DB.prepare(
-      "UPDATE sign_in_failures SET window_start = 0 WHERE username_key = 'babbage'",
-    ).run();
     expect(
-      (await post("/api/auth/signin", { username: "Babbage", password: "difference engine" }))
-        .status,
-    ).toBe(200);
-    expect(
-      await env.DB.prepare("SELECT * FROM sign_in_failures WHERE username_key = 'babbage'").first(),
-    ).toBeNull();
+      await env.DB.prepare(
+        "SELECT COUNT(*) AS n FROM accounts WHERE clerk_user_id != 'user_race'",
+      ).first(),
+    ).toEqual({ n: 0 });
   });
-
-  it("throttles per username, not globally", async () => {
-    await signUp("Curie", "radium radium");
-    await env.DB.prepare("INSERT INTO sign_in_failures VALUES ('someoneelse', 5, ?)")
-      .bind(Date.now())
-      .run();
+  it("accepts the same verified identity through an Authorization header", async () => {
+    const token = await sessionToken("user_header", BASE);
     expect(
-      (await post("/api/auth/signin", { username: "Curie", password: "radium radium" })).status,
-    ).toBe(200);
+      await (
+        await SELF.fetch(`${BASE}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
+      ).json(),
+    ).toMatchObject({ account: { displayName: null } });
+  });
+  it("does not accept old cookies or expose handwritten password endpoints", async () => {
+    expect(await (await me("cd_session=legacy-token")).json()).toEqual({ account: null });
+    for (const path of ["signup", "signin", "signout"])
+      expect(
+        (
+          await SELF.fetch(`${BASE}/api/auth/${path}`, {
+            method: "POST",
+            headers: { Origin: BASE },
+          })
+        ).status,
+      ).toBe(404);
   });
 });
 
-describe("sessions", () => {
-  it("slide: a session used after a day is extended to 30 days and the cookie re-sent", async () => {
-    const { cookie } = await signUp("Hypatia");
-    const mine = "account_id = (SELECT id FROM accounts WHERE username_key = 'hypatia')";
-    await env.DB.prepare(`UPDATE sessions SET expires_at = ? WHERE ${mine}`)
-      .bind(Date.now() + 10 * 24 * 60 * 60 * 1000)
-      .run();
-    const res = await meWith(cookie);
-    expect(res.status).toBe(200);
-    expect(res.headers.get("Set-Cookie")).toContain(`Max-Age=${SESSION_TTL_MS / 1000}`);
-    const row = await env.DB.prepare(`SELECT expires_at FROM sessions WHERE ${mine}`).first<{
-      expires_at: number;
-    }>();
-    expect((row?.expires_at ?? 0) - Date.now()).toBeGreaterThan(SESSION_TTL_MS - 60_000);
+describe("display names", () => {
+  it("allows duplicate names and changes only the authenticated profile", async () => {
+    const a = await newIdentity("Geralt");
+    const b = await newIdentity("Geralt");
+    const first = (await (await me(a)).json()) as { account: { id: string } };
+    const second = (await (await me(b)).json()) as { account: { id: string } };
+    expect(first.account.id).not.toBe(second.account.id);
+    const response = await update(a, "  Émile $&  ", BASE, { id: second.account.id });
+    expect(await response.json()).toEqual({
+      account: { id: first.account.id, displayName: "Émile $&" },
+    });
+    expect(await (await me(b)).json()).toMatchObject({ account: { displayName: "Geralt" } });
   });
-
-  it("expire: an expired session is rejected and removed", async () => {
-    const { cookie } = await signUp("Kovalevskaya");
-    const mine = "account_id = (SELECT id FROM accounts WHERE username_key = 'kovalevskaya')";
-    await env.DB.prepare(`UPDATE sessions SET expires_at = 1 WHERE ${mine}`).run();
-    expect(await (await meWith(cookie)).json()).toEqual({ account: null });
+  it("validates Unicode code points, blank names, control characters and line breaks", async () => {
+    const cookie = await newIdentity();
+    for (const name of [null, 3, "", "   ", "a".repeat(31), "a\nb", "a\tb", "a\u2028b", "a\u200bb"])
+      expect((await update(cookie, name)).status).toBe(400);
+    expect((await update(cookie, "😀".repeat(30))).status).toBe(200);
+    expect((await update(cookie, "<script>alert(1)</script>")).status).toBe(200);
+  });
+  it("requires authentication and a trusted Origin for profile edits and Room creation", async () => {
+    expect((await update("", "Geralt")).status).toBe(401);
+    const cookie = await newIdentity();
+    expect((await update(cookie, "Geralt", "https://attacker.invalid")).status).toBe(403);
+    expect((await update(cookie, "Geralt", "")).status).toBe(403);
     expect(
-      await env.DB.prepare(`SELECT COUNT(*) AS n FROM sessions WHERE ${mine}`).first(),
-    ).toEqual({ n: 0 });
+      (
+        await SELF.fetch(`${BASE}/api/rooms`, {
+          method: "POST",
+          headers: { Cookie: cookie, Origin: "https://attacker.invalid" },
+        })
+      ).status,
+    ).toBe(403);
+  });
+  it("requires a completed profile before Deck access or Room creation", async () => {
+    const cookie = `__clerk_db_jwt=fixture; __client_uat=1; __session=${await sessionToken("user_onboarding", BASE)}`;
+    expect((await SELF.fetch(`${BASE}/api/decks`, { headers: { Cookie: cookie } })).status).toBe(
+      403,
+    );
+    expect(
+      (
+        await SELF.fetch(`${BASE}/api/rooms`, {
+          method: "POST",
+          headers: { Cookie: cookie, Origin: BASE },
+        })
+      ).status,
+    ).toBe(403);
   });
 });

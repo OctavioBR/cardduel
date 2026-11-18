@@ -99,16 +99,6 @@ test("sign in, and sign out from the account menu", async ({ page }) => {
   // Signed out, every page sends the player to sign in; the header offers no account links.
   await expect(page).toHaveURL(/\/signin\?next=%2F$/);
   await expect(page.getByRole("banner").getByRole("link", { name: "Sign in" })).toHaveCount(0);
-  await page.getByLabel("Username").fill(name.toUpperCase());
-  await page.getByLabel("Password").fill("correct horse battery");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("button", { name })).toBeVisible();
-  await page.goto("/signin");
-  await page.getByLabel("Username").fill(name);
-  await page.getByLabel("Password").fill("wrong password");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert")).toHaveText("Wrong username or password.");
 });
 
 test("Rematch offer, acceptance with last Deck selected, and leaving decline", async ({

@@ -36,7 +36,7 @@ export interface LobbyInfo {
   competitive: boolean;
   seat: Seat;
   you: { seated: boolean; deckName: string | null; lastDeckId?: string | null };
-  opponent: { present: boolean; seated: boolean; username: string | null };
+  opponent: { present: boolean; seated: boolean; displayName: string | null };
 }
 
 export interface DisconnectInfo {

@@ -1,28 +1,17 @@
 import { SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 import type { DeckJson } from "../src/decks";
+import { newIdentity } from "./identity";
 
 const BASE = "https://card-duel.test";
-let n = 0;
-
-async function newPlayer(): Promise<string> {
-  n += 1;
-  const res = await SELF.fetch(`${BASE}/api/auth/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: `decker_${n}_${Math.random().toString(36).slice(2, 7)}`,
-      password: "deck builder",
-    }),
-  });
-  return (res.headers.get("Set-Cookie") ?? "").split(";")[0] ?? "";
-}
+const newPlayer = newIdentity;
 
 function api(cookie: string, path: string, method = "GET", body?: unknown) {
   return SELF.fetch(`${BASE}/api/decks${path}`, {
     method,
     headers: {
       Cookie: cookie,
+      Origin: BASE,
       ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
     },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),

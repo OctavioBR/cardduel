@@ -28,5 +28,7 @@
   ],
   // The Free plan only offers SQLite-backed Durable Objects.
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+  // Configure for your Clerk instance; see docs/authentication.md. JWT_KEY and SECRET_KEY are secrets.
+  "vars": { "CLERK_PUBLISHABLE_KEY": "", "APP_ORIGIN": "" },
   "observability": { "enabled": true }
 }

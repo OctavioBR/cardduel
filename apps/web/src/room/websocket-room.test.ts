@@ -83,7 +83,7 @@ describe("WebSocketRoom", () => {
         competitive: false,
         seat: 0,
         you: { seated: false, deckName: null },
-        opponent: { present: false, seated: false, username: null },
+        opponent: { present: false, seated: false, displayName: null },
       },
     });
     expect(room.getState()).toMatchObject({ status: "open", seat: 0, waitingCode: "ABC234" });

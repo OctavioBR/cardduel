@@ -6,7 +6,7 @@ async function fixture(): Promise<FinishedMatch> {
   const players: [string, string] = [crypto.randomUUID(), crypto.randomUUID()];
   for (const id of players) {
     await env.DB.prepare(
-      "INSERT INTO accounts (id, username, username_key, password_hash, password_salt, password_iterations, created_at) VALUES (?, ?, ?, 'h', 's', 1, 0)",
+      "INSERT INTO accounts (id, clerk_user_id, display_name, created_at) VALUES (?, ?, ?, 0)",
     )
       .bind(id, id, id)
       .run();

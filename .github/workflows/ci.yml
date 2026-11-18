@@ -45,28 +45,9 @@ jobs:
           path: apps/web/test-results
           retention-days: 7
 
-  deploy-gate:
+  deploy:
     needs: [check, e2e]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    outputs:
-      enabled: ${{ steps.gate.outputs.enabled }}
-    steps:
-      - id: gate
-        env:
-          HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
-          HAS_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
-        run: |
-          if [ "$HAS_TOKEN" = true ] && [ "$HAS_ACCOUNT" = true ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::Cloudflare secrets are not set (see #6); skipping deploy."
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
-
-  deploy:
-    needs: deploy-gate
-    if: needs.deploy-gate.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -77,6 +58,8 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+      CLERK_PUBLISHABLE_KEY: ${{ vars.CLERK_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/setup@v3
@@ -85,9 +68,10 @@ jobs:
           cache: true
           require-lockfile: true
       - name: Build the client
-        env:
-          SITE_URL: ${{ vars.PRODUCTION_URL }}
-        run: pnpm build
+        run: |
+          test -n "$CLERK_PUBLISHABLE_KEY" || { echo "::error::Set CLERK_PUBLISHABLE_KEY before deploying Clerk authentication."; exit 1; }
+          test -n "$PRODUCTION_URL" || { echo "::error::Set PRODUCTION_URL before deploying Clerk authentication."; exit 1; }
+          VITE_CLERK_PUBLISHABLE_KEY="$CLERK_PUBLISHABLE_KEY" SITE_URL="$PRODUCTION_URL" pnpm build
       - name: Apply D1 migrations
         working-directory: apps/worker
         run: |
@@ -98,10 +82,8 @@ jobs:
           fi
       - name: Deploy the Worker
         working-directory: apps/worker
-        run: pnpm wrangler deploy
+        run: pnpm wrangler deploy --var "CLERK_PUBLISHABLE_KEY:$CLERK_PUBLISHABLE_KEY" --var "APP_ORIGIN:$PRODUCTION_URL"
       - name: Check the deployed health route
-        env:
-          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
         run: |
           if [ -z "$PRODUCTION_URL" ]; then
             echo "::warning::Repository variable PRODUCTION_URL is not set; skipping the health check."

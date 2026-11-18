@@ -1,99 +1,79 @@
-/** An HttpOnly session cookie backed by the sessions table, with a 30-day sliding expiry. */
-export const SESSION_COOKIE = "cd_session";
-export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-/** Sessions are extended at most once a day, to keep writes down. */
-const EXTEND_AFTER_MS = 24 * 60 * 60 * 1000;
+import { createClerkClient } from "@clerk/backend";
+
+// Intersect with generated bindings so local .dev.vars inference may also declare these keys.
+type ClerkEnv = Env & { CLERK_SECRET_KEY?: string; CLERK_JWT_KEY?: string };
 
 export interface Account {
   id: string;
-  username: string;
+  displayName: string | null;
 }
 
-export interface Session {
-  account: Account;
-  /** A Set-Cookie value when the session was just extended. */
-  refreshedCookie: string | null;
-}
-
-export async function createSession(
-  db: D1Database,
-  accountId: string,
-  now = Date.now(),
-): Promise<string> {
-  const token = randomToken();
-  await db
-    .prepare("INSERT INTO sessions (id, account_id, created_at, expires_at) VALUES (?, ?, ?, ?)")
-    .bind(await sessionId(token), accountId, now, now + SESSION_TTL_MS)
-    .run();
-  return sessionCookie(token);
-}
-
-/** The signed-in account for a request, extending the session when it is due. */
+/** Identity comes only from a verified Clerk session. D1 stores the game profile. */
 export async function readSession(
   db: D1Database,
   request: Request,
-  now = Date.now(),
-): Promise<Session | null> {
-  const token = cookieValue(request, SESSION_COOKIE);
-  if (!token) return null;
-  const id = await sessionId(token);
-  const row = await db
-    .prepare(
-      "SELECT s.expires_at AS expires_at, a.id AS id, a.username AS username FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.id = ?",
-    )
-    .bind(id)
-    .first<{ expires_at: number; id: string; username: string }>();
-  if (!row) return null;
-  if (row.expires_at <= now) {
-    await db.prepare("DELETE FROM sessions WHERE id = ?").bind(id).run();
+  env: ClerkEnv,
+  diagnose?: (reason: string) => void,
+): Promise<{ account: Account } | null> {
+  if (!env.CLERK_PUBLISHABLE_KEY || !env.APP_ORIGIN || !env.CLERK_SECRET_KEY) {
+    diagnose?.("configuration-missing");
     return null;
   }
-  let refreshedCookie: string | null = null;
-  if (row.expires_at - now < SESSION_TTL_MS - EXTEND_AFTER_MS) {
-    await db
-      .prepare("UPDATE sessions SET expires_at = ? WHERE id = ?")
-      .bind(now + SESSION_TTL_MS, id)
-      .run();
-    refreshedCookie = sessionCookie(token);
+  // Pin the issuer to this instance as well as checking signature and authorized party.
+  let userId: string | null;
+  try {
+    const publishableKey = env.CLERK_PUBLISHABLE_KEY.trim();
+    if (!/^pk_(test|live)_/.test(publishableKey)) {
+      diagnose?.("publishable-key-invalid");
+      return null;
+    }
+    const clerk = createClerkClient({
+      publishableKey,
+      secretKey: env.CLERK_SECRET_KEY || undefined,
+      jwtKey: env.CLERK_JWT_KEY || undefined,
+    });
+    const encoded = publishableKey.replace(/^pk_(test|live)_/, "");
+    let issuer: string;
+    try {
+      const decoded = atob(encoded);
+      if (!decoded.endsWith("$")) throw new Error("Invalid publishable key format");
+      issuer = `https://${decoded.slice(0, -1)}`;
+    } catch {
+      diagnose?.("publishable-key-invalid");
+      return null;
+    }
+    const state = await clerk.authenticateRequest(request, {
+      acceptsToken: "session_token",
+      authorizedParties: env.APP_ORIGIN.split(",").map((origin) => origin.trim()),
+      issuer,
+    });
+    userId = state.isAuthenticated ? state.toAuth().userId : null;
+    if (!userId) diagnose?.(state.reason ?? "session-inactive");
+  } catch (error) {
+    diagnose?.(`verification-error-${error instanceof Error ? error.name : "unknown"}`);
+    return null;
   }
-  return { account: { id: row.id, username: row.username }, refreshedCookie };
-}
-
-export async function deleteSession(db: D1Database, request: Request): Promise<void> {
-  const token = cookieValue(request, SESSION_COOKIE);
-  if (token)
-    await db
-      .prepare("DELETE FROM sessions WHERE id = ?")
-      .bind(await sessionId(token))
-      .run();
-}
-
-export function sessionCookie(token: string): string {
-  return `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1000}`;
-}
-
-export function clearedSessionCookie(): string {
-  return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
-}
-
-export function cookieValue(request: Request, name: string): string | null {
-  const header = request.headers.get("Cookie") ?? "";
-  for (const part of header.split(";")) {
-    const [k, ...v] = part.trim().split("=");
-    if (k === name) return v.join("=") || null;
+  if (!userId) return null;
+  const select = () =>
+    db
+      .prepare("SELECT id, display_name AS displayName FROM accounts WHERE clerk_user_id = ?")
+      .bind(userId)
+      .first<Account>();
+  let account = await select();
+  if (!account) {
+    await db.batch([
+      db
+        .prepare(
+          "INSERT INTO accounts (id, clerk_user_id, created_at) VALUES (?, ?, ?) ON CONFLICT(clerk_user_id) DO NOTHING",
+        )
+        .bind(crypto.randomUUID(), userId, Date.now()),
+      db
+        .prepare(
+          "INSERT INTO records (account_id) SELECT id FROM accounts WHERE clerk_user_id = ? ON CONFLICT(account_id) DO NOTHING",
+        )
+        .bind(userId),
+    ]);
+    account = await select();
   }
-  return null;
-}
-
-function randomToken(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  let s = "";
-  for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-}
-
-/** Sessions are stored by a SHA-256 of the token, so a database leak does not leak cookies. */
-async function sessionId(token: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return account ? { account } : null;
 }

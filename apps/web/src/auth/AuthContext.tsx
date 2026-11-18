@@ -1,82 +1,130 @@
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { ClerkProvider, useClerk, useAuth as useClerkAuth } from "@clerk/react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import copy from "../strings/en.json";
 
 export interface Account {
   id: string;
-  username: string;
+  displayName: string | null;
 }
-
 export type AuthMode = "signin" | "signup";
-
 interface AuthState {
-  /** undefined while loading, null when signed out. */
   account: Account | null | undefined;
-  submit: (mode: AuthMode, username: string, password: string) => Promise<string | null>;
+  configured: boolean;
+  error: string | null;
+  reload: () => Promise<void>;
+  updateDisplayName: (name: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 }
+const unavailable: AuthState = {
+  account: null,
+  configured: false,
+  error: null,
+  reload: async () => {},
+  updateDisplayName: async () => copy.signInUnavailable,
+  signOut: async () => {},
+};
+const Ctx = createContext<AuthState>(unavailable);
 
-const Ctx = createContext<AuthState | null>(null);
-
-/** The signed-in account, read from /api/me (ADR-0005 session cookie). */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [account, setAccount] = useState<Account | null | undefined>(undefined);
+  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  if (!publishableKey) return <Ctx.Provider value={unavailable}>{children}</Ctx.Provider>;
+  return (
+    <ClerkProvider
+      publishableKey={publishableKey}
+      signInUrl="/signin"
+      signUpUrl="/signup"
+      afterSignOutUrl="/"
+      appearance={{
+        elements: { formButtonPrimary: { color: "#141310" } },
+        variables: {
+          colorPrimary: "#d3a85c",
+          colorBackground: "#201e1a",
+          colorForeground: "#f2eee5",
+          colorMutedForeground: "#c5bfb3",
+        },
+      }}
+    >
+      <ManagedAuth>{children}</ManagedAuth>
+    </ClerkProvider>
+  );
+}
 
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/me", { credentials: "same-origin" })
-      .then(async (res) =>
-        res.ok ? (((await res.json()) as { account: Account | null }).account ?? null) : null,
-      )
-      .catch(() => null)
-      .then((a) => {
-        if (alive) setAccount(a);
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  /** Signs in or up; returns an error message, or null on success. */
-  const submit = useCallback(async (mode: AuthMode, username: string, password: string) => {
+function ManagedAuth({ children }: { children: ReactNode }) {
+  const { isLoaded, isSignedIn, userId } = useClerkAuth();
+  const clerk = useClerk();
+  const [profile, setProfile] = useState<{ userId: string; account: Account } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const reload = useCallback(async () => {
+    if (!isSignedIn || !userId) {
+      setProfile(null);
+      setError(null);
+      return;
+    }
+    setError(null);
     try {
-      const res = await fetch(`/api/auth/${mode}`, {
-        method: "POST",
+      const response = await fetch("/api/me", { cache: "no-store" });
+      const body = (await response.json().catch(() => null)) as {
+        account?: Account | null;
+        message?: string;
+      } | null;
+      if (!response.ok) {
+        setError(body?.message ?? copy.couldNotLoadProfile);
+        return;
+      }
+      if (!body?.account) {
+        setError(copy.couldNotVerifySignIn);
+        return;
+      }
+      setProfile({ userId, account: body.account });
+    } catch {
+      setError(copy.couldNotReachTheServerTry);
+    }
+  }, [isSignedIn, userId]);
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+  const updateDisplayName = async (displayName: string) => {
+    try {
+      const response = await fetch("/api/me/profile", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ displayName }),
       });
-      const body = (await res.json().catch(() => ({}))) as { account?: Account; message?: string };
-      if (!res.ok || !body.account) return body.message ?? copy.somethingWentWrongTryAgain;
-      setAccount(body.account);
+      const body = (await response.json()) as { account?: Account; message?: string };
+      if (!response.ok || !body.account || !userId)
+        return body.message ?? copy.somethingWentWrongTryAgain;
+      setProfile({ userId, account: body.account });
       return null;
     } catch {
       return copy.couldNotReachTheServerTry;
     }
-  }, []);
-
-  const signOut = useCallback(async () => {
-    await fetch("/api/auth/signout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    }).catch(() => undefined);
-    setAccount(null);
-  }, []);
-
-  const value = useMemo(() => ({ account, submit, signOut }), [account, submit, signOut]);
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  };
+  const account = !isLoaded
+    ? undefined
+    : !isSignedIn
+      ? null
+      : profile?.userId === userId
+        ? profile.account
+        : undefined;
+  return (
+    <Ctx.Provider
+      value={{
+        account,
+        configured: true,
+        error,
+        reload,
+        updateDisplayName,
+        signOut: async () => {
+          await clerk.signOut();
+          setProfile(null);
+        },
+      }}
+    >
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export function useAuth(): AuthState {
-  const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useAuth needs an AuthProvider");
-  return ctx;
+  return useContext(Ctx);
 }

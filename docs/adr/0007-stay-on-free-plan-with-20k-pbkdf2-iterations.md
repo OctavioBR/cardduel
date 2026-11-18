@@ -1,5 +1,7 @@
 # Launch on the Workers Free plan with 20k PBKDF2 iterations
 
+Authentication is superseded by [ADR-0008](0008-clerk-authentication-and-player-display-names.md). The decision below records the original implementation.
+
 The launch check (#57) measured production CPU time per request. At 50k PBKDF2 iterations, sign-in used 19-21 ms of CPU and sign-up 15-19 ms: about four times the laptop measurement that picked 50k, and double the Free plan's 10 ms limit. No request failed, but Cloudflare only tolerates an isolate that goes over the limit now and then. One that goes over on every request gets terminated with error 1102. We stay on the Free plan for launch and lower the count to 20k, about 8 ms, which fits. On their next successful sign-in, accounts hashed at another count are re-hashed at the current count.
 
 ## Considered Options
