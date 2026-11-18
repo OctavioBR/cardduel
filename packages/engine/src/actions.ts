@@ -48,6 +48,11 @@ export type Action =
 export interface LoggedAction {
   seat: Seat;
   action: Action;
+  /**
+   * The Room took this action for the Seat because its Turn Timer ran out (ADR-0009).
+   * Replay applies it like any other action.
+   */
+  timedOut?: true;
 }
 
 export type RejectionCode =

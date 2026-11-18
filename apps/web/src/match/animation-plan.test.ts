@@ -17,7 +17,7 @@ describe("planAnimations", () => {
       { type: "weatherCleared", cards: [card(2)] },
       { type: "roundEnded", round: 1, scores: [5, 3], winner: 0, gems: [2, 1] },
       { type: "cardsDiscarded", cards: [card(1)] },
-      { type: "passed", seat: 0, auto: false },
+      { type: "passed", seat: 0, reason: "player" },
     ];
     expect(planAnimations(events, 0).map((s) => s.kind)).toEqual([
       "enter",

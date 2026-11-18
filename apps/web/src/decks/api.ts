@@ -30,6 +30,8 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const deckApi = {
   list: (faction?: FactionId) =>
     call<{ decks: Deck[] }>(faction ? `?faction=${faction}` : "").then((r) => r.decks),
+  /** Every Deck, newest edit first, with the account's last used Deck (#108). */
+  choices: () => call<{ decks: Deck[]; lastDeckId: string | null }>(""),
   get: (id: string) => call<{ deck: Deck }>(`/${id}`).then((r) => r.deck),
   create: (faction: FactionId, name: string) =>
     call<{ deck: Deck }>("", { method: "POST", body: JSON.stringify({ faction, name }) }).then(

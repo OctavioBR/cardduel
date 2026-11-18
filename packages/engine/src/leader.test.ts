@@ -198,6 +198,6 @@ describe("active Leader abilities", () => {
     expect(after.sides[a].passed).toBe(false);
     // Leader used and hand empty: a is Passed automatically when its Turn comes back.
     const { events } = act(after, b, { type: "pass" });
-    expect(events).toContainEqual({ type: "passed", seat: a, auto: true });
+    expect(events).toContainEqual({ type: "passed", seat: a, reason: "nothingToDo" });
   });
 });

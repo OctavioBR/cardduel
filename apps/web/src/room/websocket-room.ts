@@ -1,5 +1,6 @@
 import {
   type Action,
+  CLOSE_NO_MATCH,
   CLOSE_ROOM_FULL,
   CLOSE_ROOM_NOT_FOUND,
   CLOSE_SIGNED_OUT,
@@ -115,6 +116,7 @@ export class WebSocketRoom implements RoomConnection {
           lobby: message.lobby,
           waitingCode: message.lobby.code,
           error: null,
+          turnTimer: null,
         });
         break;
       case "view":
@@ -125,6 +127,7 @@ export class WebSocketRoom implements RoomConnection {
             lobby: null,
             view: message.view,
             error: null,
+            turnTimer: message.turnTimer ?? null,
           },
           message.events,
         );
@@ -138,7 +141,12 @@ export class WebSocketRoom implements RoomConnection {
   private onClose(code: number): void {
     if (this.closedByUser) return;
     // These closes are final: retrying cannot help.
-    if (code === CLOSE_ROOM_FULL || code === CLOSE_ROOM_NOT_FOUND || code === CLOSE_SIGNED_OUT) {
+    if (
+      code === CLOSE_ROOM_FULL ||
+      code === CLOSE_ROOM_NOT_FOUND ||
+      code === CLOSE_SIGNED_OUT ||
+      code === CLOSE_NO_MATCH
+    ) {
       this.emitter.update({ status: "closed" });
       return;
     }
@@ -154,7 +162,12 @@ export class WebSocketRoom implements RoomConnection {
 
 /** The Room socket URL for the current page origin. */
 export function roomSocketUrl(code: string, origin = window.location.origin): string {
-  const url = new URL(`/api/rooms/${encodeURIComponent(code)}/ws`, origin);
+  return socketUrl(`/api/rooms/${encodeURIComponent(code)}/ws`, origin);
+}
+
+/** A WebSocket URL on the page origin. */
+export function socketUrl(path: string, origin = window.location.origin): string {
+  const url = new URL(path, origin);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   return url.toString();
 }

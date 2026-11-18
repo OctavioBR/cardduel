@@ -144,7 +144,7 @@ describe("Turns", () => {
     ({ state } = act(state, b, { type: "pass" }));
     let last: ReturnType<typeof act>["events"] = [];
     for (let i = 0; i < 9; i++) ({ state, events: last } = playCard(state, a));
-    expect(last).toContainEqual({ type: "passed", seat: a, auto: true });
+    expect(last).toContainEqual({ type: "passed", seat: a, reason: "nothingToDo" });
     expect(last.find((e) => e.type === "roundEnded")).toMatchObject({
       scores: seatScores(a, 50, 0),
       winner: a,

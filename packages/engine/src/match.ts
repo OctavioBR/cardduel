@@ -1,7 +1,7 @@
 import { type Action, actionKey, type LoggedAction, type Rejection } from "./actions";
 import { type CardDefinition, ROWS, type RowId } from "./cards";
 import { resolveChoice, settlePending } from "./choice";
-import type { MatchEvent } from "./events";
+import type { MatchEvent, PassReason } from "./events";
 import { useLeader } from "./leader";
 import { legalActions, MAX_REDRAW } from "./legal";
 import { draw, ref, resolvePlay, withStrengthEvents } from "./play";
@@ -71,8 +71,21 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
   return { state, events };
 }
 
+export interface ApplyOptions {
+  /**
+   * The Room is acting for the Seat because its Turn Timer ran out (ADR-0009). The state
+   * is the same either way; only the Pass event says why.
+   */
+  timedOut?: boolean;
+}
+
 /** Applies one action for a Seat. Rejections leave the state untouched. */
-export function applyAction(state: MatchState, seat: Seat, action: Action): ApplyResult {
+export function applyAction(
+  state: MatchState,
+  seat: Seat,
+  action: Action,
+  options: ApplyOptions = {},
+): ApplyResult {
   const rejection = validate(state, seat, action);
   if (rejection) return { ok: false, rejection };
 
@@ -84,7 +97,7 @@ export function applyAction(state: MatchState, seat: Seat, action: Action): Appl
   } else if (action.type === "redraw" || action.type === "confirmRedraw") {
     applyRedraw(next, seat, action, events);
   } else {
-    resolve(next, seat, action, events);
+    resolve(next, seat, action, events, options.timedOut ? "turnTimer" : "player");
     // The Turn ends only once every Pending Choice it raised has been made.
     if (next.pending.length === 0) afterTurn(next, seat, events);
   }
@@ -96,11 +109,17 @@ export function applyAction(state: MatchState, seat: Seat, action: Action): Appl
  * The effect of a Turn action on the battlefield, without handing on the Turn or ending
  * the Round. Play Previews run exactly this.
  */
-export function resolve(state: MatchState, seat: Seat, action: Action, events: MatchEvent[]): void {
+export function resolve(
+  state: MatchState,
+  seat: Seat,
+  action: Action,
+  events: MatchEvent[],
+  passReason: Exclude<PassReason, "nothingToDo"> = "player",
+): void {
   switch (action.type) {
     case "pass":
       state.sides[seat].passed = true;
-      events.push({ type: "passed", seat, auto: false });
+      events.push({ type: "passed", seat, reason: passReason });
       return;
     case "play":
       withStrengthEvents(state, events, () => resolvePlay(state, seat, action, events));
@@ -153,7 +172,10 @@ function applyRedraw(
   }
 }
 
-/** Rebuilds a Match from its seed and action log (ADR-0003). Throws on a rejected action. */
+/**
+ * Rebuilds a Match from its seed and action log (ADR-0003). Throws on a rejected action.
+ * Turn Timer expiries replay like any other action (ADR-0009).
+ */
 export function replay(setup: MatchSetup, log: readonly LoggedAction[]): MatchState {
   let { state } = createMatch(setup);
   for (const [i, entry] of log.entries()) {

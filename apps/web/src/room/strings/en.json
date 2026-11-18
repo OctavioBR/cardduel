@@ -7,5 +7,16 @@
   "disconnectLost": "You lost because you stayed disconnected.",
   "rematchDeclined": "Rematch declined. Your opponent left the Room.",
   "rematchWaiting": "Rematch offered. Waiting for your opponent.",
-  "rematchOffer": "Your opponent offered a Rematch. Choose Rematch to accept."
+  "rematchOffer": "Your opponent offered a Rematch. Choose Rematch to accept.",
+  "withTurnTimer": "{room} · Turn Timer {time}",
+  "matchFound": "Match found",
+  "waitingToConnect": "Waiting for your opponent to connect…",
+  "takingSeat": "Taking your Seat…",
+  "noMatch": "No Match",
+  "findAnotherMatch": "Find another Match",
+  "home": "Home",
+  "searchStopped": "The search stopped. Find a Match to try again.",
+  "turnTimerYou": "Your time {time}",
+  "turnTimerOpponent": "Opponent's time {time}",
+  "turnTimerWarning": "10 seconds left on your Turn Timer."
 }

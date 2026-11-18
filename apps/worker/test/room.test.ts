@@ -1,5 +1,12 @@
 import { env, evictDurableObject, runInDurableObject, SELF } from "cloudflare:test";
-import { CLOSE_ROOM_FULL, CLOSE_SIGNED_OUT, type SeatView } from "@card-duel/engine";
+import {
+  CLOSE_ROOM_FULL,
+  CLOSE_SIGNED_OUT,
+  type LoggedAction,
+  type MatchEvent,
+  type SeatView,
+  type TurnTimerInfo,
+} from "@card-duel/engine";
 import { describe, expect, it, vi } from "vitest";
 import { DISCONNECT_GRACE_MS, ROOM_IDLE_MS } from "../src/room";
 import { ROOM_CODE_ALPHABET } from "../src/room-code";
@@ -18,13 +25,23 @@ interface Seated {
   cookies: [string, string];
   sockets: [TestSocket, TestSocket];
   views: [SeatView, SeatView];
+  /** The Turn Timer deadlines each Seat last received. */
+  timers?: [TurnTimerInfo | undefined, TurnTimerInfo | undefined];
+  /** The events each Seat last received. */
+  events?: [MatchEvent[], MatchEvent[]];
 }
 
-/** Two accounts take Seats with their Starter Decks, then both keep their opening hands. */
-async function seatBoth(competitive = false): Promise<Seated> {
+/**
+ * Two accounts take Seats with their Starter Decks, then both keep their opening hands
+ * (unless `redraw` is false, which stops at Redraw).
+ */
+async function seatBoth(
+  competitive = false,
+  { turnTimer = null, redraw = true }: { turnTimer?: number | null; redraw?: boolean } = {},
+): Promise<Seated> {
   const cookies: [string, string] = [await newPlayer(), await newPlayer()];
   const decks = [await starterDeck(cookies[0], "swarm"), await starterDeck(cookies[1], "court")];
-  const code = await createRoom(cookies[0], competitive);
+  const code = await createRoom(cookies[0], competitive, turnTimer);
   const a = await TestSocket.open(code, cookies[0]);
   expect(await a.nextLobby()).toMatchObject({ code, seat: 0, opponent: { present: false } });
   const b = await TestSocket.open(code, cookies[1]);
@@ -34,7 +51,9 @@ async function seatBoth(competitive = false): Promise<Seated> {
   b.takeSeat(decks[1] as string);
   const [ma, mb] = await Promise.all([a.nextView(), b.nextView()]);
   const room: Seated = { code, cookies, sockets: [a, b], views: [ma.view, mb.view] };
+  room.timers = [ma.turnTimer, mb.turnTimer];
   expect(room.views[0].phase).toBe("redraw");
+  if (!redraw) return room;
   await play(room, 0, { type: "confirmRedraw" });
   await play(room, 1, { type: "confirmRedraw" });
   expect(room.views[0].phase).toBe("turns");
@@ -50,8 +69,14 @@ function mover(views: [SeatView, SeatView]): 0 | 1 {
 
 async function play(room: Seated, i: 0 | 1, action = firstPlay(room.views[i])): Promise<void> {
   room.sockets[i].send(room.views[i].actionCount, action);
+  await nextViews(room);
+}
+
+async function nextViews(room: Seated): Promise<void> {
   const [ma, mb] = await Promise.all([room.sockets[0].nextView(), room.sockets[1].nextView()]);
   room.views = [ma.view, mb.view];
+  room.timers = [ma.turnTimer, mb.turnTimer];
+  room.events = [ma.events, mb.events];
 }
 
 function closeAll(room: Seated): void {
@@ -501,4 +526,104 @@ it("ends pre-Clerk Rooms without writing their Matches into fresh account data",
       .results,
   ).toHaveLength(0);
   closeAll(room);
+});
+
+describe("Turn Timer", () => {
+  async function post(body: unknown) {
+    return SELF.fetch(`${BASE}/api/rooms`, {
+      method: "POST",
+      headers: { Cookie: await newPlayer(), Origin: BASE, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  /** Runs the Room's alarm as if `ms` had passed. */
+  async function alarmAfter(room: Seated, ms: number): Promise<void> {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + ms);
+    try {
+      await runInDurableObject(env.ROOMS.getByName(room.code), (instance) => instance.alarm());
+    } finally {
+      clock.mockRestore();
+    }
+  }
+
+  it("a created Room's Turn Timer lasts 30 to 600 whole seconds, or is off", async () => {
+    for (const turnTimer of [29, 601, 90.5, "120", true])
+      expect((await post({ turnTimer })).status).toBe(400);
+    for (const turnTimer of [30, 600, null]) {
+      const res = await post({ turnTimer });
+      expect(res.status).toBe(201);
+      expect(await res.json()).toMatchObject({ turnTimer });
+    }
+  });
+
+  it("shows in the lobby, and both Seats see both countdowns", async () => {
+    const cookie = await newPlayer();
+    const code = await createRoom(cookie, false, 45);
+    const socket = await TestSocket.open(code, cookie);
+    expect(await socket.nextLobby()).toMatchObject({ turnTimer: 45, matched: false });
+    socket.close();
+
+    const room = await seatBoth(false, { turnTimer: 45, redraw: false });
+    const [a, b] = room.timers ?? [];
+    // Redraw: each Seat has its own countdown, since both act at once.
+    expect(a?.you).toBeTypeOf("number");
+    expect(a?.opponent).toBe(b?.you);
+    expect((a?.you ?? 0) - (a?.serverNow ?? 0)).toBeLessThanOrEqual(45_000);
+    await play(room, 0, { type: "confirmRedraw" });
+    expect(room.timers?.[0]?.you).toBeNull();
+    expect(room.timers?.[1]?.you).toBe(b?.you);
+    await play(room, 1, { type: "confirmRedraw" });
+    const i = mover(room.views);
+    expect(room.timers?.[i]?.you).toBeTypeOf("number");
+    expect(room.timers?.[i === 0 ? 1 : 0]?.you).toBeNull();
+    closeAll(room);
+  });
+
+  it("on expiry keeps the hand in Redraw, then Passes on a Turn, logged as timed out", async () => {
+    const room = await seatBoth(false, { turnTimer: 30, redraw: false });
+    await alarmAfter(room, 30_001);
+    // Each Seat's Redraw was confirmed for it, one view per expiry.
+    await nextViews(room);
+    await nextViews(room);
+    expect(room.views[0].phase).toBe("turns");
+    const i = mover(room.views);
+    await alarmAfter(room, 2 * 30_001);
+    await nextViews(room);
+    expect(room.events?.[i === 0 ? 1 : 0]).toContainEqual({
+      type: "passed",
+      seat: i,
+      reason: "turnTimer",
+    });
+    expect(room.views[i].you.passed).toBe(true);
+    const log = await runInDurableObject(env.ROOMS.getByName(room.code), (_instance, ctx) =>
+      ctx.storage.get<LoggedAction[]>("log"),
+    );
+    expect(log?.map((entry) => entry.timedOut)).toEqual([true, true, true]);
+    expect(log?.at(-1)).toMatchObject({ seat: i, action: { type: "pass" } });
+    closeAll(room);
+  });
+
+  it("restarts after each action by the player who must act", async () => {
+    const room = await seatBoth(false, { turnTimer: 60 });
+    const i = mover(room.views);
+    const before = room.timers?.[i]?.you ?? 0;
+    await new Promise((r) => setTimeout(r, 5));
+    await play(room, i);
+    const j = mover(room.views);
+    if (j === i) expect(room.timers?.[i]?.you).toBeGreaterThan(before);
+    else expect(room.timers?.[j]?.you).toBeGreaterThan(before);
+    closeAll(room);
+  });
+
+  it("Rooms created without it never act for a player", async () => {
+    const room = await seatBoth();
+    expect(room.timers).toEqual([undefined, undefined]);
+    const i = mover(room.views);
+    await alarmAfter(room, 10 * 60 * 1000);
+    room.sockets[i].send(room.views[i].actionCount, { type: "pass" });
+    await nextViews(room);
+    expect(room.events?.[i]).toContainEqual({ type: "passed", seat: i, reason: "player" });
+    closeAll(room);
+  });
 });

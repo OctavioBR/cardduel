@@ -1,4 +1,4 @@
-import type { Action, RowId, SeatView } from "@card-duel/engine";
+import type { Action, RowId, SeatView, TurnTimerInfo } from "@card-duel/engine";
 import { ROWS } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
 import { type MouseEvent, useEffect, useRef, useState } from "react";
@@ -23,6 +23,7 @@ import { Overlay } from "./Overlay";
 import { Piles } from "./Piles";
 import { PlayerPanel } from "./PlayerPanel";
 import { previewEffects } from "./preview-effects";
+import { TurnTimers } from "./TurnTimer";
 import { playableCards, type Target, targetsFor } from "./targets";
 import { useCardDrag } from "./useCardDrag";
 import { type EventBatch, useEventAnimations } from "./useEventAnimations";
@@ -38,6 +39,8 @@ export interface MatchBoardProps {
   onRematch?: (() => void) | undefined;
   /** Where a Rematch stands, shown in the Match end dialog. */
   rematchStatus?: string | null | undefined;
+  /** Turn Timer deadlines, in a Room that has one (#109). */
+  turnTimer?: TurnTimerInfo | null | undefined;
 }
 
 /** How long "Confirm Pass" waits for the second press. */
@@ -67,6 +70,7 @@ export function MatchBoard({
   onLeave,
   onRematch,
   rematchStatus,
+  turnTimer,
 }: MatchBoardProps) {
   // A selection belongs to one view: a new view (new action count) clears it.
   const [selection, setSelection] = useState<{ uid: number; at: number } | null>(null);
@@ -334,6 +338,7 @@ export function MatchBoard({
             {view.round}
           </div>
           <TurnLabel view={view} />
+          {view.phase !== "ended" ? <TurnTimers timer={turnTimer} /> : null}
           {lastAction && view.phase !== "redraw" ? (
             <div className="last-action" role="status" data-testid="last-action">
               {lastAction}

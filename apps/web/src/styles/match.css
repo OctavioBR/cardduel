@@ -699,6 +699,17 @@ button.danger {
 .rematch-status {
   font-weight: 700;
 }
+.turn-timers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.turn-timer.urgent {
+  color: var(--cd-warning);
+  font-weight: 800;
+}
 .last-action {
   max-width: 100%;
   color: var(--cd-text);

@@ -26,8 +26,8 @@ const actor = started.turn as Seat;
 const other: Seat = actor === 0 ? 1 : 0;
 
 /** Applies the actor's action and describes it from each Seat. */
-function describeFromBothSeats(action: Action) {
-  const result = applyAction(started, actor, action);
+function describeFromBothSeats(action: Action, timedOut = false) {
+  const result = applyAction(started, actor, action, { timedOut });
   if (!result.ok) throw new Error(result.rejection.message);
   return [actor, other].map((seat) =>
     lastActionText(filterEvents(result.events, seat), seat, viewFor(result.state, seat)),
@@ -52,6 +52,13 @@ describe("lastActionText", () => {
     expect(describeFromBothSeats({ type: "pass" })).toEqual([
       "You Passed.",
       "Your opponent Passed.",
+    ]);
+  });
+
+  it("says when the Turn Timer ran out", () => {
+    expect(describeFromBothSeats({ type: "pass" }, true)).toEqual([
+      "Time ran out. You Passed.",
+      "Time ran out. Your opponent Passed.",
     ]);
   });
 

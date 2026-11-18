@@ -23,7 +23,7 @@ export function beginTurn(state: MatchState, seat: Seat, events: MatchEvent[]): 
   const side = state.sides[seat];
   if (!side.passed && side.hand.length === 0 && !leaderUsable(state, seat)) {
     side.passed = true;
-    events.push({ type: "passed", seat, auto: true });
+    events.push({ type: "passed", seat, reason: "nothingToDo" });
     afterTurn(state, seat, events);
   }
 }

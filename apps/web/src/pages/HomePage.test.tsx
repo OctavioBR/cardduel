@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { AuthProvider } from "../auth/AuthContext";
 import { HomePage } from "./HomePage";
 
-it("offers to create a Room and to join one by code", () => {
+it("offers Find a Match, then a Room row to create one or join by code", () => {
   const router = createMemoryRouter([
     {
       path: "/",
@@ -17,6 +17,8 @@ it("offers to create a Room and to join one by code", () => {
   ]);
   const html = renderToStaticMarkup(<RouterProvider router={router} />);
   expect(html).toContain("Card Duel");
-  expect(html).toContain("Create Room");
-  expect(html).toContain("Room code");
+  expect(html.indexOf("Find a Match")).toBeLessThan(html.indexOf("Create Room"));
+  expect(html.indexOf("Create Room")).toBeLessThan(html.indexOf("Room code"));
+  // Nothing to play with until the Decks load.
+  expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Find a Match</);
 });

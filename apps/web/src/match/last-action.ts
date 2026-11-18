@@ -5,7 +5,7 @@ import copy from "../strings/en.json";
 
 /**
  * The Turn a batch of events records, as one line from the Seat's point of view: a card
- * Played, a Leader ability used or a Pass. Null when the batch holds none (a Redraw, say),
+ * Played, a Leader ability used or a Pass (saying so when the Turn Timer ran out). Null when the batch holds none (a Redraw, say),
  * so the board keeps showing the previous one.
  */
 export function lastActionText(
@@ -28,8 +28,12 @@ export function lastActionText(
         leader: cardName(leader),
       });
     }
-    if (e.type === "passed")
-      return e.seat === seat ? copy.lastActionYouPassed : copy.lastActionOpponentPassed;
+    if (e.type === "passed") {
+      const mine = e.seat === seat;
+      if (e.reason === "turnTimer")
+        return mine ? copy.lastActionYouTimedOut : copy.lastActionOpponentTimedOut;
+      return mine ? copy.lastActionYouPassed : copy.lastActionOpponentPassed;
+    }
   }
   return null;
 }
