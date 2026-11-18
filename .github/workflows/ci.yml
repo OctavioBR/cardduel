@@ -46,8 +46,6 @@ jobs:
           retention-days: 7
 
   deploy-gate:
-    # Deploys need the Cloudflare secrets from #6. Until they exist, merges skip the deploy
-    # instead of failing main.
     needs: [check, e2e]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -67,8 +65,6 @@ jobs:
           fi
 
   deploy:
-    # Production deploy on merge to main, after every check passes. No per-PR previews:
-    # they would share production's D1 and Room state.
     needs: deploy-gate
     if: needs.deploy-gate.outputs.enabled == 'true'
     runs-on: ubuntu-latest
