@@ -2,7 +2,7 @@
 
 ## Content
 
-Name every card, Faction and UI concept from `GLOSSARY.md`; the README's naming is historical. `assets/` is reference only: never ship it or derive card content from it.
+Name every card, Faction and UI concept from `GLOSSARY.md`. `assets/` is reference only: never ship it or derive card content from it.
 
 ## Before pushing
 

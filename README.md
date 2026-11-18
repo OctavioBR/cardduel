@@ -1,2 +1,3 @@
-# gwent
-Witcher's III card minigame (Grok boardgame version)
+# cardduel
+
+An online two-player card game played over rounds on a three-row battlefield.
