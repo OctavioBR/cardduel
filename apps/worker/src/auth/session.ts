@@ -1,4 +1,5 @@
 import { createClerkClient } from "@clerk/backend";
+import { starterDeck } from "../starter-decks";
 
 // Intersect with generated bindings so local .dev.vars inference may also declare these keys.
 type ClerkEnv = Env & { CLERK_SECRET_KEY?: string; CLERK_JWT_KEY?: string };
@@ -61,17 +62,36 @@ export async function readSession(
       .first<Account>();
   let account = await select();
   if (!account) {
+    const accountId = crypto.randomUUID();
+    const now = Date.now();
     await db.batch([
       db
         .prepare(
           "INSERT INTO accounts (id, clerk_user_id, created_at) VALUES (?, ?, ?) ON CONFLICT(clerk_user_id) DO NOTHING",
         )
-        .bind(crypto.randomUUID(), userId, Date.now()),
+        .bind(accountId, userId, now),
       db
         .prepare(
           "INSERT INTO records (account_id) SELECT id FROM accounts WHERE clerk_user_id = ? ON CONFLICT(account_id) DO NOTHING",
         )
         .bind(userId),
+      ...(["swarm", "court"] as const).map((faction) => {
+        const deck = starterDeck(faction);
+        return db
+          .prepare(
+            "INSERT INTO decks (id, account_id, name, faction, leader, cards, updated_at) SELECT ?, id, ?, ?, ?, ?, ? FROM accounts WHERE id = ?",
+          )
+          .bind(
+            crypto.randomUUID(),
+            deck.name,
+            deck.faction,
+            deck.leader,
+            JSON.stringify(deck.cards),
+            now,
+            // Only the request that inserted this account seeds its Starter Decks.
+            accountId,
+          );
+      }),
     ]);
     account = await select();
   }

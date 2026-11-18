@@ -34,7 +34,7 @@ describe("Clerk authentication", () => {
     }
   });
 
-  it("creates one game profile and Record per verified identity under concurrent retries", async () => {
+  it("creates one game profile, Record and Starter Deck per Faction under concurrent retries", async () => {
     const cookie = `__clerk_db_jwt=fixture; __client_uat=1; __session=${await sessionToken("user_race", BASE)}`;
     const responses = await Promise.all([me(cookie), me(cookie), me(cookie)]);
     const bodies = await Promise.all(responses.map((response) => response.json()));
@@ -47,6 +47,16 @@ describe("Clerk authentication", () => {
       ).first(),
     ).toEqual({ n: 1 });
     expect(await env.DB.prepare("SELECT COUNT(*) AS n FROM records").first()).toEqual({ n: 1 });
+    expect(
+      (
+        await env.DB.prepare(
+          "SELECT faction, COUNT(*) AS n FROM decks GROUP BY faction ORDER BY faction",
+        ).all()
+      ).results,
+    ).toEqual([
+      { faction: "court", n: 1 },
+      { faction: "swarm", n: 1 },
+    ]);
   });
   it("rejects missing, forged, expired, wrong-issuer and wrong-origin tokens", async () => {
     const valid = await sessionToken("user_rejected", BASE);

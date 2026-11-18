@@ -1,34 +1,14 @@
 import { expect, type Page, test } from "@playwright/test";
 import { keepHand, signUpFromSignIn, signUpVia, uniqueName } from "./board";
 
-async function copyStarter(page: Page, faction: "swarm" | "court") {
-  await page.waitForFunction(async () => {
-    const response = await fetch("/api/me", { credentials: "same-origin" });
-    return response.ok && !!((await response.json()) as { account?: unknown }).account;
-  });
-  const status = await page.evaluate(
-    async (f) =>
-      (
-        await fetch("/api/decks/copy-starter", {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ faction: f }),
-        })
-      ).status,
-    faction,
-  );
-  expect(status).toBe(201);
-  // Home lists Decks when it loads.
-  await page.reload();
-}
-
-test("two accounts take Seats with real Decks and start a Match", async ({ browser }) => {
+test("new players take Seats with their seeded Starter Decks and start a Match", async ({
+  browser,
+}) => {
   const alice = await (await browser.newContext()).newPage();
   const bob = await (await browser.newContext()).newPage();
 
   await signUpVia(alice, uniqueName("alice"));
-  await copyStarter(alice, "swarm");
+  await alice.getByLabel("Deck", { exact: true }).selectOption({ label: "Swarm Starter · Swarm" });
   await alice.getByRole("button", { name: "Create Room" }).click();
   await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
   const code = alice.url().split("/").pop() ?? "";
@@ -36,7 +16,7 @@ test("two accounts take Seats with real Decks and start a Match", async ({ brows
   await expect(alice.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
 
   await signUpVia(bob, uniqueName("bob"));
-  await copyStarter(bob, "court");
+  await bob.getByLabel("Deck", { exact: true }).selectOption({ label: "Court Starter · Court" });
   await bob.getByLabel("Room code").fill(code.toLowerCase());
   await bob.getByRole("button", { name: "Join" }).click();
   await expect(bob).toHaveURL(new RegExp(`/r/${code}$`));
@@ -54,14 +34,13 @@ test("a third player sees Room full", async ({ browser }) => {
   );
   const [first, second, third] = pages as [Page, Page, Page];
   await signUpVia(first, uniqueName("first"));
-  await copyStarter(first, "swarm");
+  await first.getByLabel("Deck", { exact: true }).selectOption({ label: "Swarm Starter · Swarm" });
   await first.getByRole("button", { name: "Create Room" }).click();
   await expect(first).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
   await expect(first.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
   const url = first.url();
   await second.goto(url);
   await signUpFromSignIn(second, uniqueName("second"));
-  await copyStarter(second, "court");
   await second.reload();
   await second.getByRole("button", { name: /Court Starter/ }).click();
   await expect(second.getByTestId("board")).toBeVisible();
@@ -75,7 +54,7 @@ test("a signed-out player opens a Room link, is sent to sign in, signs up and la
 }) => {
   const host = await (await browser.newContext()).newPage();
   await signUpVia(host, uniqueName("host"));
-  await copyStarter(host, "swarm");
+  await host.getByLabel("Deck", { exact: true }).selectOption({ label: "Swarm Starter · Swarm" });
   await host.getByRole("button", { name: "Create Room" }).click();
   await expect(host).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
   await expect(host.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
@@ -86,7 +65,6 @@ test("a signed-out player opens a Room link, is sent to sign in, signs up and la
   await expect(guest).toHaveURL(/\/signin\?next=%2Fr%2F[2-9A-Z]{6}$/);
   await signUpFromSignIn(guest, uniqueName("guest"));
   await expect(guest).toHaveURL(url);
-  await copyStarter(guest, "court");
   await guest.reload();
   await guest.getByRole("button", { name: /Court Starter/ }).click();
   await expect(guest.getByTestId("board")).toBeVisible();
@@ -109,13 +87,12 @@ test("Rematch offer, acceptance with last Deck selected, and leaving decline", a
   const alice = await (await browser.newContext()).newPage();
   const bob = await (await browser.newContext()).newPage();
   await signUpVia(alice, uniqueName("rematcha"));
-  await copyStarter(alice, "swarm");
+  await alice.getByLabel("Deck", { exact: true }).selectOption({ label: "Swarm Starter · Swarm" });
   await alice.getByRole("button", { name: "Create Room" }).click();
   await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
   const url = alice.url();
   await expect(alice.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
   await signUpVia(bob, uniqueName("rematchb"));
-  await copyStarter(bob, "court");
   await bob.goto(url);
   await bob.getByRole("button", { name: /Court Starter/ }).click();
   async function forfeit() {

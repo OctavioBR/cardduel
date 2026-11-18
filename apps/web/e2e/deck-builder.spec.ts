@@ -80,7 +80,22 @@ test("drag adds a card from the pool and removes it back", async ({ page }) => {
   await expect(page.getByTestId("count-units")).toHaveText("0/22");
 });
 
-test("Copy a Starter Deck gives a Competitive Deck; filters narrow the pool", async ({ page }) => {
+test("new players have a Competitive Starter Deck for each Faction after signing up", async ({
+  page,
+}) => {
+  await signUpVia(page, uniqueName("seeded"), "/decks");
+  for (const faction of ["Swarm", "Court"]) {
+    await page.getByRole("tab", { name: faction, exact: true }).click();
+    await expect(page.locator(".deck-list li")).toHaveCount(1);
+    await page.getByRole("link", { name: `${faction} Starter`, exact: true }).click();
+    await expect(page.getByTestId("deck-status")).toHaveText("Competitive Deck");
+    await page.goto("/decks");
+  }
+});
+
+test("Copy a Starter Deck gives an additional Competitive Deck; filters narrow the pool", async ({
+  page,
+}) => {
   await signUpVia(page, uniqueName("starter"), "/decks");
   await page.getByRole("tab", { name: "Court" }).click();
   await page.getByRole("button", { name: "Copy a Starter Deck" }).click();
