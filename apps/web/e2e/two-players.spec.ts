@@ -25,10 +25,10 @@ interface Seen {
   scorch: boolean;
 }
 
-async function copyStarterDeck(page: Page, faction: "Swarm" | "Court"): Promise<void> {
+async function openStarterDeck(page: Page, faction: "Swarm" | "Court"): Promise<void> {
   await page.goto("/decks");
   await page.getByRole("tab", { name: faction }).click();
-  await page.getByRole("button", { name: "Copy a Starter Deck" }).click();
+  await page.getByRole("link", { name: `${faction} Starter`, exact: true }).click();
   await expect(page.getByTestId("deck-status")).toHaveText("Competitive Deck");
 }
 
@@ -127,12 +127,15 @@ test("two players: Decks, Competitive Room, Redraw, Scorch, Medic, Match end and
     const alice = await a.newPage();
     const bob = await b.newPage();
     await signUpVia(alice, uniqueName("alice"), "/decks");
-    await copyStarterDeck(alice, "Swarm");
+    await openStarterDeck(alice, "Swarm");
     await signUpVia(bob, uniqueName("bob"), "/decks");
-    await copyStarterDeck(bob, "Court");
+    await openStarterDeck(bob, "Court");
 
     await alice.goto("/");
     await alice.getByLabel("Competitive Room").check();
+    await alice
+      .getByLabel("Deck", { exact: true })
+      .selectOption({ label: "Swarm Starter · Swarm" });
     await alice.getByRole("button", { name: "Create Room" }).click();
     await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
     const url = alice.url();

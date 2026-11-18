@@ -32,7 +32,7 @@ A Deck that meets the base limits: exactly one Leader, at least 22 Unit Cards, a
 _Avoid_: legal deck, complete deck
 
 **Starter Deck**:
-The predefined Deck offered for each Faction as a quick way to start; a player copies it into their own Decks.
+The predefined Deck offered for each Faction as a quick way to start. New players receive one copy per Faction and may copy more into their own Decks.
 _Avoid_: base deck, default deck, pre-constructed deck
 
 **Competitive Deck**:

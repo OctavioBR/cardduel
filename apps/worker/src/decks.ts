@@ -9,6 +9,7 @@ import type { FactionId } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
 import type { Account } from "./auth/session";
 import { json } from "./http";
+import { starterDeck } from "./starter-decks";
 import copy from "./strings/en.json";
 
 const FACTIONS: FactionId[] = ["swarm", "court"];
@@ -167,14 +168,9 @@ export async function handleDecks(
     const body = await readDeckBody(request);
     if (body instanceof Response) return body;
     if (!body.faction) return badRequest(copy.chooseAFaction);
-    const starter = catalog().starterDecks[body.faction];
     return insertDeck(db, account, {
-      name:
-        body.name ??
-        formatCopy(copy.starter, { p0: body.faction === "swarm" ? copy.swarm : copy.court }),
-      faction: body.faction,
-      leader: starter.leader,
-      cards: [...starter.cards],
+      ...starterDeck(body.faction),
+      ...(body.name !== undefined ? { name: body.name } : {}),
     });
   }
 

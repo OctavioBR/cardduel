@@ -1,7 +1,8 @@
-import { SELF } from "cloudflare:test";
+import { env, SELF } from "cloudflare:test";
+import { CURRENT_CATALOG_VERSION, getCatalog } from "@card-duel/catalog";
 import { describe, expect, it } from "vitest";
 import type { DeckJson } from "../src/decks";
-import { newIdentity } from "./identity";
+import { newIdentity, sessionToken } from "./identity";
 
 const BASE = "https://card-duel.test";
 const newPlayer = newIdentity;
@@ -25,6 +26,53 @@ async function deckOf(res: Response): Promise<DeckJson> {
 describe("Deck API", () => {
   it("requires a signed-in session", async () => {
     expect((await SELF.fetch(`${BASE}/api/decks`)).status).toBe(401);
+  });
+
+  it("gives a new player one current Starter Deck per Faction", async () => {
+    const me = await newPlayer();
+    const { decks } = (await (await api(me, "")).json()) as { decks: DeckJson[] };
+    expect(decks).toHaveLength(2);
+    expect(new Set(decks.map((deck) => deck.id)).size).toBe(2);
+    if (!CURRENT_CATALOG_VERSION) throw new Error("No catalog version");
+    const catalog = getCatalog(CURRENT_CATALOG_VERSION);
+    for (const faction of ["swarm", "court"] as const) {
+      expect(decks.find((deck) => deck.faction === faction)).toMatchObject({
+        ...catalog.starterDecks[faction],
+        name: faction === "swarm" ? "Swarm Starter" : "Court Starter",
+        catalogVersion: CURRENT_CATALOG_VERSION,
+        problems: { valid: [], competitive: [] },
+      });
+    }
+    expect(((await (await api(me, "")).json()) as { decks: DeckJson[] }).decks).toEqual(decks);
+  });
+
+  it("keeps Starter Deck edits and deletions across later authenticated requests", async () => {
+    const me = await newPlayer();
+    const { decks } = (await (await api(me, "")).json()) as { decks: DeckJson[] };
+    const swarm = decks.find((deck) => deck.faction === "swarm") as DeckJson;
+    const court = decks.find((deck) => deck.faction === "court") as DeckJson;
+    const edited = await deckOf(
+      await api(me, `/${swarm.id}`, "PUT", { name: "My Swarm", cards: [] }),
+    );
+    expect((await api(me, `/${court.id}`, "DELETE")).status).toBe(204);
+    expect(((await (await api(me, "")).json()) as { decks: DeckJson[] }).decks).toEqual([edited]);
+    expect((await api(me, `/${swarm.id}`, "DELETE")).status).toBe(204);
+    expect(((await (await api(me, "")).json()) as { decks: DeckJson[] }).decks).toEqual([]);
+  });
+
+  it("does not seed Starter Decks for an existing account without Decks", async () => {
+    const userId = `user_${crypto.randomUUID()}`;
+    await env.DB.prepare(
+      "INSERT INTO accounts (id, clerk_user_id, display_name, created_at) VALUES (?, ?, 'Player', 0)",
+    )
+      .bind(crypto.randomUUID(), userId)
+      .run();
+    const token = await sessionToken(userId, BASE);
+    const cookie = `__clerk_db_jwt=fixture; __client_uat=1; __session=${token}`;
+    const response = await api(cookie, "");
+    expect(response.status).toBe(200);
+    const { decks } = (await response.json()) as { decks: DeckJson[] };
+    expect(decks).toEqual([]);
   });
 
   it("creates an incomplete Deck and reports its Valid Deck problems", async () => {
@@ -57,9 +105,9 @@ describe("Deck API", () => {
     await api(me, "/copy-starter", "POST", { faction: "swarm", name: "Two" });
     await api(me, "/copy-starter", "POST", { faction: "court", name: "Three" });
     const swarm = (await (await api(me, "?faction=swarm")).json()) as { decks: DeckJson[] };
-    expect(swarm.decks.map((d) => d.name)).toEqual(["Two", "One"]);
+    expect(swarm.decks.map((d) => d.name)).toEqual(["Two", "One", "Swarm Starter"]);
     const all = (await (await api(me, "")).json()) as { decks: DeckJson[] };
-    expect(all.decks).toHaveLength(3);
+    expect(all.decks).toHaveLength(5);
   });
 
   it("updates name, Leader and cards; reports Competitive problems as warnings", async () => {
@@ -105,7 +153,9 @@ describe("Deck API", () => {
     expect((await api(other, `/${deck.id}`)).status).toBe(404);
     expect((await api(other, `/${deck.id}`, "PUT", { name: "Stolen" })).status).toBe(404);
     expect((await api(other, `/${deck.id}`, "DELETE")).status).toBe(404);
-    expect(((await (await api(other, "")).json()) as { decks: DeckJson[] }).decks).toEqual([]);
+    const othersDecks = ((await (await api(other, "")).json()) as { decks: DeckJson[] }).decks;
+    expect(othersDecks).toHaveLength(2);
+    expect(othersDecks.map((d) => d.id)).not.toContain(deck.id);
     expect(await deckOf(await api(owner, `/${deck.id}`))).toMatchObject({ name: deck.name });
   });
 });

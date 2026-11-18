@@ -1,16 +1,12 @@
 import { expect, type Page, test } from "@playwright/test";
 import { keepHand, signUpVia, uniqueName } from "./board";
 
-/** Copies a Starter Deck through the API, then reloads Home so it lists the Deck. */
+/** Selects one of the player's seeded Starter Decks on Home. */
 async function starter(page: Page, faction: "swarm" | "court"): Promise<string> {
-  const response = await page.request.post("/api/decks/copy-starter", {
-    data: { faction },
-    headers: { Origin: new URL(page.url()).origin },
-  });
-  expect(response.status()).toBe(201);
-  const { deck } = (await response.json()) as { deck: { id: string } };
-  await page.reload();
-  return deck.id;
+  const picker = page.getByLabel("Deck", { exact: true });
+  const name = faction === "swarm" ? "Swarm" : "Court";
+  await picker.selectOption({ label: `${name} Starter · ${name}` });
+  return picker.inputValue();
 }
 
 for (const competitive of [false, true]) {
@@ -30,14 +26,13 @@ for (const competitive of [false, true]) {
       await expect(host.getByTestId("record-draws")).toHaveText("0");
       await expect(host.getByTestId("record-disconnectWins")).toHaveText("0");
       await expect(host.getByTestId("record-disconnectLosses")).toHaveText("0");
-      // No Decks yet: nothing to play with.
-      await expect(host.getByRole("link", { name: "Create your first Deck" })).toBeVisible();
-      await expect(host.getByRole("button", { name: "Find a Match" })).toBeDisabled();
-      await expect(host.getByRole("button", { name: "Create Room" })).toBeDisabled();
+      await expect(host.getByRole("button", { name: "Find a Match" })).toBeEnabled();
+      await expect(host.getByRole("button", { name: "Create Room" })).toBeEnabled();
       await starter(host, "swarm");
       await host.getByRole("main").getByRole("link", { name: "My Decks" }).click();
       await expect(host).toHaveURL(/\/decks$/);
       await host.goto("/");
+      await starter(host, "swarm");
       await expect(host.getByLabel("Deck", { exact: true })).toHaveValue(/.+/);
       await host.getByLabel("Competitive Room").setChecked(competitive);
       await host.getByRole("button", { name: "Create Room" }).click();
@@ -67,6 +62,25 @@ for (const competitive of [false, true]) {
     }
   });
 }
+
+test("Home offers Deck creation and disables play after all Decks are deleted", async ({
+  page,
+}) => {
+  await signUpVia(page, uniqueName("empty"));
+  const response = await page.request.get("/api/decks");
+  expect(response.ok()).toBe(true);
+  const { decks } = (await response.json()) as { decks: { id: string }[] };
+  for (const deck of decks) {
+    const deleted = await page.request.delete(`/api/decks/${deck.id}`, {
+      headers: { Origin: new URL(page.url()).origin },
+    });
+    expect(deleted.status()).toBe(204);
+  }
+  await page.reload();
+  await expect(page.getByRole("link", { name: "Create your first Deck" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Find a Match" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Create Room" })).toBeDisabled();
+});
 
 test("Competitive toggles turn off and stay off while the Deck is not a Competitive Deck", async ({
   page,
@@ -179,9 +193,16 @@ test("Home refreshes Records after a Forfeit", async ({ browser }) => {
     }
     await alice.getByRole("button", { name: "Create Room" }).click();
     await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
+    await bob.reload();
+    const bobDefault = await bob
+      .getByLabel("Deck", { exact: true })
+      .locator("option:checked")
+      .textContent();
     await bob.goto(alice.url());
     // Opening a shared link keeps the Room's Deck picker, with the default Deck preselected.
-    const bobDeck = bob.getByRole("button", { name: /Swarm Starter/ });
+    const bobDeck = bob.getByRole("button", {
+      name: bobDefault?.startsWith("Swarm") ? /Swarm Starter/ : /Court Starter/,
+    });
     await expect(bobDeck).toHaveAttribute("aria-pressed", "true");
     await bobDeck.click();
     await expect(alice.getByTestId("board")).toBeVisible();
