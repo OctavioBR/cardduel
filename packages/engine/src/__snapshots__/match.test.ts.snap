@@ -136,12 +136,12 @@ exports[`replay > matches a recorded fixture of events 1`] = `
     "zone": "ranged",
   },
   {
-    "auto": false,
+    "reason": "player",
     "seat": 0,
     "type": "passed",
   },
   {
-    "auto": false,
+    "reason": "player",
     "seat": 1,
     "type": "passed",
   },

@@ -24,10 +24,11 @@ test("opponent disconnect countdown leads to a real Disconnect Win after server 
         ).status(),
       ).toBe(201);
     }
+    await alice.reload();
     await alice.getByRole("button", { name: "Create Room" }).click();
     await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
+    await expect(alice.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
     await bob.goto(alice.url());
-    await alice.getByRole("button", { name: /Swarm Starter/ }).click();
     await bob.getByRole("button", { name: /Court Starter/ }).click();
     await expect(alice.getByTestId("board")).toBeVisible();
     await keepHand(alice);
@@ -77,10 +78,11 @@ test("a dropped connection blocks play while automatic retry recovers the curren
         headers: { Origin: new URL(page.url()).origin },
       });
     }
+    await alice.reload();
     await alice.getByRole("button", { name: "Create Room" }).click();
     await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
+    await expect(alice.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
     await bob.goto(alice.url());
-    await alice.getByRole("button", { name: /Swarm Starter/ }).click();
     await bob.getByRole("button", { name: /Court Starter/ }).click();
     await expect(alice.getByTestId("board")).toBeVisible();
     await a.setOffline(true);

@@ -1,18 +1,16 @@
 import { DurableObject } from "cloudflare:workers";
+import { CURRENT_CATALOG_VERSION, getCatalog } from "@card-duel/catalog";
 import {
-  CURRENT_CATALOG_VERSION,
-  checkCompetitiveDeck,
-  checkValidDeck,
-  getCatalog,
-} from "@card-duel/catalog";
-import {
+  type Action,
+  type ApplyResult,
   applyAction,
+  CLOSE_NO_MATCH,
   CLOSE_ROOM_FULL,
   CLOSE_ROOM_NOT_FOUND,
   type ClientMessage,
   createMatch,
+  DEFAULT_TURN_TIMER_SECONDS,
   type DeckSpec,
-  type FactionId,
   filterEvents,
   type LobbyInfo,
   type LoggedAction,
@@ -20,30 +18,35 @@ import {
   type MatchResult,
   type MatchSetup,
   type MatchState,
+  opponent,
   replay,
   SEATS,
   type Seat,
   type ServerMessage,
+  type TurnTimerInfo,
+  timedOutAction,
   viewFor,
+  waitingOn,
   withoutPreview,
 } from "@card-duel/engine";
-import { formatCopy } from "@card-duel/strings";
+import { ACCOUNT_ID_HEADER, DISPLAY_NAME_HEADER } from "./headers";
+import { MATCHMAKER_NAME } from "./matchmaker";
 import { writeMatchResult } from "./results";
+import { commitDeck, rememberLastDeck } from "./seat-deck";
 import copy from "./strings/en.json";
 
 export const DISCONNECT_GRACE_MS = 2 * 60 * 1000;
 export const ROOM_IDLE_MS = 24 * 60 * 60 * 1000;
-
-/** Headers the Worker sets after checking the session; never taken from the client. */
-export const ACCOUNT_ID_HEADER = "X-Card-Duel-Account";
-export const DISPLAY_NAME_HEADER = "X-Card-Duel-Display-Name";
+/** How long both players of a Matched Room have to connect before it closes with no Match. */
+export const MATCHED_ROOM_CONNECT_MS = 30 * 1000;
+export { ACCOUNT_ID_HEADER, DEFAULT_TURN_TIMER_SECONDS, DISPLAY_NAME_HEADER };
 
 interface Attachment {
   seat: Seat;
   accountId: string;
 }
 
-interface SeatState {
+export interface SeatState {
   accountId: string;
   displayName: string;
   /** The committed Deck, copied at seat time (ADR-0004); null until the Seat is taken. */
@@ -56,7 +59,16 @@ interface RoomMeta {
   managedAuth?: true;
   code: string;
   competitive: boolean;
+  /** Turn Timer length in seconds, fixed for the Room's life; absent or null: none. */
+  turnTimer?: number | null;
+  /** A Matched Room (GLOSSARY.md), created by the Matchmaker. */
+  matched?: true;
+  /** A Matched Room closes with no Match unless both players connect by then. */
+  connectBy?: number;
 }
+
+/** When each Seat's Turn Timer runs out (server time), or null when it is not running. */
+type Deadlines = [number | null, number | null];
 
 interface StoredMatch {
   id: string;
@@ -82,16 +94,52 @@ export class Room extends DurableObject<Env> {
   private meta: RoomMeta | null = null;
   private seats: [SeatState | null, SeatState | null] = [null, null];
   private match: (StoredMatch & { state: MatchState }) | null = null;
+  private turnDeadlines: Deadlines = [null, null];
 
-  /** Marks the Room as created. Returns false if the code is already in use. */
-  async create(code: string, competitive = false): Promise<boolean> {
+  /**
+   * Marks the Room as created, with its Turn Timer length in seconds (null: none). Returns
+   * false if the code is already in use.
+   */
+  async create(
+    code: string,
+    competitive = false,
+    turnTimer: number | null = null,
+  ): Promise<boolean> {
     if (await this.ctx.storage.get<RoomMeta>("meta")) return false;
     await this.ctx.storage.put({
-      meta: { code, competitive, managedAuth: true } satisfies RoomMeta,
+      meta: { code, competitive, turnTimer, managedAuth: true } satisfies RoomMeta,
       createdAt: Date.now(),
     });
     await this.ctx.storage.put("lastActivityAt", Date.now());
     await this.ctx.storage.setAlarm(Date.now() + ROOM_IDLE_MS);
+    // An instance still in memory after its Room expired must read the new Room.
+    this.loaded = false;
+    return true;
+  }
+
+  /**
+   * Creates a Matched Room for two players paired by the Queue, both already seated with the
+   * Decks they committed on joining it. The Match starts once both connect. Returns false if
+   * the code is already in use.
+   */
+  async createMatched(
+    code: string,
+    competitive: boolean,
+    seats: [SeatState, SeatState],
+  ): Promise<boolean> {
+    if (await this.ctx.storage.get<RoomMeta>("meta")) return false;
+    const now = Date.now();
+    const meta: RoomMeta = {
+      code,
+      competitive,
+      turnTimer: DEFAULT_TURN_TIMER_SECONDS,
+      matched: true,
+      connectBy: now + MATCHED_ROOM_CONNECT_MS,
+      managedAuth: true,
+    };
+    await this.ctx.storage.put({ meta, seats, createdAt: now, lastActivityAt: now });
+    await this.ctx.storage.setAlarm(meta.connectBy as number);
+    this.loaded = false;
     return true;
   }
 
@@ -124,6 +172,8 @@ export class Room extends DurableObject<Env> {
     this.disconnectedAt[seat] = null;
     await this.touch();
     if (this.match) this.sendCurrent(server, seat);
+    else if (this.meta.connectBy !== undefined && SEATS.every((s) => this.present(s)))
+      await this.startMatch();
     else this.broadcastLobby();
     this.broadcastPresence();
     return new Response(null, { status: 101, webSocket: client });
@@ -174,22 +224,74 @@ export class Room extends DurableObject<Env> {
       return;
     }
     // Clients may echo an action with its Play Preview attached; only the action is logged.
-    const action = withoutPreview(message.action);
-    const result = applyAction(state, seat, action);
-    if (!result.ok) {
+    const result = await this.act(seat, withoutPreview(message.action), false);
+    if (!result.ok)
       send(ws, { type: "error", code: "rejected", message: result.rejection.message });
-      return;
-    }
-    this.match.log.push({ seat, action });
-    this.match.state = result.state;
-    if (result.state.phase === "ended") this.match.finishedAt = Date.now();
+  }
+
+  /**
+   * Applies, logs and broadcasts one action for a Seat: the player's own, or the one the
+   * Room takes for them when their Turn Timer runs out (ADR-0009).
+   */
+  private async act(seat: Seat, action: Action, timedOut: boolean): Promise<ApplyResult> {
+    const match = this.match;
+    if (!match) throw new Error("No Match");
+    const previous = match.state;
+    const result = applyAction(previous, seat, action, { timedOut });
+    if (!result.ok) return result;
+    match.log.push(timedOut ? { seat, action, timedOut: true } : { seat, action });
+    match.state = result.state;
+    this.turnDeadlines = this.nextDeadlines(previous, result.state, seat);
+    if (result.state.phase === "ended") match.finishedAt = Date.now();
     await this.ctx.storage.put({
-      log: this.match.log,
+      log: match.log,
       snapshot: result.state,
-      finishedAt: this.match.finishedAt ?? null,
+      finishedAt: match.finishedAt ?? null,
+      turnDeadlines: this.turnDeadlines,
     });
     await this.persistResult();
     this.broadcast(result.events);
+    await this.scheduleAlarm();
+    return result;
+  }
+
+  /**
+   * Each Seat's Turn Timer after an action: it runs while the Match waits on the Seat, and
+   * restarts after the Seat acts or when the Match starts waiting on it.
+   */
+  private nextDeadlines(
+    previous: MatchState | null,
+    next: MatchState,
+    actor: Seat | null,
+  ): Deadlines {
+    const seconds = this.meta?.turnTimer;
+    if (!seconds) return [null, null];
+    const restarted = Date.now() + seconds * 1000;
+    const deadline = (seat: Seat) => {
+      if (!waitingOn(next, seat)) return null;
+      if (seat === actor || !previous || !waitingOn(previous, seat)) return restarted;
+      return this.turnDeadlines[seat] ?? restarted;
+    };
+    return [deadline(0), deadline(1)];
+  }
+
+  /** Takes the timed-out action for every Seat whose Turn Timer has run out (ADR-0009). */
+  private async expireTurnTimers(): Promise<void> {
+    // Each expiry restarts or stops that Seat's countdown, so this ends within a few steps.
+    for (let step = 0; step < 4; step++) {
+      const state = this.match?.state;
+      if (!state || state.phase === "ended") return;
+      const now = Date.now();
+      const seat = SEATS.find((s) => {
+        const at = this.turnDeadlines[s];
+        return at !== null && at <= now;
+      });
+      if (seat === undefined) return;
+      const action = timedOutAction(state, seat);
+      if (action && (await this.act(seat, action, true)).ok) continue;
+      this.turnDeadlines[seat] = null;
+      await this.ctx.storage.put("turnDeadlines", this.turnDeadlines);
+    }
   }
 
   override async webSocketClose(ws: WebSocket, code: number): Promise<void> {
@@ -230,14 +332,20 @@ export class Room extends DurableObject<Env> {
     await this.scheduleAlarm();
   }
 
+  /** One alarm covers the earliest deadline: Turn Timer, disconnect grace, connect or idle. */
   private async scheduleAlarm(): Promise<void> {
+    if (!this.meta) return;
     const now = Date.now();
-    const deadlines =
-      this.match && this.match.state.phase !== "ended"
-        ? this.disconnectedAt.flatMap((at) =>
+    const running = this.match && this.match.state.phase !== "ended";
+    const deadlines = running
+      ? [
+          ...this.disconnectedAt.flatMap((at) =>
             at !== null && at + DISCONNECT_GRACE_MS > now ? [at + DISCONNECT_GRACE_MS] : [],
-          )
-        : [];
+          ),
+          ...this.turnDeadlines.filter((at): at is number => at !== null),
+        ]
+      : [];
+    if (!this.match && this.meta.connectBy !== undefined) deadlines.push(this.meta.connectBy);
     await this.ctx.storage.setAlarm(Math.min(this.lastActivityAt + ROOM_IDLE_MS, ...deadlines));
   }
 
@@ -245,6 +353,11 @@ export class Room extends DurableObject<Env> {
     await this.load();
     if (!this.meta) return;
     await this.persistResult();
+    if (!this.match && this.meta.connectBy !== undefined && Date.now() >= this.meta.connectBy) {
+      await this.closeUnmatched();
+      return;
+    }
+    await this.expireTurnTimers();
     if (Date.now() >= this.lastActivityAt + ROOM_IDLE_MS) {
       const present = SEATS.filter((seat) => this.present(seat));
       if (this.match && this.match.state.phase !== "ended" && present.length === 1) {
@@ -256,14 +369,46 @@ export class Room extends DurableObject<Env> {
       }
       // Neither present means a Void Match: no result is written.
       for (const ws of this.ctx.getWebSockets()) ws.close(4004, "Room expired");
-      await this.ctx.storage.deleteAll();
-      this.meta = null;
-      this.match = null;
-      this.seats = [null, null];
+      await this.clear();
       return;
     }
     this.broadcastPresence();
     await this.scheduleAlarm();
+  }
+
+  private async clear(): Promise<void> {
+    await this.ctx.storage.deleteAll();
+    this.meta = null;
+    this.match = null;
+    this.seats = [null, null];
+    this.turnDeadlines = [null, null];
+  }
+
+  /**
+   * A Matched Room whose players did not both connect in time closes with no Match and
+   * nothing recorded. A player who did connect goes back to the front of the Queue if they
+   * choose Find another Match.
+   */
+  private async closeUnmatched(): Promise<void> {
+    const present = SEATS.filter((seat) => this.present(seat));
+    const matchmaker = this.env.MATCHMAKER.getByName(MATCHMAKER_NAME);
+    for (const seat of present) {
+      const holder = this.seats[seat];
+      if (holder) await matchmaker.grantPriority(holder.accountId);
+    }
+    for (const seat of present)
+      for (const ws of this.ctx.getWebSockets(seatTag(seat))) {
+        send(ws, { type: "error", code: "no_match", message: copy.opponentDidNotConnect });
+        ws.close(CLOSE_NO_MATCH, copy.opponentDidNotConnect);
+      }
+    for (const ws of this.ctx.getWebSockets()) {
+      try {
+        ws.close(CLOSE_NO_MATCH, copy.opponentDidNotConnect);
+      } catch {
+        // Already closed.
+      }
+    }
+    await this.clear();
   }
 
   private async claimWin(ws: WebSocket, seat: Seat): Promise<void> {
@@ -290,10 +435,12 @@ export class Room extends DurableObject<Env> {
     const result: MatchResult = { outcome: "win", winner, reason: "disconnect" };
     this.match.finishedAt = Date.now();
     this.match.state = { ...this.match.state, phase: "ended", turn: null, pending: [], result };
+    this.turnDeadlines = [null, null];
     await this.ctx.storage.put({
       snapshot: this.match.state,
       externalResult: result,
       finishedAt: this.match.finishedAt,
+      turnDeadlines: this.turnDeadlines,
     });
     await this.persistResult();
     this.broadcast([{ type: "matchEnded", result }]);
@@ -325,55 +472,25 @@ export class Room extends DurableObject<Env> {
       send(ws, { type: "error", code: "invalid_deck", message: copy.theMatchHasAlreadyStarted });
       return;
     }
-    const row = await this.env.DB.prepare(
-      "SELECT name, faction, leader, cards FROM decks WHERE id = ? AND account_id = ?",
-    )
-      .bind(deckId, holder.accountId)
-      .first<{ name: string; faction: FactionId; leader: string | null; cards: string }>();
-    if (!row) {
-      send(ws, { type: "error", code: "invalid_deck", message: copy.thatDeckWasNotFound });
+    const committed = await commitDeck(
+      this.env.DB,
+      holder.accountId,
+      deckId,
+      this.meta?.competitive ? "room" : null,
+    );
+    if (!committed.ok) {
+      send(ws, { type: "error", code: "invalid_deck", message: committed.message });
       return;
     }
-    const version = CURRENT_CATALOG_VERSION;
-    if (!version) throw new Error("No catalog version");
-    const catalog = getCatalog(version);
-    const input = {
-      faction: row.faction,
-      leader: row.leader,
-      cards: JSON.parse(row.cards) as string[],
-    };
-    const problems = checkValidDeck(input, catalog);
-    if (problems.length > 0) {
-      send(ws, {
-        type: "error",
-        code: "invalid_deck",
-        message: formatCopy(copy.isNotAValidDeck, {
-          p0: row.name,
-          p1: problems.map((p) => p.message).join(" "),
-        }),
-      });
-      return;
-    }
-    if (this.meta?.competitive) {
-      const competitive = checkCompetitiveDeck(input, catalog);
-      if (competitive.length > 0) {
-        send(ws, {
-          type: "error",
-          code: "invalid_deck",
-          message: formatCopy(copy.thisIsACompetitiveRoomAnd, {
-            p0: row.name,
-            p1: competitive.map((p) => p.message).join(" "),
-          }),
-        });
-        return;
-      }
-    }
-    holder.deck = { faction: input.faction, leader: input.leader as string, cards: input.cards };
-    holder.deckName = row.name;
+    // The D1 read let other messages in: the Match may have started meanwhile.
+    if (this.match) return;
+    holder.deck = committed.deck;
+    holder.deckName = committed.name;
     holder.lastDeckId = deckId;
     await this.ctx.storage.put("seats", this.seats);
-    if (this.seats[0]?.deck && this.seats[1]?.deck) await this.startMatch(version);
+    if (this.seats[0]?.deck && this.seats[1]?.deck) await this.startMatch();
     else this.broadcastLobby();
+    await rememberLastDeck(this.env.DB, holder.accountId, deckId);
   }
 
   private async load(): Promise<void> {
@@ -391,6 +508,7 @@ export class Room extends DurableObject<Env> {
       "lastActivityAt",
       "disconnectedAt",
       "externalResult",
+      "turnDeadlines",
     ]);
     this.rematch = (stored.get("rematch") as typeof this.rematch | undefined) ?? this.rematch;
     this.meta = (stored.get("meta") as RoomMeta | undefined) ?? null;
@@ -414,6 +532,7 @@ export class Room extends DurableObject<Env> {
     this.disconnectedAt = (stored.get("disconnectedAt") as
       | [number | null, number | null]
       | undefined) ?? [null, null];
+    this.turnDeadlines = (stored.get("turnDeadlines") as Deadlines | undefined) ?? [null, null];
     const setup = stored.get("setup") as MatchSetup | undefined;
     if (setup) {
       const log = (stored.get("log") as LoggedAction[] | undefined) ?? [];
@@ -451,9 +570,11 @@ export class Room extends DurableObject<Env> {
     return free;
   }
 
-  private async startMatch(catalogVersion: string): Promise<void> {
+  private async startMatch(): Promise<void> {
     const [a, b] = this.seats;
-    if (!a?.deck || !b?.deck) return;
+    if (this.match || !a?.deck || !b?.deck || !this.meta) return;
+    const catalogVersion = CURRENT_CATALOG_VERSION;
+    if (!catalogVersion) throw new Error("No catalog version");
     // E2E_SEED is set only by `wrangler dev --var` in the Playwright config, so end-to-end
     // tests get a known deal. No deployed config sets it, so production seeds stay random.
     const fixed = (this.env as { E2E_SEED?: string }).E2E_SEED;
@@ -469,8 +590,20 @@ export class Room extends DurableObject<Env> {
     const { state, events } = createMatch(setup);
     const id = crypto.randomUUID();
     this.match = { id, setup, catalogVersion, log: [], state };
-    await this.ctx.storage.put({ matchId: id, setup, catalogVersion, log: [], snapshot: state });
+    this.turnDeadlines = this.nextDeadlines(null, state, null);
+    // Once a Matched Room's first Match starts, it is an ordinary Room.
+    delete this.meta.connectBy;
+    await this.ctx.storage.put({
+      meta: this.meta,
+      matchId: id,
+      setup,
+      catalogVersion,
+      log: [],
+      snapshot: state,
+      turnDeadlines: this.turnDeadlines,
+    });
     this.broadcast(events);
+    await this.scheduleAlarm();
   }
 
   /** Also retried on reconnect/message if D1 failed after the final action was saved. */
@@ -496,6 +629,8 @@ export class Room extends DurableObject<Env> {
     return {
       code: this.meta?.code ?? "",
       competitive: this.meta?.competitive ?? false,
+      matched: this.meta?.matched ?? false,
+      turnTimer: this.meta?.turnTimer ?? null,
       seat,
       you: {
         seated: !!mine?.deck,
@@ -524,6 +659,7 @@ export class Room extends DurableObject<Env> {
           holder.deckName = null;
         }
       this.rematch = { accepted: [false, false], declined: false };
+      this.turnDeadlines = [null, null];
       await this.ctx.storage.transaction(async (storage) => {
         await storage.delete([
           "setup",
@@ -533,6 +669,7 @@ export class Room extends DurableObject<Env> {
           "externalResult",
           "finishedAt",
           "matchId",
+          "turnDeadlines",
         ]);
         await storage.put({ seats: this.seats, rematch: this.rematch });
       });
@@ -578,14 +715,33 @@ export class Room extends DurableObject<Env> {
         type: "view",
         view: viewFor(this.match.state, seat),
         events: filterEvents(events, seat),
+        ...this.turnTimerFor(seat),
       };
       for (const ws of this.ctx.getWebSockets(seatTag(seat))) send(ws, message);
     }
   }
 
+  /** Both players see both countdowns; the server stays the authority. */
+  private turnTimerFor(seat: Seat): { turnTimer?: TurnTimerInfo } {
+    if (!this.meta?.turnTimer) return {};
+    return {
+      turnTimer: {
+        you: this.turnDeadlines[seat],
+        opponent: this.turnDeadlines[opponent(seat)],
+        serverNow: Date.now(),
+      },
+    };
+  }
+
   /** A (re)connecting Seat gets just the view, without events. */
   private sendCurrent(ws: WebSocket, seat: Seat): void {
-    if (this.match) send(ws, { type: "view", view: viewFor(this.match.state, seat), events: [] });
+    if (this.match)
+      send(ws, {
+        type: "view",
+        view: viewFor(this.match.state, seat),
+        events: [],
+        ...this.turnTimerFor(seat),
+      });
     else send(ws, { type: "lobby", lobby: this.lobbyFor(seat) });
     if (this.match?.state.phase === "ended") this.sendRematch(ws, seat);
   }

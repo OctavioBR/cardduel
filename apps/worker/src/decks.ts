@@ -139,8 +139,15 @@ export async function handleDecks(
               "SELECT id, name, faction, leader, cards, updated_at FROM decks WHERE account_id = ? ORDER BY updated_at DESC",
             )
             .bind(account.id);
-      const { results } = await query.all<DeckRow>();
-      return json({ decks: results.map(toJson) });
+      const [{ results }, last] = await Promise.all([
+        query.all<DeckRow>(),
+        db
+          .prepare("SELECT last_deck_id FROM accounts WHERE id = ?")
+          .bind(account.id)
+          .first<{ last_deck_id: string | null }>(),
+      ]);
+      // Newest edit first; Home defaults to the last used Deck, else the first Valid one (#108).
+      return json({ decks: results.map(toJson), lastDeckId: last?.last_deck_id ?? null });
     }
     if (method === "POST") {
       const body = await readDeckBody(request);

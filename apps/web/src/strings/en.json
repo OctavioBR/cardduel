@@ -120,6 +120,8 @@
   "lastActionOpponentUsedLeader": "Your opponent used their Leader, {leader}.",
   "lastActionYouPassed": "You Passed.",
   "lastActionOpponentPassed": "Your opponent Passed.",
+  "lastActionYouTimedOut": "Time ran out. You Passed.",
+  "lastActionOpponentTimedOut": "Time ran out. Your opponent Passed.",
   "opponentSTurn": "Opponent's Turn",
   "decksAndDiscardPiles": "Decks and Discard Piles",
   "opponentSDeckCards": "Opponent's deck, {p0} cards",

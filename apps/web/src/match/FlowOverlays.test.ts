@@ -44,6 +44,6 @@ describe("roundSummary", () => {
   });
 
   it("is null without a Round end", () => {
-    expect(roundSummary([{ type: "passed", seat: 0, auto: false }], 0)).toBeNull();
+    expect(roundSummary([{ type: "passed", seat: 0, reason: "player" }], 0)).toBeNull();
   });
 });

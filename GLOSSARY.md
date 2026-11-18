@@ -84,6 +84,14 @@ _Avoid_: slot, spot
 A Room in which only Competitive Decks may take a Seat.
 _Avoid_: ranked room
 
+**Matched Room**:
+A Room the server creates by pairing two players from the matchmaking queue; its code is shown to no one else, and it always has a Turn Timer of the default length.
+_Avoid_: public room, ranked room, queue room
+
+**Queue**:
+Where a signed-in player waits, with a Valid Deck chosen, to be paired with another player in a new Room. One Queue for Casual and one for Competitive.
+_Avoid_: lobby, pool, search
+
 **Rematch**:
 A new Match between the same two players in the same Room, started when both accept.
 
@@ -114,6 +122,10 @@ One phase of play in which players alternate Turns until both have Passed; the h
 **Turn**:
 One player's single action within a Round: Play a card, use their Leader ability, or Pass.
 _Avoid_: move
+
+**Turn Timer**:
+The time limit a player has to act whenever the Match is waiting on them: on their Turn, in Redraw or on a Pending Choice. It restarts after each of their actions, keeps running while they are disconnected, and applies in every Matched Room and in any other Room created with it. Its length is set when the Room is created and stays the same for every Match in that Room. When it runs out, the player does what doing nothing would do: on a Turn they Pass, in Redraw they keep their hand, and on a Pending Choice the first option is taken.
+_Avoid_: clock, turn clock
 
 **Tie**:
 A Round that ends with equal Scores. Both players lose a Gem, unless exactly one of them has a Court Deck, in which case that player wins the Round.

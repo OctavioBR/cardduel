@@ -25,7 +25,9 @@ export type ServerErrorCode =
   | "not_started"
   | "stale_action"
   | "rejected"
-  | "bad_message";
+  | "bad_message"
+  /** A Matched Room closed because a player did not connect in time; no Match was played. */
+  | "no_match";
 
 /**
  * Before the Match: who is in the Room and whether each Seat is taken. Neither player sees
@@ -34,6 +36,10 @@ export type ServerErrorCode =
 export interface LobbyInfo {
   code: string;
   competitive: boolean;
+  /** A Matched Room: created by the Queue, its code is shown to no one else. */
+  matched: boolean;
+  /** The Room's Turn Timer length in seconds, or null when it has none. */
+  turnTimer: number | null;
   seat: Seat;
   you: { seated: boolean; deckName: string | null; lastDeckId?: string | null };
   opponent: { present: boolean; seated: boolean; displayName: string | null };
@@ -45,14 +51,46 @@ export interface DisconnectInfo {
   serverNow: number;
 }
 
+/**
+ * When each Seat's Turn Timer runs out, in server time (null: the Match is not waiting on
+ * it). The Room acts on these deadlines itself; clients only count down.
+ */
+export interface TurnTimerInfo {
+  you: number | null;
+  opponent: number | null;
+  serverNow: number;
+}
+
 /** Messages a Room sends to one Seat. */
 export type ServerMessage =
   | { type: "rematch"; accepted: boolean; opponentAccepted: boolean; declined: boolean }
   | { type: "lobby"; lobby: LobbyInfo }
   | { type: "presence"; disconnect: DisconnectInfo }
-  /** Your complete view, plus the filtered events that led to it (empty on reconnect). */
-  | { type: "view"; view: SeatView; events: MatchEvent[] }
+  /**
+   * Your complete view, plus the filtered events that led to it (empty on reconnect), and
+   * the Turn Timer deadlines in a Room that has one.
+   */
+  | { type: "view"; view: SeatView; events: MatchEvent[]; turnTimer?: TurnTimerInfo }
   | { type: "error"; code: ServerErrorCode; message: string };
+
+/** The two Queues, mirroring Casual and Competitive Rooms (GLOSSARY.md: Queue). */
+export type QueueId = "casual" | "competitive";
+
+export type MatchmakingErrorCode = "invalid_deck" | "signed_out" | "bad_request" | "replaced";
+
+/** Messages the Matchmaker sends to a player in a Queue. */
+export type MatchmakingMessage =
+  /** In the Queue since `since` (server time). */
+  | { type: "searching"; queue: QueueId; since: number; serverNow: number }
+  /** Paired: both Seats are taken in this Room; the socket closes next. */
+  | { type: "matched"; code: string }
+  | { type: "error"; code: MatchmakingErrorCode; message: string };
+
+/** Default Turn Timer length: every Matched Room, and the Create Room form's default. */
+export const DEFAULT_TURN_TIMER_SECONDS = 120;
+/** Shortest and longest Turn Timer a created Room may have. */
+export const MIN_TURN_TIMER_SECONDS = 30;
+export const MAX_TURN_TIMER_SECONDS = 600;
 
 /** WebSocket close code sent with "Room full". */
 export const CLOSE_ROOM_FULL = 4003;
@@ -60,3 +98,7 @@ export const CLOSE_ROOM_FULL = 4003;
 export const CLOSE_ROOM_NOT_FOUND = 4004;
 /** WebSocket close code sent when the connection has no signed-in session. */
 export const CLOSE_SIGNED_OUT = 4401;
+/** WebSocket close code sent when a Matched Room closes because a player never connected. */
+export const CLOSE_NO_MATCH = 4410;
+/** WebSocket close code sent when the Matchmaker refuses to queue a player. */
+export const CLOSE_QUEUE_REFUSED = 4422;

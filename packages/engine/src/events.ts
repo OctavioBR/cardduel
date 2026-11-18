@@ -46,7 +46,7 @@ export type MatchEvent =
   /** Redraw: a card went back into the deck. `card` is present only for its Seat. */
   | { type: "cardReturned"; seat: Seat; card?: CardRef }
   | { type: "redrawDone"; seat: Seat; returned: number }
-  | { type: "passed"; seat: Seat; auto: boolean }
+  | { type: "passed"; seat: Seat; reason: PassReason }
   /** A Seat must now make a Pending Choice. */
   | { type: "choiceRequired"; seat: Seat; kind: PendingKind }
   | {
@@ -74,6 +74,12 @@ export interface DrewEvent {
   count: number;
   cards?: CardRef[];
 }
+
+/**
+ * Why a Seat Passed: the player chose to, they had nothing they could do, or their Turn
+ * Timer ran out (ADR-0009).
+ */
+export type PassReason = "player" | "nothingToDo" | "turnTimer";
 
 /** What Played a card onto the battlefield. */
 export type PlayedVia = "hand" | "medic" | "muster" | "leader";

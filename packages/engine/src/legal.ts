@@ -55,6 +55,28 @@ export function legalActions(state: MatchState, seat: Seat): Action[] {
   return actions;
 }
 
+/**
+ * Whether the Match is waiting on the Seat: its Redraw, its Turn or its Pending Choice.
+ * This is when its Turn Timer runs (GLOSSARY.md: Turn Timer).
+ */
+export function waitingOn(state: MatchState, seat: Seat): boolean {
+  if (state.phase === "redraw") return !state.sides[seat].redraw.done;
+  return state.phase === "turns" && state.turn === seat;
+}
+
+/**
+ * What doing nothing would do when the Seat's Turn Timer runs out (ADR-0009): keep the hand
+ * in Redraw, take the first option of a Pending Choice, otherwise Pass. Null when the Match
+ * is not waiting on the Seat.
+ */
+export function timedOutAction(state: MatchState, seat: Seat): Action | null {
+  if (!waitingOn(state, seat)) return null;
+  if (state.phase === "redraw") return { type: "confirmRedraw" };
+  const pending = state.pending[0];
+  if (pending) return pending.seat === seat ? (choiceOptions(state, pending)[0] ?? null) : null;
+  return { type: "pass" };
+}
+
 /** Most cards a Seat may return during Redraw. */
 export const MAX_REDRAW = 2;
 

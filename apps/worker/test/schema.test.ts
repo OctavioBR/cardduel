@@ -36,7 +36,9 @@ describe("D1 schema", () => {
     await account("a1", "Ada");
     await account("a2", "Ada");
     await expect(
-      env.DB.prepare("INSERT INTO accounts VALUES ('other', 'a1', 'Ada', 0)").run(),
+      env.DB.prepare(
+        "INSERT INTO accounts (id, clerk_user_id, display_name, created_at) VALUES ('other', 'a1', 'Ada', 0)",
+      ).run(),
     ).rejects.toThrow(/UNIQUE/);
   });
 

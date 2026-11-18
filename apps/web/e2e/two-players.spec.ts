@@ -137,7 +137,7 @@ test("two players: Decks, Competitive Room, Redraw, Scorch, Medic, Match end and
     await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
     const url = alice.url();
     await expect(alice.getByText("Competitive Room", { exact: true })).toBeVisible();
-    await alice.getByRole("button", { name: /Swarm Starter/ }).click();
+    await expect(alice.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
     await bob.goto(url);
     await expect(bob.getByText("Competitive Room", { exact: true })).toBeVisible();
     await bob.getByRole("button", { name: /Court Starter/ }).click();

@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import type { LobbyInfo } from "@card-duel/engine";
+import { formatCopy } from "@card-duel/strings";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { CardDetailProvider } from "../cards/CardDetail";
 import { type Deck, deckApi } from "../decks/api";
+import { defaultDeck, seatableDecks } from "../decks/default-deck";
 import { MatchBoard } from "../match/MatchBoard";
 import { Stage } from "../match/Stage";
+import { clock } from "../room/clock";
 import { DisconnectBanner } from "../room/DisconnectBanner";
 import roomStrings from "../room/strings/en.json";
 import { useEventBatch, useRoom } from "../room/useRoom";
@@ -11,6 +15,15 @@ import { roomSocketUrl, WebSocketRoom } from "../room/websocket-room";
 import copy from "../strings/en.json";
 
 import en from "../strings/home.en.json";
+import type { HomeEntry, RoomEntry } from "./HomePage";
+
+/** "Casual Room", or "Competitive Room · Turn Timer 2:00" (#109). */
+export function roomLabel(lobby: Pick<LobbyInfo, "competitive" | "turnTimer">): string {
+  const type = lobby.competitive ? copy.competitiveRoom : copy.casualRoom;
+  return lobby.turnTimer === null
+    ? type
+    : formatCopy(roomStrings.withTurnTimer, { room: type, time: clock(lobby.turnTimer) });
+}
 
 /** A Room by its code. The router signs players in first (RequireAuth). */
 export function RoomPage() {
@@ -31,9 +44,26 @@ function RoomConnectionPage({ code }: { code: string }) {
 
 function RoomScreen({ code, connection }: { code: string; connection: WebSocketRoom }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [copyStatus, setCopyStatus] = useState("");
   const state = useRoom(connection);
   const events = useEventBatch(connection);
+  // Created or joined from Home: the Home Deck takes the Seat, once (#108).
+  const homeDeck = (location.state as RoomEntry | null)?.deckId ?? null;
+  const seatSent = useRef(false);
+  // Only for the first Match: a Rematch picks its Deck in the Room.
+  const [homeSeatDone, setHomeSeatDone] = useState(!homeDeck);
+  const lobby = state.lobby;
+  const autoSeat = !homeSeatDone && !!lobby && !lobby.you.seated && !lobby.matched;
+  useEffect(() => {
+    if (!autoSeat || seatSent.current || !homeDeck) return;
+    seatSent.current = true;
+    connection.takeSeat(homeDeck);
+  }, [autoSeat, homeDeck, connection]);
+  useEffect(() => {
+    if (lobby?.you.seated || state.view || state.error) setHomeSeatDone(true);
+  }, [lobby, state.view, state.error]);
+  const seating = autoSeat && !state.error;
   if (state.view) {
     return (
       <Stage>
@@ -44,6 +74,7 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
               send={(a) => connection.send(a)}
               error={state.error?.message ?? null}
               events={events}
+              turnTimer={state.turnTimer}
               onRematch={
                 state.rematch?.accepted || state.rematch?.declined
                   ? undefined
@@ -76,6 +107,25 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
       </Stage>
     );
   }
+  if (state.error?.code === "no_match") {
+    const again: HomeEntry | null = lobby?.you.lastDeckId
+      ? { findMatch: { deckId: lobby.you.lastDeckId, competitive: lobby.competitive } }
+      : null;
+    return (
+      <main className="page">
+        <h1>{roomStrings.noMatch}</h1>
+        <p>{state.error.message}</p>
+        <div className="home-row">
+          <button type="button" className="primary" onClick={() => navigate("/", { state: again })}>
+            {roomStrings.findAnotherMatch}
+          </button>
+          <button type="button" onClick={() => navigate("/")}>
+            {roomStrings.home}
+          </button>
+        </div>
+      </main>
+    );
+  }
   if (state.error?.code === "room_full") {
     return (
       <main className="page">
@@ -88,55 +138,80 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
       </main>
     );
   }
+  if (state.waitingCode && lobby?.matched && lobby.you.seated && lobby.opponent.seated) {
+    // Both Seats were taken in the Queue; the Match starts once both players connect. A
+    // Matched Room's code is shown to no one else, so there is no link to share.
+    return (
+      <main className="page">
+        <h1>{roomStrings.matchFound}</h1>
+        <p>{roomLabel(lobby)}</p>
+        <p role="status">{roomStrings.waitingToConnect}</p>
+      </main>
+    );
+  }
   if (state.waitingCode) {
     const link = `${window.location.origin}/r/${state.waitingCode}`;
+    const matched = !!lobby?.matched;
     return (
       <main className="page">
         <h1>
-          {copy.room}
-          {state.waitingCode}
+          {matched ? (
+            roomStrings.matchFound
+          ) : (
+            <>
+              {copy.room}
+              {state.waitingCode}
+            </>
+          )}
         </h1>
-        <p>{state.lobby?.competitive ? copy.competitiveRoom : copy.casualRoom}</p>
-        {state.lobby?.you.seated ? (
+        <p>{lobby ? roomLabel(lobby) : null}</p>
+        {state.error ? <p role="alert">{state.error.message}</p> : null}
+        {lobby?.you.seated ? (
           <p>
             {copy.youChose}
-            {state.lobby.you.deckName}
+            {lobby.you.deckName}
             {copy.waitingForYourOpponentToChoose}
           </p>
+        ) : seating ? (
+          <p role="status">{roomStrings.takingSeat}</p>
         ) : (
           <DeckPicker
-            lastDeckId={state.lobby?.you.lastDeckId ?? null}
-            competitive={state.lobby?.competitive ?? false}
+            lastDeckId={lobby?.you.lastDeckId ?? homeDeck}
+            competitive={lobby?.competitive ?? false}
             onChoose={(id) => connection.takeSeat(id)}
           />
         )}
-        {state.lobby?.opponent.present ? (
+        {lobby?.opponent.present ? (
           <p>
-            {state.lobby.opponent.displayName}
+            {lobby.opponent.displayName}
             {copy.isHere}
-            {state.lobby.opponent.seated ? copy.opponentHasChosen : ""}
+            {lobby.opponent.seated ? copy.opponentHasChosen : ""}
             {copy.label2}
           </p>
         ) : (
           <p>{copy.waitingForYourOpponentShareThe}</p>
         )}
-        <p>
-          <code data-testid="room-link">{link}</code>
-        </p>
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(link);
-              setCopyStatus(en.copied);
-            } catch {
-              setCopyStatus(en.copyError);
-            }
-          }}
-        >
-          {en.copyLink}
-        </button>
-        <p role="status">{copyStatus}</p>
+        {matched ? null : (
+          <>
+            <p>
+              <code data-testid="room-link">{link}</code>
+            </p>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(link);
+                  setCopyStatus(en.copied);
+                } catch {
+                  setCopyStatus(en.copyError);
+                }
+              }}
+            >
+              {en.copyLink}
+            </button>
+            <p role="status">{copyStatus}</p>
+          </>
+        )}
       </main>
     );
   }
@@ -147,6 +222,10 @@ function RoomScreen({ code, connection }: { code: string; connection: WebSocketR
   );
 }
 
+/**
+ * The Room's Deck picker, used when opening a shared link and for a Rematch. The default Deck
+ * is preselected: this Room's last Deck, else the one Home would select (#108).
+ */
 function DeckPicker({
   lastDeckId,
   competitive,
@@ -157,10 +236,21 @@ function DeckPicker({
   onChoose: (id: string) => void;
 }) {
   const [decks, setDecks] = useState<Deck[] | null>(null);
+  const [accountLast, setAccountLast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    deckApi.list().then(setDecks, (e: Error) => setError(e.message));
+    deckApi.choices().then(
+      (r) => {
+        setDecks(r.decks);
+        setAccountLast(r.lastDeckId);
+      },
+      (e: Error) => setError(e.message),
+    );
   }, []);
+  const choices = decks ? seatableDecks(decks, competitive) : [];
+  const preselected = decks
+    ? (choices.find((d) => d.id === lastDeckId) ?? defaultDeck(decks, accountLast, competitive))
+    : null;
   return (
     <section aria-label={copy.chooseADeck}>
       <h2>{copy.takeASeat}</h2>
@@ -172,10 +262,7 @@ function DeckPicker({
       {error ? <p role="alert">{error}</p> : null}
       {decks === null ? (
         <p>{copy.loadingDecks}</p>
-      ) : decks.filter(
-          (d) =>
-            d.problems.valid.length === 0 && (!competitive || d.problems.competitive.length === 0),
-        ).length === 0 ? (
+      ) : choices.length === 0 ? (
         <p>
           {copy.youHaveNo}
           {competitive ? copy.competitive2 : copy.valid}
@@ -183,26 +270,20 @@ function DeckPicker({
         </p>
       ) : (
         <ul className="deck-choices">
-          {decks
-            .filter(
-              (d) =>
-                d.problems.valid.length === 0 &&
-                (!competitive || d.problems.competitive.length === 0),
-            )
-            .map((deck) => (
-              <li key={deck.id}>
-                <button
-                  type="button"
-                  className={`deck-choice f-${deck.faction}`}
-                  aria-pressed={deck.id === lastDeckId}
-                  onClick={() => onChoose(deck.id)}
-                >
-                  {deck.name}
-                  {copy.label5}
-                  {deck.faction === "swarm" ? copy.swarmId : copy.courtId}
-                </button>
-              </li>
-            ))}
+          {choices.map((deck) => (
+            <li key={deck.id}>
+              <button
+                type="button"
+                className={`deck-choice f-${deck.faction}`}
+                aria-pressed={deck.id === preselected?.id}
+                onClick={() => onChoose(deck.id)}
+              >
+                {deck.name}
+                {copy.label5}
+                {deck.faction === "swarm" ? copy.swarmId : copy.courtId}
+              </button>
+            </li>
+          ))}
         </ul>
       )}
     </section>

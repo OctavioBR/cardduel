@@ -4,6 +4,8 @@ import type {
   ClientMessage,
   LegalAction,
   LobbyInfo,
+  MatchmakingMessage,
+  QueueId,
   SeatView,
   ServerMessage,
 } from "@card-duel/engine";
@@ -31,8 +33,20 @@ export class TestSocket {
     });
   }
 
-  static async open(code: string, cookie: string): Promise<TestSocket> {
-    const res = await SELF.fetch(`${BASE}/api/rooms/${code}/ws`, {
+  static open(code: string, cookie: string): Promise<TestSocket> {
+    return TestSocket.connect(`/api/rooms/${code}/ws`, cookie);
+  }
+
+  /** Joins a Queue with one of the account's Decks; read its messages with `nextQueue`. */
+  static queue(cookie: string, queue: QueueId, deckId: string): Promise<TestSocket> {
+    return TestSocket.connect(
+      `/api/matchmaking/ws?queue=${queue}&deck=${encodeURIComponent(deckId)}`,
+      cookie,
+    );
+  }
+
+  private static async connect(path: string, cookie: string): Promise<TestSocket> {
+    const res = await SELF.fetch(`${BASE}${path}`, {
       headers: { Upgrade: "websocket", Origin: BASE, ...(cookie ? { Cookie: cookie } : {}) },
     });
     expect(res.status).toBe(101);
@@ -57,13 +71,14 @@ export class TestSocket {
     });
   }
 
-  async nextView(): Promise<{
-    view: SeatView;
-    events: Extract<ServerMessage, { type: "view" }>["events"];
-  }> {
+  async nextView(): Promise<Extract<ServerMessage, { type: "view" }>> {
     const message = await this.next();
     if (message.type !== "view") expect.fail(`Expected a view, got ${JSON.stringify(message)}`);
     return message;
+  }
+
+  async nextQueue(): Promise<MatchmakingMessage> {
+    return (await this.next()) as unknown as MatchmakingMessage;
   }
 
   async nextLobby(): Promise<LobbyInfo> {
@@ -109,11 +124,15 @@ export function savedDeck(
   return deckRequest(cookie, "", { ...deck, name: "Test Deck" });
 }
 
-export async function createRoom(cookie: string, competitive = false): Promise<string> {
+export async function createRoom(
+  cookie: string,
+  competitive = false,
+  turnTimer: number | null = null,
+): Promise<string> {
   const res = await SELF.fetch(`${BASE}/api/rooms`, {
     method: "POST",
     headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/json" },
-    body: JSON.stringify({ competitive }),
+    body: JSON.stringify({ competitive, turnTimer }),
   });
   expect(res.status).toBe(201);
   return ((await res.json()) as { code: string }).code;

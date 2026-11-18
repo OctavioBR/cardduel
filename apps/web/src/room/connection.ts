@@ -6,6 +6,7 @@ import type {
   Seat,
   SeatView,
   ServerErrorCode,
+  TurnTimerInfo,
 } from "@card-duel/engine";
 
 export type ConnectionStatus = "connecting" | "open" | "reconnecting" | "closed";
@@ -27,6 +28,8 @@ export interface RoomClientState {
   /** The last error, cleared by the next view. */
   error: RoomError | null;
   disconnect: DisconnectInfo | null;
+  /** Turn Timer deadlines, in a Room that has one (#109). */
+  turnTimer: TurnTimerInfo | null;
 }
 
 export interface RoomUpdate {
@@ -56,6 +59,7 @@ export const INITIAL_STATE: RoomClientState = {
   view: null,
   error: null,
   disconnect: null,
+  turnTimer: null,
 };
 
 /** Shared listener bookkeeping for connection implementations. */
