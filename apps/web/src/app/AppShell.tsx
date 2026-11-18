@@ -51,10 +51,13 @@ function AccountMenu() {
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
-        {account.username}
+        {account.displayName ?? copy.accountSettings}
       </button>
       {open ? (
         <div className="account-dropdown" role="menu">
+          <Link role="menuitem" to="/account" onClick={() => setOpen(false)}>
+            {copy.accountSettings}
+          </Link>
           <button
             type="button"
             role="menuitem"

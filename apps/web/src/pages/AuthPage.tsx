@@ -1,16 +1,22 @@
-import { useNavigate, useSearchParams } from "react-router";
-import type { AuthMode } from "../auth/AuthContext";
+import { Navigate, useSearchParams } from "react-router";
+import { type AuthMode, useAuth } from "../auth/AuthContext";
 import { AuthForm } from "../auth/AuthForm";
+import { returnPath } from "../auth/redirect";
 
-/** /signin and /signup: a fluid page that returns to ?next= (or home) when done. */
 export function AuthPage({ mode }: { mode: AuthMode }) {
-  const navigate = useNavigate();
   const [params] = useSearchParams();
-  const next = params.get("next");
-  const target = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+  const { account } = useAuth();
+  const target = returnPath(params.get("next"));
+  if (account)
+    return (
+      <Navigate
+        to={account.displayName ? target : `/onboarding?next=${encodeURIComponent(target)}`}
+        replace
+      />
+    );
   return (
     <main className="page narrow">
-      <AuthForm key={mode} initialMode={mode} onDone={() => navigate(target, { replace: true })} />
+      <AuthForm initialMode={mode} target={target} />
     </main>
   );
 }

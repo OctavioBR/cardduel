@@ -8,6 +8,7 @@ import type {
   ServerMessage,
 } from "@card-duel/engine";
 import { expect } from "vitest";
+import { newIdentity } from "./identity";
 
 export const BASE = "https://card-duel.test";
 
@@ -32,7 +33,7 @@ export class TestSocket {
 
   static async open(code: string, cookie: string): Promise<TestSocket> {
     const res = await SELF.fetch(`${BASE}/api/rooms/${code}/ws`, {
-      headers: { Upgrade: "websocket", ...(cookie ? { Cookie: cookie } : {}) },
+      headers: { Upgrade: "websocket", Origin: BASE, ...(cookie ? { Cookie: cookie } : {}) },
     });
     expect(res.status).toBe(101);
     const ws = res.webSocket;
@@ -84,26 +85,12 @@ export class TestSocket {
   }
 }
 
-let players = 0;
-
-/** Signs up a new account and returns its session cookie. */
-export async function newPlayer(): Promise<string> {
-  players += 1;
-  const res = await SELF.fetch(`${BASE}/api/auth/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: `seat_${players}_${Math.random().toString(36).slice(2, 7)}`,
-      password: "take a seat",
-    }),
-  });
-  return (res.headers.get("Set-Cookie") ?? "").split(";")[0] ?? "";
-}
+export const newPlayer = newIdentity;
 
 async function deckRequest(cookie: string, path: string, body: unknown): Promise<string> {
   const res = await SELF.fetch(`${BASE}/api/decks${path}`, {
     method: "POST",
-    headers: { Cookie: cookie, "Content-Type": "application/json" },
+    headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   return ((await res.json()) as { deck: { id: string } }).deck.id;
@@ -125,7 +112,7 @@ export function savedDeck(
 export async function createRoom(cookie: string, competitive = false): Promise<string> {
   const res = await SELF.fetch(`${BASE}/api/rooms`, {
     method: "POST",
-    headers: { Cookie: cookie, "Content-Type": "application/json" },
+    headers: { Cookie: cookie, Origin: BASE, "Content-Type": "application/json" },
     body: JSON.stringify({ competitive }),
   });
   expect(res.status).toBe(201);

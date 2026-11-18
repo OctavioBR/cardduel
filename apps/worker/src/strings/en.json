@@ -1,11 +1,5 @@
 {
   "sendJSON": "Send JSON.",
-  "usernameAndPasswordAreRequired": "Username and password are required.",
-  "usernamesAre3To20Letters": "Usernames are 3 to 20 letters, digits or underscores.",
-  "passwordsNeedAtLeastCharacters": "Passwords need at least {p0} characters.",
-  "thatUsernameIsTaken": "That username is taken.",
-  "tooManyFailedSignInsTry": "Too many failed sign-ins. Try again later.",
-  "wrongUsernameOrPassword": "Wrong username or password.",
   "sendAJSONObject": "Send a JSON object.",
   "unknownFaction": "Unknown Faction.",
   "theLeaderIsACardId": "The Leader is a card id or null.",
@@ -30,5 +24,9 @@
   "aDeckNameHas1To": "A Deck name has 1 to {p0} characters.",
   "starter": "{p0} Starter",
   "aDeckSFactionCannotChange": "A Deck's Faction cannot change.",
-  "isNotAValidDeck": "“{p0}” is not a Valid Deck: {p1}"
+  "isNotAValidDeck": "“{p0}” is not a Valid Deck: {p1}",
+  "invalidDisplayName": "Choose a display name of 1–30 characters without control characters or line breaks.",
+  "chooseDisplayName": "Choose your display name first.",
+  "requestNotAllowed": "This request is not allowed.",
+  "roomUpdated": "This Room closed after an update. Create a new Room."
 }

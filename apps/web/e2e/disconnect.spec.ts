@@ -16,7 +16,12 @@ test("opponent disconnect countdown leads to a real Disconnect Win after server 
     ] as const) {
       await signUpVia(page, uniqueName(faction));
       expect(
-        (await page.request.post("/api/decks/copy-starter", { data: { faction } })).status(),
+        (
+          await page.request.post("/api/decks/copy-starter", {
+            data: { faction },
+            headers: { Origin: new URL(page.url()).origin },
+          })
+        ).status(),
       ).toBe(201);
     }
     await alice.getByRole("button", { name: "Create Room" }).click();
@@ -67,7 +72,10 @@ test("a dropped connection blocks play while automatic retry recovers the curren
       [bob, "court"],
     ] as const) {
       await signUpVia(page, uniqueName(faction));
-      await page.request.post("/api/decks/copy-starter", { data: { faction } });
+      await page.request.post("/api/decks/copy-starter", {
+        data: { faction },
+        headers: { Origin: new URL(page.url()).origin },
+      });
     }
     await alice.getByRole("button", { name: "Create Room" }).click();
     await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);

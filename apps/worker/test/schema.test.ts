@@ -10,9 +10,9 @@ async function tables(): Promise<string[]> {
 
 async function account(id: string, username: string) {
   await env.DB.prepare(
-    "INSERT INTO accounts (id, username, username_key, password_hash, password_salt, password_iterations, created_at) VALUES (?, ?, ?, 'h', 's', 100000, 0)",
+    "INSERT INTO accounts (id, clerk_user_id, display_name, created_at) VALUES (?, ?, ?, 0)",
   )
-    .bind(id, username, username.toLowerCase())
+    .bind(id, id, username)
     .run();
 }
 
@@ -21,16 +21,23 @@ describe("D1 schema", () => {
     expect(await tables()).toEqual([
       "accounts",
       "decks",
+      "legacy_accounts",
+      "legacy_decks",
+      "legacy_match_results",
+      "legacy_records",
+      "legacy_sessions",
+      "legacy_sign_in_failures",
       "match_results",
       "records",
-      "sessions",
-      "sign_in_failures",
     ]);
   });
 
-  it("usernames are unique ignoring case", async () => {
+  it("display names may repeat, while provider identities are unique", async () => {
     await account("a1", "Ada");
-    await expect(account("a2", "ADA")).rejects.toThrow(/UNIQUE/);
+    await account("a2", "Ada");
+    await expect(
+      env.DB.prepare("INSERT INTO accounts VALUES ('other', 'a1', 'Ada', 0)").run(),
+    ).rejects.toThrow(/UNIQUE/);
   });
 
   it("stores Decks per account and Faction, and rejects unknown Factions", async () => {

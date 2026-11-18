@@ -2,6 +2,12 @@
 
 An online two-player card game played over rounds on a three-row battlefield. Players build Decks from a Card Catalog and face each other in shared Rooms.
 
+## Players
+
+**Display name**:
+A player's editable public name, shown in Rooms and account controls. Display names do not need to be unique. An immutable account ID owns Decks and Records; email and password belong to Clerk authentication.
+_Avoid_: username (when referring to the public name)
+
 ## Cards and decks
 
 **Card Catalog**:

@@ -8,11 +8,7 @@
   "somethingWentWrongTryAgain": "Something went wrong. Try again.",
   "couldNotReachTheServerTry": "Could not reach the server. Try again.",
   "createAnAccount": "Create an account",
-  "username": "Username",
-  "text3To20LettersDigitsOr": "3 to 20 letters, digits or underscores",
-  "text3To20LettersDigitsOr2": "3 to 20 letters, digits or underscores.",
   "password": "Password",
-  "atLeast8CharactersThereIs": "At least 8 characters. There is no email, so there is no password reset: keep it safe.",
   "alreadyHaveAnAccount": "Already have an account?",
   "newHere": "New here?",
   "loading": "Loading…",
@@ -232,5 +228,13 @@
   "roomCode": "Room code",
   "join": "Join",
   "swarmId": "swarm",
-  "courtId": "court"
+  "courtId": "court",
+  "signInUnavailable": "Sign in is unavailable. Please try again later.",
+  "tryAgain": "Try again",
+  "chooseDisplayName": "Choose your display name",
+  "displayName": "Display name",
+  "displayNameHint": "1–30 characters. Spaces are welcome, and other players can use the same name.",
+  "displayNameSaved": "Display name saved.",
+  "accountSettings": "Account settings",
+  "signInAndSecurity": "Sign-in and security"
 }

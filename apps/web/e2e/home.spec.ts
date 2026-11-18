@@ -56,6 +56,7 @@ test("Home refreshes Records after a Forfeit", async ({ browser }) => {
       await signUpVia(page, uniqueName("record"));
       const response = await page.request.post("/api/decks/copy-starter", {
         data: { faction: "swarm" },
+        headers: { Origin: new URL(page.url()).origin },
       });
       expect(response.status()).toBe(201);
     }
