@@ -42,6 +42,9 @@ jobs:
           echo "PREVIEW_URL=https://$PREVIEW_NAME.${PRODUCTION_URL#https://}" >> "$GITHUB_ENV"
       - name: Build the client
         run: VITE_CLERK_PUBLISHABLE_KEY="$PREVIEW_CLERK_PUBLISHABLE_KEY" SITE_URL="$PREVIEW_URL" pnpm build
+      - name: Keep the PR Preview out of search engines
+        run: |
+          printf '/*\n  X-Robots-Tag: noindex\n' > apps/web/dist/_headers
       - name: Apply this PR's D1 migrations to card-duel-preview
         working-directory: apps/worker
         run: pnpm preview:db:migrate

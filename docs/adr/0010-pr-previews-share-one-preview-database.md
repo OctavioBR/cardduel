@@ -16,4 +16,4 @@ PR Previews are served at `pr-<number>.cardduel.ooctav.io`, through `previews_en
 - One PR's migration can break other open PR Previews, and an abandoned PR leaves its schema behind. The **Reset Preview database** workflow drops every table and applies `main`'s migrations, erasing all PR Preview accounts and Decks.
 - An account and its Decks created on one PR Preview appear on every other PR Preview, and never in production.
 - Turning on `previews_enabled` reaches Cloudflare only through a production deploy, which stays manual (`deploy.yml`). PR Previews get no URL until that deploy has run once.
-- The automatic `X-Robots-Tag: noindex` expected on workers.dev Previews isn't confirmed for Custom Domain PR Previews. Check the first PR Preview's response headers.
+- Cloudflare adds `X-Robots-Tag: noindex` only to workers.dev Previews. The PR Preview workflow writes a static-assets `_headers` file into its own build to add it. Production builds never get that file.
