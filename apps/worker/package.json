@@ -8,7 +8,9 @@
     "typecheck": "wrangler types --strict-vars=false >/dev/null && tsc -p .",
     "test": "vitest run",
     "deploy": "wrangler deploy",
-    "db:migrate:local": "wrangler d1 migrations apply DB --local"
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "preview:db:migrate": "node scripts/preview-db.ts migrate",
+    "preview:db:reset": "node scripts/preview-db.ts reset"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "1.8.2",

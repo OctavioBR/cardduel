@@ -1,0 +1,28 @@
+name: Reset Preview database
+# Recovery for card-duel-preview, the database every PR Preview shares (ADR-0010): drops every
+# table, erasing all PR Preview accounts and Decks, then applies main's migrations.
+on:
+  workflow_dispatch:
+
+concurrency: preview-db-reset
+permissions:
+  contents: read
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: pnpm/setup@v3
+        with:
+          node-version-file: .nvmrc
+          cache: true
+          require-lockfile: true
+      - name: Reset card-duel-preview to main's migrations
+        working-directory: apps/worker
+        run: pnpm preview:db:reset
