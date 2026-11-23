@@ -1,5 +1,6 @@
 // `pnpm clean`: delete installed dependencies and generated files so the next `pnpm install` and
-// build start from scratch. Local settings such as .env.local and .dev.vars are kept.
+// build start from scratch. Local settings such as .env.local and .dev.vars are kept, and so is
+// the `pnpm dev` database and Durable Object state in .wrangler/state.
 import { globSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +11,7 @@ const generated = [
   "**/node_modules",
   "**/dist",
   "apps/web/dist-e2e",
-  "**/.wrangler",
+  "**/.wrangler/*",
   "**/coverage",
   "**/test-results",
   "**/playwright-report",
@@ -23,7 +24,7 @@ const generated = [
 const matches = globSync(generated, {
   cwd: root,
   // Don't walk into dependencies or .git: a matched node_modules goes as a whole.
-  exclude: ["**/node_modules/**", ".git/**"],
+  exclude: ["**/node_modules/**", ".git/**", "**/.wrangler/state"],
 });
 for (const path of matches) {
   rmSync(join(root, path), { recursive: true, force: true });

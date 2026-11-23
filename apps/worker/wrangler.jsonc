@@ -1,13 +1,8 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  // One Worker serves the client, the HTTP API and Room WebSockets (ADR-0001).
   "name": "card-duel",
   "main": "src/index.ts",
   "compatibility_date": "2026-11-01",
-  // Production is served only on its Custom Domain (#114): one origin keeps sessions,
-  // Room links and social previews consistent. Cloudflare manages its DNS record and certificate.
-  // `previews_enabled` serves each PR Preview at pr-<number>.cardduel.ooctav.io (ADR-0010).
-  // `preview_urls` stays false: it would also expose production versions on workers.dev.
   "routes": [{ "pattern": "cardduel.ooctav.io", "custom_domain": true, "previews_enabled": true }],
   "workers_dev": false,
   "preview_urls": false,
@@ -20,7 +15,6 @@
   "durable_objects": {
     "bindings": [
       { "name": "ROOMS", "class_name": "Room" },
-      // One global instance holds the Casual and Competitive Queues (#108).
       { "name": "MATCHMAKER", "class_name": "Matchmaker" }
     ]
   },
@@ -32,17 +26,12 @@
       "migrations_dir": "migrations"
     }
   ],
-  // The Free plan only offers SQLite-backed Durable Objects.
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["Room"] },
     { "tag": "v2", "new_sqlite_classes": ["Matchmaker"] }
   ],
-  // Configure for your Clerk instance; see docs/authentication.md. JWT_KEY and SECRET_KEY are secrets.
   "vars": { "CLERK_PUBLISHABLE_KEY": "", "APP_ORIGIN": "" },
   "observability": { "enabled": true },
-  // PR Previews (`wrangler preview`) don't inherit bindings or vars from above. Each PR Preview
-  // gets its own Durable Object namespaces; all of them share the card-duel-preview database
-  // (ADR-0010). The pr-preview workflow sets the vars per PR Preview.
   "previews": {
     "durable_objects": {
       "bindings": [
@@ -54,8 +43,7 @@
       {
         "binding": "DB",
         "database_name": "card-duel-preview",
-        // Fill in from `wrangler d1 create card-duel-preview`; see docs/authentication.md.
-        "database_id": "<REPLACE_ME>",
+        "database_id": "6e0c42a7-5685-407d-97c7-d34054baae6e",
         "migrations_dir": "migrations"
       }
     ],
