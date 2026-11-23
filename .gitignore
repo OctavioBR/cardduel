@@ -1,4 +1,3 @@
-/assets
 node_modules/
 dist/
 .wrangler/
@@ -10,5 +9,4 @@ playwright-report/
 worker-configuration.d.ts
 wrangler.e2e.json
 .env.local
-
-/apps/web/dist-e2e/
+apps/web/dist-e2e/
