@@ -14,7 +14,8 @@
     "format": "biome check --write .",
     "test": "pnpm -r test",
     "e2e": "pnpm --filter @card-duel/web e2e",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm e2e"
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm e2e",
+    "clean": "node tools/clean.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
