@@ -11,12 +11,11 @@ permissions:
 env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  GH_TOKEN: ${{ github.token }}
   PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
   PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
   PREVIEW_CLERK_PUBLISHABLE_KEY: ${{ vars.PREVIEW_CLERK_PUBLISHABLE_KEY }}
   PREVIEW_CLERK_SECRET_KEY: ${{ secrets.PREVIEW_CLERK_SECRET_KEY }}
-  COMMENT_MARKER: "<!-- pr-preview -->"
+  COMMENT_MARKER: "<!-- pr-preview sticky comment -->"
 jobs:
   preview:
     if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
@@ -71,12 +70,32 @@ jobs:
           echo "::error::$PREVIEW_URL/api/health did not respond"
           exit 1
       - name: Post the PR Preview link
-        run: |
-          body="$COMMENT_MARKER
-          **PR Preview:** $PREVIEW_URL
-
-          Built from ${{ github.event.pull_request.head.sha }}. Sign in with the development Clerk instance. Accounts and Decks are shared with every other PR Preview."
-          .github/scripts/pr-preview-comment.sh "$body"
+        uses: actions/github-script@v9
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        with:
+          script: |
+            const { COMMENT_MARKER, PREVIEW_URL, HEAD_SHA } = process.env;
+            const body = [
+              COMMENT_MARKER,
+              `**PR Preview:** ${PREVIEW_URL}`,
+              "",
+              `Built from ${HEAD_SHA}. Sign in with the development Clerk instance.`,
+            ].join("\n");
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(
+              (c) => c.user?.login === "github-actions[bot]" && c.body?.startsWith(COMMENT_MARKER),
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: existing.id, body });
+              core.info(`Edited comment ${existing.id}.`);
+            } else {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });
+              core.info("Posted the PR Preview comment.");
+            }
 
   delete:
     if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
@@ -88,7 +107,7 @@ jobs:
           node-version-file: .nvmrc
           cache: true
           require-lockfile: true
-      - name: Delete the PR Preview
+      - name: Delete PR Preview
         working-directory: apps/worker
         run: |
           if output=$(pnpm wrangler preview delete --name "$PREVIEW_NAME" --skip-confirmation 2>&1); then
@@ -100,5 +119,25 @@ jobs:
             echo "$output"
             exit 1
           fi
-      - name: Update the PR Preview comment
-        run: .github/scripts/pr-preview-comment.sh "$COMMENT_MARKER"$'\n'"**PR Preview:** deleted when this PR closed." --only-update
+      - name: Update PR Preview comment
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { COMMENT_MARKER } = process.env;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(
+              (c) => c.user?.login === "github-actions[bot]" && c.body?.startsWith(COMMENT_MARKER),
+            );
+            if (!existing) {
+              core.info("No PR Preview comment to update.");
+              return;
+            }
+            await github.rest.issues.updateComment({
+              ...context.repo,
+              comment_id: existing.id,
+              body: `${COMMENT_MARKER}\nPR Preview deleted.`,
+            });
+            core.info(`Edited comment ${existing.id}.`);
