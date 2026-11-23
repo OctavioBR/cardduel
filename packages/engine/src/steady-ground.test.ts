@@ -50,9 +50,9 @@ const LIST = [
 function board(): { state: MatchState; a: Seat; b: Seat } {
   const first = startMatch(setup(5, [deck(LIST, "court"), deck(LIST, "court")], CARDS)).state;
   const a = first.turn as Seat;
-  const decks = [deck(LIST, "court"), deck(LIST, "court")];
-  decks[a] = { ...deck(LIST, "court"), leader: STEADY.id };
-  const { state } = startMatch(setup(5, [decks[0]!, decks[1]!], CARDS));
+  const steady = { ...deck(LIST, "court"), leader: STEADY.id };
+  const plain = deck(LIST, "court");
+  const { state } = startMatch(setup(5, a === 0 ? [steady, plain] : [plain, steady], CARDS));
   return { state, a, b: opponent(a) };
 }
 

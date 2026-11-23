@@ -138,7 +138,7 @@
 .cd-token .cd-strength {
   font-size: 24px;
 }
-.cd-token.cd-hero .cd-strength {
+.cd-token:where(.cd-hero) .cd-strength {
   font-size: 18px;
 }
 
