@@ -50,7 +50,7 @@ jobs:
             echo "::warning::Repository variable PRODUCTION_URL is not set; skipping the health check."
             exit 0
           fi
-          for i in 1 2 3 4 5 6; do
+          for _ in 1 2 3 4 5 6; do
             if curl -fsS "$PRODUCTION_URL/api/health"; then exit 0; fi
             sleep 5
           done

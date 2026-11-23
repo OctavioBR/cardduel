@@ -63,7 +63,7 @@ jobs:
           fi
       - name: Check the PR Preview health route
         run: |
-          for i in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if curl -fsS "$PREVIEW_URL/api/health"; then exit 0; fi
             sleep 10
           done
