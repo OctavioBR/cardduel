@@ -1,0 +1,116 @@
+name: PR Preview
+# Every PR from a branch in this repo gets a PR Preview at pr-<number>.<production host> (ADR-0010).
+# Production deploys stay manual in deploy.yml: `wrangler preview` never runs `wrangler deploy`.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  # A new push replaces an unfinished deploy; closing the PR waits for it, then deletes the PR Preview.
+  cancel-in-progress: ${{ github.event.action != 'closed' }}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  GH_TOKEN: ${{ github.token }}
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+  PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
+  PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+  COMMENT_MARKER: "<!-- pr-preview -->"
+
+jobs:
+  deploy:
+    # Fork PRs don't get the secrets, so they skip the PR Preview.
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      # The development Clerk instance, the same one `pnpm dev` uses. Production keys never reach a PR Preview.
+      CLERK_PUBLISHABLE_KEY: ${{ vars.PR_PREVIEW_CLERK_PUBLISHABLE_KEY }}
+      PR_PREVIEW_CLERK_SECRET_KEY: ${{ secrets.PR_PREVIEW_CLERK_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v3
+        with:
+          node-version-file: .nvmrc
+          cache: true
+          require-lockfile: true
+      - name: Check the PR Preview settings
+        run: |
+          test -n "$PRODUCTION_URL" || { echo "::error::Set repository variable PRODUCTION_URL."; exit 1; }
+          case "$CLERK_PUBLISHABLE_KEY" in
+            pk_test_*) ;;
+            *) echo "::error::Set repository variable PR_PREVIEW_CLERK_PUBLISHABLE_KEY to the development Clerk instance's pk_test_ key."; exit 1 ;;
+          esac
+          case "$PR_PREVIEW_CLERK_SECRET_KEY" in
+            sk_test_*) ;;
+            *) echo "::error::Set repository secret PR_PREVIEW_CLERK_SECRET_KEY to the development Clerk instance's sk_test_ key."; exit 1 ;;
+          esac
+          # Origin pinning: this PR Preview allows exactly its own URL, never a wildcard.
+          echo "PREVIEW_URL=https://$PREVIEW_NAME.${PRODUCTION_URL#https://}" >> "$GITHUB_ENV"
+      - name: Build the client
+        run: VITE_CLERK_PUBLISHABLE_KEY="$CLERK_PUBLISHABLE_KEY" SITE_URL="$PREVIEW_URL" pnpm build
+      - name: Apply this PR's D1 migrations to card-duel-preview
+        working-directory: apps/worker
+        run: pnpm preview:db:migrate
+      - name: Create or update the PR Preview
+        working-directory: apps/worker
+        run: |
+          secrets="$RUNNER_TEMP/preview-secrets.json"
+          jq -n --arg key "$PR_PREVIEW_CLERK_SECRET_KEY" '{CLERK_SECRET_KEY: $key}' > "$secrets"
+          export WRANGLER_OUTPUT_FILE_PATH="$RUNNER_TEMP/wrangler-output.jsonl"
+          pnpm wrangler preview --name "$PREVIEW_NAME" \
+            --var "CLERK_PUBLISHABLE_KEY:$CLERK_PUBLISHABLE_KEY" \
+            --var "APP_ORIGIN:$PREVIEW_URL" \
+            --secrets-file "$secrets"
+          rm "$secrets"
+          urls=$(jq -r 'select(.type == "preview") | .preview_urls[]?' "$WRANGLER_OUTPUT_FILE_PATH")
+          if ! grep -qxF "$PREVIEW_URL" <<< "$urls"; then
+            echo "::error::Expected the PR Preview at $PREVIEW_URL, which APP_ORIGIN allows, but Cloudflare reported: ${urls:-no URLs}"
+            exit 1
+          fi
+      - name: Check the PR Preview health route
+        run: |
+          # A new PR Preview's certificate can take a few minutes to provision.
+          for i in $(seq 1 30); do
+            if curl -fsS "$PREVIEW_URL/api/health"; then exit 0; fi
+            sleep 10
+          done
+          echo "::error::$PREVIEW_URL/api/health did not respond"
+          exit 1
+      - name: Post the PR Preview link
+        run: |
+          body="$COMMENT_MARKER
+          **PR Preview:** $PREVIEW_URL
+
+          Built from ${{ github.event.pull_request.head.sha }}. Sign in with the development Clerk instance. Accounts and Decks are shared with every other PR Preview."
+          .github/scripts/pr-preview-comment.sh "$body"
+
+  delete:
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v3
+        with:
+          node-version-file: .nvmrc
+          cache: true
+          require-lockfile: true
+      - name: Delete the PR Preview
+        working-directory: apps/worker
+        run: |
+          if output=$(pnpm wrangler preview delete --name "$PREVIEW_NAME" --skip-confirmation 2>&1); then
+            echo "$output"
+          elif grep -qi "not found" <<< "$output"; then
+            echo "$output"
+            echo "::notice::$PREVIEW_NAME had no PR Preview to delete."
+          else
+            echo "$output"
+            exit 1
+          fi
+      - name: Update the PR Preview comment
+        run: .github/scripts/pr-preview-comment.sh "$COMMENT_MARKER"$'\n'"**PR Preview:** deleted when this PR closed." --only-update

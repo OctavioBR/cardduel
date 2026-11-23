@@ -28,7 +28,7 @@ APP_ORIGIN=http://localhost:5173,http://localhost:8787
 # CLERK_JWT_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
 ```
 
-Run `pnpm dev`. The Worker dev script preserves the localhost origin instead of inferring the production Custom Domain. Vite proxies the API and Room WebSockets to the Worker. Keep the allowed origins explicit; do not include arbitrary preview domains. The Worker rejects cross-origin mutations and WebSocket upgrades. The local profile is created on the first verified `/api/me` request, and an incomplete profile must choose a Display name before accessing Decks or Rooms.
+Run `pnpm dev`. The Worker dev script preserves the localhost origin instead of inferring the production Custom Domain. Vite proxies the API and Room WebSockets to the Worker. Keep the allowed origins explicit; never add wildcards or other hosts. The one exception is a PR Preview, which allows exactly its own URL (see [PR Previews](#pr-previews)). The Worker rejects cross-origin mutations and WebSocket upgrades. The local profile is created on the first verified `/api/me` request, and an incomplete profile must choose a Display name before accessing Decks or Rooms.
 
 If sign-up succeeds but the game cannot verify the sign-in, check the response to `/api/me`. On localhost only, the `X-Card-Duel-Auth` response header gives a non-sensitive SDK reason code. `publishable-key-invalid` means the Worker's `CLERK_PUBLISHABLE_KEY` is malformed: copy the same `pk_test_…` value used by the frontend, keeping the separate `sk_test_…` secret in `CLERK_SECRET_KEY`, and restart `pnpm dev`. Missing or malformed configuration returns 503; a rejected session returns `account: null`. These cases have separate messages from a network failure. Never share request cookies or Authorization headers when reporting a problem.
 
@@ -41,6 +41,20 @@ If sign-up succeeds but the game cannot verify the sign-in, check the response t
 5. CI applies D1 migrations through Wrangler and deploys after the required checks. Keep Clerk secrets out of Git, Vite variables and build logs.
 
 Before enabling production, smoke-test email/password registration and verification, password reset, password changes, Google sign-in/cancellation, sign-out, a Room return link, duplicate Display names, and two players taking Seats. Measure cold/warm Worker authentication CPU against the Free plan limit. No production Clerk instance was provisioned by this change.
+
+## PR Previews
+
+Every PR from a branch in this repo gets a PR Preview at `https://pr-<number>.cardduel.ooctav.io` (ADR-0010). The **PR Preview** workflow creates or updates it on every push, edits one PR comment with the link, and deletes the PR Preview when the PR closes. Fork PRs skip it.
+
+Each PR Preview uses the **development** Clerk instance, the same one `pnpm dev` uses. Production Clerk keys never reach a PR Preview. The workflow sets `APP_ORIGIN` to exactly that PR Preview's URL, so Clerk's authorized parties and the Worker's Origin check reject every other origin, including other PR Previews and production. The workflow fails if Cloudflare reports a different URL.
+
+One-time setup:
+
+1. Create the shared Preview database from `apps/worker`: `pnpm exec wrangler d1 create card-duel-preview`. Put its ID in `previews.d1_databases` in `wrangler.jsonc`, replacing `<REPLACE_ME>`.
+2. Set GitHub repository variable `PR_PREVIEW_CLERK_PUBLISHABLE_KEY` to the development instance's `pk_test_…` key, and repository secret `PR_PREVIEW_CLERK_SECRET_KEY` to its `sk_test_…` key. The workflow passes the secret key to each PR Preview as its `CLERK_SECRET_KEY` Preview secret. It reuses `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and `PRODUCTION_URL`.
+3. Run the **Deploy** workflow once. Production's Custom Domain route sets `previews_enabled`, and only a production deploy publishes it. Until then PR Previews have no URL.
+
+Every PR Preview deploy applies that PR's migrations to `card-duel-preview`, so a PR can break other open PR Previews. To recover, run the **Reset Preview database** workflow. It drops every table, erasing all PR Preview accounts and Decks, and applies `main`'s migrations. Locally, `pnpm --filter @card-duel/worker preview:db:reset` does the same against your checkout's migrations.
 
 ## Automated tests
 

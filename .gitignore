@@ -8,5 +8,6 @@ playwright-report/
 *.tsbuildinfo
 worker-configuration.d.ts
 wrangler.e2e.json
+wrangler.preview-db.json
 .env.local
 apps/web/dist-e2e/
