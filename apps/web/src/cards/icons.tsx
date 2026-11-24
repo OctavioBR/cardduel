@@ -44,6 +44,13 @@ const GLYPHS: Record<IconName, string> = {
   weather: "M4.5 11.5h7a3 3 0 0 0 0-6 4 4 0 0 0-7.6 1A2.5 2.5 0 0 0 4.5 11.5z",
   clearWeather: "M8 4.5a3.5 3.5 0 1 0 .01 0M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15",
   decoy: "M3 3h10v6c0 3-2.5 4.5-5 4.5S3 12 3 9zM6 7h.01M10 7h.01",
+  battlefieldScorch:
+    "M8 3c1 3 4 4 4 7.5a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-4 0-6.5zM2 3.5l1.5 1.5M14 3.5 12.5 5M1.5 9H3M14.5 9H13",
+  summon:
+    "M8 4.6a4.6 4.6 0 1 0 .01 0M3.3 6.2a1.9 1.9 0 1 1 2.4-2.6M12.7 6.2a1.9 1.9 0 1 0-2.4-2.6M6.2 8.4h.01M9.8 8.4h.01M7 11l1 .9 1-.9",
+  berserker: "M5 2.5 3 13.5M9 2.5l-2 11M13 2.5l-2 11",
+  frenzy:
+    "M1.5 8.6C1.5 4.6 4.4 1.8 8 1.8s6.5 2.8 6.5 6.8zM6.1 9.6h3.8l.6 3.4a1 1 0 0 1-1 1.2H6.5a1 1 0 0 1-1-1.2z",
   hero: "M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z",
 };
 
@@ -59,11 +66,15 @@ const LABEL: Record<IconName, string> = {
   weather: copy.weather,
   clearWeather: copy.clearWeather,
   decoy: copy.decoy,
+  battlefieldScorch: copy.battlefieldScorch,
+  summon: copy.summon,
+  berserker: copy.berserker,
+  frenzy: copy.frenzy,
   hero: copy.hero,
 };
 
 export function AbilityIcon({ name, size = 14 }: { name: IconName; size?: number }) {
-  const filled = name === "hero" || name === "medic";
+  const filled = name === "hero" || name === "medic" || name === "frenzy";
   return (
     <svg
       className="cd-icon"

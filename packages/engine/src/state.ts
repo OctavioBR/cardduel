@@ -31,6 +31,11 @@ export interface SideState {
   leaderUsed: boolean;
   /** Ordered: index 0 is the top of the deck. Hidden from both views. */
   deck: Uid[];
+  /**
+   * Side Deck cards waiting to enter by Summon or Frenzy (GLOSSARY.md: Side Deck), and the
+   * Berserkers they replaced. Hidden from both views.
+   */
+  sideDeck: Uid[];
   hand: Uid[];
   discard: Uid[];
   rows: Record<RowId, RowState>;
@@ -48,7 +53,14 @@ export type MatchResult =
 
 export type Phase = "redraw" | "turns" | "ended";
 
-export type PendingKind = "medic" | "leaderWeather" | "leaderReturn" | "leaderDraw";
+export type PendingKind =
+  | "medic"
+  | "leaderWeather"
+  | "leaderReturn"
+  | "leaderDraw"
+  | "leaderBond"
+  /** Elves chooses who takes the first Turn of the Match. */
+  | "firstTurn";
 
 /**
  * A decision a Seat must make after a play has resolved (GLOSSARY.md: Pending Choice).
@@ -59,9 +71,15 @@ export interface PendingChoice {
   kind: PendingKind;
 }
 
+/**
+ * Shape version of `MatchState`. A Room rebuilds a snapshot of another version from the
+ * seed and action log (ADR-0003).
+ */
+export const MATCH_STATE_VERSION = 2;
+
 /** Plain JSON data: the Room snapshots it (ADR-0003). */
 export interface MatchState {
-  version: 1;
+  version: typeof MATCH_STATE_VERSION;
   /** Seeded generator state. */
   rng: number;
   /** Definitions of every card in either Deck, copied in at Match creation (ADR-0004). */

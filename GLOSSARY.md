@@ -27,6 +27,15 @@ The Faction built around Muster; after each Round, one random non-Hero Unit Card
 **Court**:
 The Faction built around Spies and Medics; its player wins tied Rounds.
 
+**Kingdom**:
+The Faction built around Siege Units, Tight Bond and Heroes; its player draws a card after each Round they win.
+
+**Elves**:
+The Faction built around Agile Units and Muster; when the Match starts, after the Redraw, its player chooses who takes the first Turn instead of the coin flip, unless both players are Elves.
+
+**Vikings**:
+The Faction built around Berserkers, Frenzy and Tight Bond; when Round 3 starts, two random Unit Cards from its player's Discard Pile are Put on the battlefield.
+
 **Deck**:
 A player-owned selection of cards for one Faction, complete or not. A player may keep several Decks per Faction.
 _Avoid_: build, list
@@ -44,7 +53,18 @@ A Valid Deck whose contents also meet the competitive limits: at most 5 Special 
 _Avoid_: ranked deck, tournament deck
 
 **Side Deck**:
-Cards that never start in a Deck but can be brought onto the battlefield by Summon or Berserker abilities.
+Cards that never start in a Deck but can be brought onto the battlefield by Summon or Frenzy. Each player's Side Deck holds one card for each Summon card and Berserker in their Deck, and is hidden from both players.
+
+**Summon**:
+An ability of a Unit Card: when the card is discarded from the battlefield, by Scorch or at Round end, its Side Deck card takes its place on the same Row at once, so at Round end it stays for the next Round. Each copy Summons once.
+_Avoid_: avenger, spawn
+
+**Berserker**:
+A Unit Card that Frenzy turns into its Side Deck form, which takes its place on the battlefield; the Berserker goes to the Side Deck.
+
+**Frenzy**:
+The ability of the Bloodcap Special Card and some Units: when Played, it turns every Berserker its player controls on the battlefield into its Side Deck form. Berserkers Played later are not turned.
+_Avoid_: transform (as the name of the ability)
 
 **Leader**:
 The single card chosen before a match that grants a passive or once-per-match active ability.
@@ -68,7 +88,7 @@ A Unit Card its player plays onto the opponent's side, where it counts for the o
 A Unit Card whose on-play ability Plays a non-Hero Unit Card of its player's choice from their Discard Pile.
 
 **Muster**:
-An ability that, when its card is Played, also Plays every other card of the same Muster group from its player's hand and deck.
+An ability that, when its card is Played, also Plays every other card of the same Muster group from its player's hand and deck. Some Heroes call another group, such as their companion's, without being called back by it.
 
 **Discard Pile**:
 A player's face-up pile of cards that have left their side of the battlefield or been used from their hand.
@@ -143,7 +163,7 @@ The private step at the start of a Match in which each player may return up to t
 _Avoid_: mulligan
 
 **Play**:
-To bring a card onto the battlefield so that its on-play ability fires: from the hand, by a Medic, or by Muster.
+To bring a card onto the battlefield so that its on-play ability fires: from the hand, by a Medic, by Muster, by a Leader ability or by Summon.
 _Avoid_: cast, deploy
 
 **Put**:
@@ -184,4 +204,4 @@ _Avoid_: life, crown
 One of the three combat lines on each side of the battlefield: Close, Ranged and Siege.
 
 **Weather**:
-A Special Card that sets the strength of all non-Hero units on one or more Rows to 1 for both players while it is in play.
+A Special Card that sets the strength of all non-Hero units on one or more Rows to 1 for both players while it is in play. A Storm-Hardened Leader's player keeps half their printed Strength instead, rounded up.

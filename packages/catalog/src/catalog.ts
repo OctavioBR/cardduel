@@ -1,4 +1,4 @@
-import type { CardDefinition } from "@card-duel/engine";
+import type { CardDefinition, DeckSpec, FactionId } from "@card-duel/engine";
 import type { Catalog, CatalogData } from "./types";
 
 export function loadCatalog(data: CatalogData): Catalog {
@@ -6,6 +6,13 @@ export function loadCatalog(data: CatalogData): Catalog {
     ...data,
     byId: new Map(data.cards.map((card): [string, CardDefinition] => [card.id, card])),
   };
+}
+
+/** The version's Starter Deck for a Faction; throws if the version has none for it. */
+export function starterDeckOf(catalog: CatalogData, faction: FactionId): DeckSpec {
+  const deck = catalog.starterDecks[faction];
+  if (!deck) throw new Error(`Catalog ${catalog.version} has no Starter Deck for ${faction}`);
+  return deck;
 }
 
 /** Display name of a card in a language, falling back to English, then the id. */

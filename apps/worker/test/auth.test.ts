@@ -55,7 +55,10 @@ describe("Clerk authentication", () => {
       ).results,
     ).toEqual([
       { faction: "court", n: 1 },
+      { faction: "elves", n: 1 },
+      { faction: "kingdom", n: 1 },
       { faction: "swarm", n: 1 },
+      { faction: "vikings", n: 1 },
     ]);
   });
   it("rejects missing, forged, expired, wrong-issuer and wrong-origin tokens", async () => {

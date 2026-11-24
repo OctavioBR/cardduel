@@ -113,5 +113,6 @@ test("Copy a Starter Deck gives an additional Competitive Deck; filters narrow t
     "court-double-agent",
     "court-masked-envoy",
     "court-palace-informant",
+    "neutral-silent-elder",
   ]);
 });

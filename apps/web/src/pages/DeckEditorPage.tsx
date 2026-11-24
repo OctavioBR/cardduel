@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { Card } from "../cards/Card";
 import { CardDetailProvider } from "../cards/CardDetail";
+import { FACTION_NAME } from "../cards/factions";
 import { abilityLabel } from "../cards/icons";
 import { cardDef, cardName, cardText, catalog } from "../cards/strings";
 import { type Deck, deckApi } from "../decks/api";
@@ -20,7 +21,11 @@ const ABILITIES: UnitAbility[] = [
   "muster",
   "tightBond",
   "scorch",
+  "battlefieldScorch",
   "spy",
+  "summon",
+  "berserker",
+  "frenzy",
 ];
 /** What the Deck builder edits; nothing reaches the server until Save. */
 interface Draft {
@@ -151,7 +156,7 @@ function Editor({ initial }: { initial: Deck }) {
           />
         </label>
         <span className={`faction-badge f-${initial.faction}`}>
-          {initial.faction === "swarm" ? copy.swarm : copy.court}
+          {FACTION_NAME[initial.faction]}
         </span>
         <div className="editor-actions">
           <span

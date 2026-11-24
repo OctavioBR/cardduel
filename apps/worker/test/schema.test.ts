@@ -55,7 +55,7 @@ describe("D1 schema", () => {
     expect(row).toEqual({ faction: "swarm", leader: null, cards: "[]" });
     await expect(
       env.DB.prepare(
-        "INSERT INTO decks (id, account_id, name, faction, cards, updated_at) VALUES ('d2', 'a3', 'X', 'elves', '[]', 1)",
+        "INSERT INTO decks (id, account_id, name, faction, cards, updated_at) VALUES ('d2', 'a3', 'X', 'pirates', '[]', 1)",
       ).run(),
     ).rejects.toThrow(/CHECK/);
   });

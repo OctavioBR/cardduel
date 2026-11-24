@@ -20,6 +20,15 @@
 .cd-f-court {
   --tint: var(--cd-court);
 }
+.cd-f-kingdom {
+  --tint: var(--cd-kingdom);
+}
+.cd-f-vikings {
+  --tint: var(--cd-vikings);
+}
+.cd-f-elves {
+  --tint: var(--cd-elves);
+}
 .cd-f-neutral {
   --tint: var(--cd-neutral);
 }

@@ -14,19 +14,24 @@ export function unit(
     hero: boolean;
     abilities: UnitAbility[];
     musterGroup: string;
+    musterCalls: string;
+    summons: string;
+    transformsInto: string;
+    sideDeck: boolean;
     faction: CardDefinition["faction"];
   }> = {},
 ): CardDefinition {
+  const { faction, hero, abilities, ...optional } = extra;
   return {
     id,
     kind: "unit",
-    faction: extra.faction ?? "neutral",
+    faction: faction ?? "neutral",
     strength,
     row,
-    hero: extra.hero ?? false,
-    abilities: extra.abilities ?? [],
+    hero: hero ?? false,
+    abilities: abilities ?? [],
     maxCopies: 3,
-    ...(extra.musterGroup ? { musterGroup: extra.musterGroup } : {}),
+    ...optional,
   };
 }
 

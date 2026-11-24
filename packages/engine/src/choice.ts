@@ -1,10 +1,10 @@
 import type { Action, ChooseAction } from "./actions";
 import type { MatchEvent } from "./events";
-import { distinctIds, takeFromDeck, weatherInDeck } from "./leader";
+import { bondCopies, distinctIds, takeFromDeck, weatherInDeck } from "./leader";
 import { playableRows } from "./legal";
 import { medicTargets, playUnit, ref } from "./play";
 import { shuffle } from "./rng";
-import type { MatchState, PendingChoice } from "./state";
+import { type MatchState, opponent, type PendingChoice } from "./state";
 import { defOf } from "./strength";
 
 /** Every option of a Pending Choice, as fully specified choose actions. */
@@ -27,6 +27,14 @@ export function choiceOptions(state: MatchState, pending: PendingChoice): Action
     case "leaderDraw":
       return distinctIds(state, state.sides[pending.seat].deck).map(
         (cardId): ChooseAction => ({ type: "choose", cardId }),
+      );
+    case "leaderBond":
+      return bondCopies(state, pending.seat).map(
+        ({ cardId, row }): ChooseAction => ({ type: "choose", cardId, row }),
+      );
+    case "firstTurn":
+      return [pending.seat, opponent(pending.seat)].map(
+        (starter): ChooseAction => ({ type: "choose", starter }),
       );
   }
 }
@@ -76,6 +84,16 @@ export function resolveChoice(
       events.push({ type: "drew", seat: pending.seat, count: 1, cards: [ref(state, uid)] });
       return;
     }
+    case "leaderBond": {
+      if (action.cardId === undefined || action.row === undefined)
+        throw new Error("Needs a card id and Row");
+      const uid = takeFromDeck(state, pending.seat, action.cardId);
+      playUnit(state, pending.seat, uid, action.row, events, "leader");
+      return;
+    }
+    case "firstTurn":
+      // Starting the Match hands out the Turn, so `applyAction` resolves it itself.
+      throw new Error("The first Turn choice is resolved when the Match starts");
   }
 }
 

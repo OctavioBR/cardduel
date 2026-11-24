@@ -9,7 +9,7 @@ import type { CatalogData, DeckLimits, StringTable } from "../types";
 export const V1: CatalogData = {
   version: "v1",
   cards: cards as CardDefinition[],
-  starterDecks: starterDecks as Record<FactionId, DeckSpec>,
+  starterDecks: starterDecks as Partial<Record<FactionId, DeckSpec>>,
   limits: limits as DeckLimits,
   strings: { en: en as StringTable },
 };

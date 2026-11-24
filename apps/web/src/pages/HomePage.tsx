@@ -8,6 +8,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 import { useAuth } from "../auth/AuthContext";
+import { FACTION_NAME } from "../cards/factions";
 import { type Deck, deckApi } from "../decks/api";
 import { defaultDeck, seatableDecks } from "../decks/default-deck";
 import { clock } from "../room/clock";
@@ -206,7 +207,7 @@ export function HomePage() {
                 <option key={d.id} value={d.id}>
                   {formatCopy(en.deckOption, {
                     name: d.name,
-                    faction: d.faction === "swarm" ? copy.swarm : copy.court,
+                    faction: FACTION_NAME[d.faction],
                   })}
                 </option>
               ))}

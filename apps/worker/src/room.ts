@@ -14,6 +14,7 @@ import {
   filterEvents,
   type LobbyInfo,
   type LoggedAction,
+  MATCH_STATE_VERSION,
   type MatchEvent,
   type MatchResult,
   type MatchSetup,
@@ -556,8 +557,14 @@ export class Room extends DurableObject<Env> {
     if (setup) {
       const log = (stored.get("log") as LoggedAction[] | undefined) ?? [];
       let snapshot = stored.get("snapshot") as MatchState | undefined;
-      // The snapshot is a cache: rebuild from seed plus log when it is missing or behind.
-      if (!snapshot || snapshot.actionCount !== log.length) snapshot = replay(setup, log);
+      // The snapshot is a cache: rebuild from seed plus log when it is missing, behind, or
+      // from an older state shape.
+      if (
+        !snapshot ||
+        snapshot.actionCount !== log.length ||
+        snapshot.version !== MATCH_STATE_VERSION
+      )
+        snapshot = replay(setup, log);
       const externalResult = stored.get("externalResult") as MatchResult | undefined;
       if (externalResult)
         snapshot = { ...snapshot, phase: "ended", turn: null, pending: [], result: externalResult };

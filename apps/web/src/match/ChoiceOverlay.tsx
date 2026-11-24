@@ -12,6 +12,8 @@ const TITLE: Record<PendingKind, string> = {
   leaderWeather: copy.chooseAWeatherCardFromYour,
   leaderReturn: copy.chooseACardToReturnFrom,
   leaderDraw: copy.chooseACardToDrawFrom,
+  leaderBond: copy.chooseATightBondCardTo,
+  firstTurn: copy.elvesChooseWhoTakesTheFirstTurn,
 };
 
 /** A Pending Choice (GLOSSARY.md): it cannot be dismissed, so the overlay has no close button. */
@@ -33,6 +35,29 @@ export function ChoiceOverlay({
       : (a.cardId ??
         [...view.you.discard, ...view.you.hand].find((c) => c.uid === a.card)?.cardId ??
         "");
+  if (kind === "firstTurn") {
+    return (
+      <Overlay title={TITLE[kind]}>
+        <div className="first-turn-options">
+          {options.map((option) =>
+            option.type === "choose" && option.starter !== undefined ? (
+              <button
+                key={option.starter}
+                type="button"
+                className={option.starter === view.seat ? "primary" : undefined}
+                disabled={locked}
+                onClick={() => send(option)}
+              >
+                {option.starter === view.seat
+                  ? copy.iTakeTheFirstTurn
+                  : copy.myOpponentTakesTheFirstTurn}
+              </button>
+            ) : null,
+          )}
+        </div>
+      </Overlay>
+    );
+  }
   return (
     <Overlay title={TITLE[kind]}>
       <div className="overlay-cards choice-options">

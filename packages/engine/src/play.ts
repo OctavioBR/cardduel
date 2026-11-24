@@ -44,19 +44,6 @@ export function resolvePlay(
   }
   if (def.kind !== "special") return;
   switch (def.effect.type) {
-    case "weather":
-      state.weather.push(uid);
-      events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: "weather" });
-      return;
-    case "clearWeather": {
-      events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: "none" });
-      const cleared = state.weather.map((w) => ref(state, w));
-      for (const w of state.weather) discardToOwner(state, w);
-      state.weather = [];
-      events.push({ type: "weatherCleared", cards: cleared });
-      state.sides[seat].discard.push(uid);
-      return;
-    }
     case "horn": {
       if (!action.row) throw new Error("Horn needs a Row");
       state.sides[seat].rows[action.row].horn = uid;
@@ -69,16 +56,59 @@ export function resolvePlay(
       });
       return;
     }
-    case "scorch":
-      events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone: "none" });
-      scorchBattlefield(state, events);
-      state.sides[seat].discard.push(uid);
-      return;
     case "decoy": {
       if (action.target === undefined) throw new Error("Decoy needs a target");
       decoy(state, seat, uid, action.target, events);
       return;
     }
+    default:
+      playSpecial(state, seat, uid, events);
+  }
+}
+
+/**
+ * Plays a Special Card that needs neither a Row nor a target: Weather, Clear Weather, Scorch
+ * or Frenzy. `via` is set when it does not come from the hand (a Leader Plays it from the
+ * deck).
+ */
+export function playSpecial(
+  state: MatchState,
+  seat: Seat,
+  uid: Uid,
+  events: MatchEvent[],
+  via?: PlayedVia,
+): void {
+  const def = defOf(state, uid);
+  if (def.kind !== "special") throw new Error(`Card ${def.id} is not a Special Card`);
+  const played = (zone: "weather" | "none") =>
+    events.push({ type: "cardPlayed", seat, card: ref(state, uid), zone, ...(via ? { via } : {}) });
+  switch (def.effect.type) {
+    case "weather":
+      state.weather.push(uid);
+      played("weather");
+      return;
+    case "clearWeather": {
+      played("none");
+      const cleared = state.weather.map((w) => ref(state, w));
+      for (const w of state.weather) discardToOwner(state, w);
+      state.weather = [];
+      events.push({ type: "weatherCleared", cards: cleared });
+      state.sides[seat].discard.push(uid);
+      return;
+    }
+    case "scorch":
+      played("none");
+      scorchBattlefield(state, events);
+      state.sides[seat].discard.push(uid);
+      return;
+    case "frenzy":
+      played("none");
+      frenzy(state, seat, events);
+      state.sides[seat].discard.push(uid);
+      return;
+    case "horn":
+    case "decoy":
+      throw new Error(`${def.effect.type} needs a Row or target`);
   }
 }
 
@@ -110,12 +140,69 @@ export function playUnit(
   });
   if (spy) draw(state, seat, 2, events);
   if (def.abilities.includes("scorch")) scorchRow(state, opponent(seat), row, events);
+  if (def.abilities.includes("battlefieldScorch")) scorchBattlefield(state, events);
+  if (def.abilities.includes("frenzy")) frenzy(state, seat, events);
   if (def.abilities.includes("medic") && medicTargets(state, seat).length > 0) {
     state.pending.push({ seat, kind: "medic" });
   }
-  if (def.abilities.includes("muster") && def.musterGroup && via !== "muster") {
-    muster(state, seat, uid, def.musterGroup, events);
+  const group = def.musterCalls ?? def.musterGroup;
+  if (def.abilities.includes("muster") && group && via !== "muster") {
+    muster(state, seat, uid, group, events);
   }
+}
+
+/**
+ * Takes a Side Deck card with this id out of the Seat's Side Deck (the lowest uid), or null
+ * when none is left.
+ */
+function takeFromSideDeck(state: MatchState, seat: Seat, cardId: string): Uid | null {
+  const sideDeck = state.sides[seat].sideDeck;
+  const matches = sideDeck.filter((uid) => cardIdOf(state, uid) === cardId);
+  if (matches.length === 0) return null;
+  const uid = Math.min(...matches);
+  sideDeck.splice(sideDeck.indexOf(uid), 1);
+  return uid;
+}
+
+/**
+ * Summon: a Summon card just discarded from `seat`'s Row (by Scorch or at Round end) is
+ * replaced there at once by its Side Deck card, while its player has one left.
+ */
+export function summonReplacement(
+  state: MatchState,
+  seat: Seat,
+  row: RowId,
+  uid: Uid,
+  events: MatchEvent[],
+): void {
+  const def = defOf(state, uid);
+  if (def.kind !== "unit" || !def.abilities.includes("summon") || !def.summons) return;
+  const owner = state.cards[uid]?.owner ?? seat;
+  const replacement = takeFromSideDeck(state, owner, def.summons);
+  if (replacement !== null) playUnit(state, seat, replacement, row, events, "summon");
+}
+
+/**
+ * Frenzy: every Berserker on the Seat's side of the battlefield leaves for the Side Deck,
+ * and its Side Deck form takes its place in the same spot.
+ */
+export function frenzy(state: MatchState, seat: Seat, events: MatchEvent[]): void {
+  const side = state.sides[seat];
+  const changes: Array<{ from: CardRef; to: CardRef }> = [];
+  for (const row of ROWS) {
+    const units = side.rows[row].units;
+    for (const [i, uid] of units.entries()) {
+      const def = defOf(state, uid);
+      if (def.kind !== "unit" || !def.abilities.includes("berserker") || !def.transformsInto)
+        continue;
+      const form = takeFromSideDeck(state, seat, def.transformsInto);
+      if (form === null) continue;
+      units[i] = form;
+      side.sideDeck.push(uid);
+      changes.push({ from: ref(state, uid), to: ref(state, form) });
+    }
+  }
+  if (changes.length > 0) events.push({ type: "transformed", seat, changes });
 }
 
 /**
@@ -201,6 +288,7 @@ function destroyStrongest(
     state.sides[seat].discard.push(uid);
   }
   events.push({ type: "destroyed", cards: doomed.map(({ uid }) => ref(state, uid)) });
+  for (const { seat, row, uid } of doomed) summonReplacement(state, seat, row, uid, events);
 }
 
 /** The Decoy takes the target's place (Strength 0); the target returns to the hand. */

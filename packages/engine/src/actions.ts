@@ -15,13 +15,14 @@ export interface PlayAction {
 /**
  * An answer to a Pending Choice. Public cards (a Discard Pile) are named by `card`; cards
  * from your own deck by `cardId`, so the choice never reveals deck uids. `row` is set when
- * the chosen Unit is Played.
+ * the chosen Unit is Played. `starter` answers who takes the first Turn (Elves).
  */
 export interface ChooseAction {
   type: "choose";
   card?: Uid;
   cardId?: CardId;
   row?: RowId;
+  starter?: Seat;
 }
 
 /** Redraw: return one card from the opening hand (it is shuffled back, then replaced). */
@@ -79,7 +80,7 @@ export function actionKey(action: Action): string {
     case "redraw":
       return `redraw:${action.card}`;
     case "choose":
-      return `choose:${action.card ?? ""}:${action.cardId ?? ""}:${action.row ?? ""}`;
+      return `choose:${action.card ?? ""}:${action.cardId ?? ""}:${action.row ?? ""}:${action.starter ?? ""}`;
     default:
       return action.type;
   }

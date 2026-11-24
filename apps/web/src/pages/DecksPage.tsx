@@ -2,13 +2,9 @@ import type { FactionId } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { FACTION_NAME, FACTIONS } from "../cards/factions";
 import { type Deck, deckApi } from "../decks/api";
 import copy from "../strings/en.json";
-
-const FACTIONS: { id: FactionId; name: string }[] = [
-  { id: "swarm", name: copy.swarm },
-  { id: "court", name: copy.court },
-];
 
 /** Your Decks, by Faction tab, with New Deck and Copy a Starter Deck. */
 export function DecksPage() {
@@ -44,14 +40,14 @@ export function DecksPage() {
       <div className="tabs" role="tablist" aria-label={copy.faction}>
         {FACTIONS.map((f) => (
           <button
-            key={f.id}
+            key={f}
             type="button"
             role="tab"
-            aria-selected={faction === f.id}
-            className={`tab f-${f.id}`}
-            onClick={() => setFaction(f.id)}
+            aria-selected={faction === f}
+            className={`tab f-${f}`}
+            onClick={() => setFaction(f)}
           >
-            {f.name}
+            {FACTION_NAME[f]}
           </button>
         ))}
       </div>
@@ -72,7 +68,7 @@ export function DecksPage() {
       {decks?.length === 0 ? (
         <p className="muted">
           {copy.no}
-          {faction === "swarm" ? copy.swarm : copy.court}
+          {FACTION_NAME[faction]}
           {copy.decksYet}
         </p>
       ) : null}

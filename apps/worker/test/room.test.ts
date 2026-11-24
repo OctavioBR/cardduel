@@ -1,9 +1,11 @@
 import { env, evictDurableObject, runInDurableObject, SELF } from "cloudflare:test";
+import { CURRENT_CATALOG_VERSION } from "@card-duel/catalog";
 import {
   CLOSE_ROOM_FULL,
   CLOSE_SIGNED_OUT,
   type LoggedAction,
   type MatchEvent,
+  type MatchState,
   type SeatView,
   type TurnTimerInfo,
 } from "@card-duel/engine";
@@ -327,6 +329,23 @@ describe("Room", () => {
     closeAll(room);
   });
 
+  it("rebuilds a snapshot of an older state shape from seed plus action log", async () => {
+    const room = await seatBoth();
+    await play(room, mover(room.views));
+    const before = room.views;
+    const stub = env.ROOMS.getByName(room.code);
+    await runInDurableObject(stub, async (_instance, state) => {
+      const snapshot = await state.storage.get<MatchState>("snapshot");
+      // An older shape, marked wrong so only a rebuild can show the right round.
+      await state.storage.put("snapshot", { ...snapshot, version: 1, round: 99 });
+    });
+    await evictDurableObject(stub);
+    const again = await TestSocket.open(room.code, room.cookies[0]);
+    const { view } = await again.nextView();
+    expect(view).toEqual(before[0]);
+    again.close();
+  });
+
   it("replays seed plus action log when the snapshot is missing, with the pinned catalog", async () => {
     const room = await seatBoth();
     await play(room, mover(room.views));
@@ -337,7 +356,7 @@ describe("Room", () => {
       await state.storage.delete("snapshot");
       return state.storage.get<string>("catalogVersion");
     });
-    expect(version).toBe("v1");
+    expect(version).toBe(CURRENT_CATALOG_VERSION);
     await evictDurableObject(stub);
     const again = await TestSocket.open(room.code, room.cookies[0]);
     const { view } = await again.nextView();

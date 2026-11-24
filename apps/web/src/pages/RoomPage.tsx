@@ -3,6 +3,7 @@ import { formatCopy } from "@card-duel/strings";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { CardDetailProvider } from "../cards/CardDetail";
+import { FACTION_NAME } from "../cards/factions";
 import { type Deck, deckApi } from "../decks/api";
 import { defaultDeck, seatableDecks } from "../decks/default-deck";
 import { MatchBoard } from "../match/MatchBoard";
@@ -280,7 +281,7 @@ function DeckPicker({
               >
                 {deck.name}
                 {copy.label5}
-                {deck.faction === "swarm" ? copy.swarmId : copy.courtId}
+                {FACTION_NAME[deck.faction]}
               </button>
             </li>
           ))}

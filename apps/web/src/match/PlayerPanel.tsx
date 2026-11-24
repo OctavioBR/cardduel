@@ -1,9 +1,8 @@
 import type { CardRef, FactionId, LeaderView } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
+import { FACTION_NAME } from "../cards/factions";
 import { cardName } from "../cards/strings";
 import copy from "../strings/en.json";
-
-const FACTION_NAME: Record<FactionId, string> = { swarm: copy.swarm, court: copy.court };
 
 export function leaderState(leader: LeaderView): { text: string; ready: boolean } {
   if (leader.passive) return { text: copy.passive, ready: false };

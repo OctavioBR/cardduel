@@ -33,7 +33,8 @@ export type StringTable = Record<CardId, CardStrings>;
 export interface CatalogData {
   version: string;
   cards: CardDefinition[];
-  starterDecks: Record<FactionId, DeckSpec>;
+  /** One per Faction the version has cards for. */
+  starterDecks: Partial<Record<FactionId, DeckSpec>>;
   limits: DeckLimits;
   strings: Record<string, StringTable>;
 }

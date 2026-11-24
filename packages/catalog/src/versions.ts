@@ -1,5 +1,6 @@
 import { loadCatalog } from "./catalog";
 import { V1 } from "./data/v1";
+import { V2 } from "./data/v2";
 import type { Catalog, CatalogData } from "./types";
 
 /**
@@ -8,7 +9,7 @@ import type { Catalog, CatalogData } from "./types";
  * replay. `data/released.json` records each released version's fingerprint; a test fails
  * if a released version changes.
  */
-export const CATALOG_VERSIONS: readonly CatalogData[] = [V1];
+export const CATALOG_VERSIONS: readonly CatalogData[] = [V1, V2];
 
 /** The version new Matches pin: the newest one, or null before the first card set. */
 export const CURRENT_CATALOG_VERSION: string | null = CATALOG_VERSIONS.at(-1)?.version ?? null;

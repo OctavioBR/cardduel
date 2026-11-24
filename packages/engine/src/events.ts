@@ -39,6 +39,16 @@ export type MatchEvent =
   | { type: "handRevealed"; seat: Seat; cards: CardRef[] }
   /** Units destroyed (Scorch); each went to its Controller's Discard Pile. */
   | { type: "destroyed"; cards: CardRef[] }
+  /** Frenzy: each Berserker left for the Side Deck and its form took its place. */
+  | { type: "transformed"; seat: Seat; changes: Array<{ from: CardRef; to: CardRef }> }
+  /** Units moved between Rows on `seat`'s side (a Leader ability). */
+  | {
+      type: "unitsMoved";
+      seat: Seat;
+      moves: Array<{ card: CardRef; from: RowId; to: RowId }>;
+    }
+  /** Each player's Discard Pile was shuffled back into their deck (a Leader ability). */
+  | { type: "discardsShuffled"; counts: [number, number] }
   /** A card left the battlefield for its player's hand (Decoy). */
   | { type: "returnedToHand"; seat: Seat; card: CardRef }
   /** Current Strength of Units on the battlefield changed. */
@@ -56,9 +66,22 @@ export type MatchEvent =
       winner: Seat | null;
       gems: [number, number];
     }
-  /** A Faction passive fired: Court won a Tie, or Swarm kept a Unit into the next Round. */
+  /**
+   * A Faction passive fired: Court won a Tie, Swarm kept a Unit into the next Round, Kingdom
+   * drew a card for winning the Round, Vikings Put Units from its Discard Pile in Round 3, or
+   * Elves chose who takes the first Turn.
+   */
   | { type: "factionPassive"; seat: Seat; faction: "court"; effect: "wonTie" }
   | { type: "factionPassive"; seat: Seat; faction: "swarm"; effect: "keptUnit"; card: CardRef }
+  | { type: "factionPassive"; seat: Seat; faction: "kingdom"; effect: "drewCard" }
+  | { type: "factionPassive"; seat: Seat; faction: "elves"; effect: "choseStarter"; starter: Seat }
+  | {
+      type: "factionPassive";
+      seat: Seat;
+      faction: "vikings";
+      effect: "putFromDiscard";
+      cards: CardRef[];
+    }
   | { type: "cardsDiscarded"; cards: CardRef[] }
   | { type: "roundStarted"; round: number; starter: Seat }
   | { type: "forfeited"; seat: Seat }
@@ -82,4 +105,4 @@ export interface DrewEvent {
 export type PassReason = "player" | "nothingToDo" | "turnTimer";
 
 /** What Played a card onto the battlefield. */
-export type PlayedVia = "hand" | "medic" | "muster" | "leader";
+export type PlayedVia = "hand" | "medic" | "muster" | "leader" | "summon";

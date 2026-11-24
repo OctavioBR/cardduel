@@ -46,6 +46,7 @@ export function legalActions(state: MatchState, seat: Seat): Action[] {
         }
         break;
       case "scorch":
+      case "frenzy":
         actions.push({ type: "play", card: uid });
         break;
     }

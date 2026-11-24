@@ -1,0 +1,12 @@
+{
+  "valid": {
+    "minUnits": 22,
+    "maxSpecials": 10
+  },
+  "competitive": {
+    "maxSpecials": 5,
+    "maxMedics": 2,
+    "maxSpies": 2,
+    "maxUnitStrength": 130
+  }
+}

@@ -1,4 +1,4 @@
-import { DEV_PLAIN_CARDS, devPlainDeck, getCatalog } from "@card-duel/catalog";
+import { DEV_PLAIN_CARDS, devPlainDeck, getCatalog, starterDeckOf } from "@card-duel/catalog";
 import type { Seat } from "@card-duel/engine";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -15,16 +15,27 @@ export function seedFromParams(params: URLSearchParams): number {
   return params.has("seed") && Number.isFinite(raw) ? raw : 1;
 }
 
-export type LocalDecks = "plain" | "starter";
+export type LocalDecks = "plain" | "starter" | "v2" | "elves";
 
-/** `?deck=starter` plays the v1 Starter Decks (Swarm against Court); the default is plain Units. */
+const LOCAL_FACTIONS = {
+  starter: ["swarm", "court"],
+  v2: ["kingdom", "vikings"],
+  elves: ["elves", "vikings"],
+} as const;
+
+/**
+ * `?deck=starter` plays the v1 Starter Decks (Swarm against Court); `?deck=v2` and
+ * `?deck=elves` the v2 Starter Decks of Kingdom against Vikings and Elves against Vikings.
+ * The default is plain Units.
+ */
 export function createDevLocalRoom(seed: number, decks: LocalDecks = "plain"): LocalRoom {
-  if (decks === "starter") {
-    const v1 = getCatalog("v1");
+  if (decks !== "plain") {
+    const catalog = getCatalog(decks === "starter" ? "v1" : "v2");
+    const factions = LOCAL_FACTIONS[decks];
     return new LocalRoom({
       seed,
-      decks: [v1.starterDecks.swarm, v1.starterDecks.court],
-      cards: v1.cards,
+      decks: [starterDeckOf(catalog, factions[0]), starterDeckOf(catalog, factions[1])],
+      cards: catalog.cards,
     });
   }
   return new LocalRoom({
@@ -39,7 +50,9 @@ export function LocalRoomPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const seed = seedFromParams(params);
-  const decks: LocalDecks = params.get("deck") === "starter" ? "starter" : "plain";
+  const deckParam = params.get("deck");
+  const decks: LocalDecks =
+    deckParam === "starter" || deckParam === "v2" || deckParam === "elves" ? deckParam : "plain";
   const scenario = params.get("scenario");
   const room = useMemo(() => {
     const chosen = scenario ? SCENARIOS[scenario] : undefined;

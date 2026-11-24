@@ -1,4 +1,4 @@
-import { type CardDefinition, ROWS, type RowId } from "./cards";
+import { type CardDefinition, type PassiveLeaderKind, ROWS, type RowId } from "./cards";
 import type { MatchState, Seat, Uid } from "./state";
 
 export function cardIdOf(state: MatchState, uid: Uid): string {
@@ -25,15 +25,30 @@ export function weatheredRows(state: MatchState): Set<RowId> {
   return rows;
 }
 
-/** Whether Weather lowers non-Hero Units on this Seat's Row; false under Steady Ground. */
-function weatherLowers(state: MatchState, seat: Seat, row: RowId, weathered: Set<RowId>): boolean {
-  if (!weathered.has(row)) return false;
+function passiveOf(state: MatchState, seat: Seat): PassiveLeaderKind | null {
   const leader = state.defs[state.sides[seat].leader];
-  const steady =
-    leader?.kind === "leader" &&
-    leader.ability.type === "passive" &&
-    leader.ability.passive === "steadyGround";
-  return !(steady && row === "siege");
+  return leader?.kind === "leader" && leader.ability.type === "passive"
+    ? leader.ability.passive
+    : null;
+}
+
+/**
+ * Strength a non-Hero Unit keeps under Weather on this Seat's Row, or null when Weather does
+ * not lower it: 1, or half its printed Strength rounded up under Storm-Hardened. Steady
+ * Ground shields the Siege Row.
+ */
+function weatheredStrength(
+  state: MatchState,
+  seat: Seat,
+  row: RowId,
+  weathered: Set<RowId>,
+  printed: number,
+): number | null {
+  if (!weathered.has(row)) return null;
+  const passive = passiveOf(state, seat);
+  if (passive === "steadyGround" && row === "siege") return null;
+  if (passive === "stormHardened") return Math.max(1, Math.ceil(printed / 2));
+  return 1;
 }
 
 /**
@@ -64,7 +79,8 @@ export function computeStrengths(state: MatchState): Map<Uid, number> {
           result.set(uid, def.strength);
           continue;
         }
-        let strength = weatherLowers(state, seat as Seat, row, weathered) ? 1 : def.strength;
+        let strength =
+          weatheredStrength(state, seat as Seat, row, weathered, def.strength) ?? def.strength;
         if (def.abilities.includes("tightBond")) {
           strength *= units.filter((u) => u.def.id === def.id).length;
         }

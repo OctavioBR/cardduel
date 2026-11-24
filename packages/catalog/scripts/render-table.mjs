@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const version = process.argv[2] ?? "v1";
+const version = process.argv[2] ?? "v2";
 const dir = join(dirname(fileURLToPath(import.meta.url)), "..", "data", version);
 const read = (file) => JSON.parse(readFileSync(join(dir, file), "utf8"));
 const cards = read("cards.json");
@@ -24,12 +24,16 @@ const ABILITY = {
   tightBond: "Tight Bond",
   scorch: "Scorch",
   spy: "Spy",
+  battlefieldScorch: "Battlefield Scorch",
+  summon: "Summon",
+  berserker: "Berserker",
+  frenzy: "Frenzy",
 };
 const cell = (s) => String(s).replaceAll("|", "\\|");
 
 const out = [];
 out.push(`# Card Catalog ${version}`, "");
-for (const faction of ["swarm", "court", "neutral"]) {
+for (const faction of ["swarm", "court", "kingdom", "vikings", "elves", "neutral"]) {
   const title = faction[0].toUpperCase() + faction.slice(1);
   const units = cards.filter((c) => c.faction === faction && c.kind === "unit");
   const specials = cards.filter((c) => c.faction === faction && c.kind === "special");
@@ -46,10 +50,18 @@ for (const faction of ["swarm", "court", "neutral"]) {
     );
     for (const c of sorted) {
       const abilities = c.abilities
-        .map((a) => (a === "muster" ? `Muster (${c.musterGroup})` : ABILITY[a]))
+        .map((a) =>
+          a === "muster"
+            ? `Muster (${c.musterCalls ?? c.musterGroup})`
+            : a === "summon"
+              ? `Summon (${name(c.summons)})`
+              : a === "berserker"
+                ? `Berserker (${name(c.transformsInto)})`
+                : ABILITY[a],
+        )
         .join(", ");
       out.push(
-        `| ${cell(name(c.id))} | ${c.strength} | ${c.abilities.includes("agile") ? "Close/Ranged" : ROW[c.row]} | ${c.hero ? "★" : ""} | ${abilities} | ${c.maxCopies} | ${cell(en[c.id]?.text ?? "")} |`,
+        `| ${cell(name(c.id))}${c.sideDeck ? " (Side Deck)" : ""} | ${c.strength} | ${c.abilities.includes("agile") ? "Close/Ranged" : ROW[c.row]} | ${c.hero ? "★" : ""} | ${abilities} | ${c.maxCopies} | ${cell(en[c.id]?.text ?? "")} |`,
       );
     }
     out.push("");
@@ -71,11 +83,13 @@ for (const faction of ["swarm", "court", "neutral"]) {
     out.push("| Leader | Ability kind | Text |", "|---|---|---|");
     for (const c of leaders) {
       const kind =
-        c.ability.type === "scorchRow"
-          ? `scorchRow (${ROW[c.ability.row]})`
-          : c.ability.type === "passive"
-            ? `passive (${c.ability.passive})`
-            : c.ability.type;
+        c.ability.type === "scorchRow" || (c.ability.type === "hornRow" && c.ability.row)
+          ? `${c.ability.type} (${ROW[c.ability.row]})`
+          : c.ability.type === "playCardFromDeck"
+            ? `playCardFromDeck (${name(c.ability.card)})`
+            : c.ability.type === "passive"
+              ? `passive (${c.ability.passive})`
+              : c.ability.type;
       out.push(`| ${cell(name(c.id))} | ${kind} | ${cell(en[c.id]?.text ?? "")} |`);
     }
     out.push("");

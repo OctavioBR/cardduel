@@ -1,0 +1,626 @@
+{
+  "swarm-gnawing-mite": {
+    "name": "Gnawing Mite",
+    "text": "Muster: also Plays every other Mite card from your hand and deck."
+  },
+  "swarm-mite-matron": {
+    "name": "Mite Matron",
+    "text": "Muster: also Plays every other Mite card from your hand and deck."
+  },
+  "swarm-hive-drone": {
+    "name": "Hive Drone",
+    "text": "Muster: also Plays every other Drone card from your hand and deck."
+  },
+  "swarm-drone-warden": {
+    "name": "Drone Warden",
+    "text": "Muster: also Plays every other Drone card from your hand and deck."
+  },
+  "swarm-tunnel-burrower": {
+    "name": "Tunnel Burrower",
+    "text": "Muster: also Plays every other Burrower card from your hand and deck."
+  },
+  "swarm-carapace-guard": {
+    "name": "Carapace Guard",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "swarm-thornback-crawler": {
+    "name": "Thornback Crawler",
+    "text": ""
+  },
+  "swarm-lurking-mantis": {
+    "name": "Lurking Mantis",
+    "text": ""
+  },
+  "swarm-amber-sentinel": {
+    "name": "Amber Sentinel",
+    "text": ""
+  },
+  "swarm-skitterling": {
+    "name": "Skitterling",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "swarm-wingbeat-hunter": {
+    "name": "Wingbeat Hunter",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "swarm-needle-stinger": {
+    "name": "Needle Stinger",
+    "text": ""
+  },
+  "swarm-chitter-herald": {
+    "name": "Chitter Herald",
+    "text": "Morale Boost: +1 to every other Unit on its Row."
+  },
+  "swarm-glasswing": {
+    "name": "Glasswing",
+    "text": ""
+  },
+  "swarm-siege-grub": {
+    "name": "Siege Grub",
+    "text": ""
+  },
+  "swarm-spore-lobber": {
+    "name": "Spore Lobber",
+    "text": ""
+  },
+  "swarm-drumming-beetle": {
+    "name": "Drumming Beetle",
+    "text": "Horn: doubles the other Units on its Row."
+  },
+  "swarm-pyre-beetle": {
+    "name": "Pyre Beetle",
+    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "swarm-brood-tender": {
+    "name": "Brood Tender",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "swarm-infiltrator-larva": {
+    "name": "Infiltrator Larva",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "swarm-silk-spinner": {
+    "name": "Silk Spinner",
+    "text": ""
+  },
+  "swarm-siegebreaker": {
+    "name": "Hive Siegebreaker",
+    "text": ""
+  },
+  "swarm-hollow-colossus": {
+    "name": "The Hollow Colossus",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "swarm-pale-oracle": {
+    "name": "The Pale Oracle",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "swarm-deep-maw": {
+    "name": "Maw of the Deep Hive",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "swarm-leader-queen": {
+    "name": "Queen of the Deep Hive",
+    "text": "Double the Units on one of your Rows whose Horn slot is empty."
+  },
+  "swarm-leader-swarmlord": {
+    "name": "The Burning Swarmlord",
+    "text": "If your opponent's Close Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "swarm-leader-spore-mother": {
+    "name": "Mother of Spores",
+    "text": "Play a Weather card of your choice from your deck."
+  },
+  "court-palace-informant": {
+    "name": "Palace Informant",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-masked-envoy": {
+    "name": "Masked Envoy",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-double-agent": {
+    "name": "Double Agent",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-royal-physician": {
+    "name": "Royal Physician",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-field-surgeon": {
+    "name": "Field Surgeon",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-halberd-guard": {
+    "name": "Halberd Guard",
+    "text": ""
+  },
+  "court-twin-duelist": {
+    "name": "Twin Duelist",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "court-banner-knight": {
+    "name": "Banner Knight",
+    "text": ""
+  },
+  "court-palace-champion": {
+    "name": "Palace Champion",
+    "text": ""
+  },
+  "court-court-herald": {
+    "name": "Court Herald",
+    "text": "Morale Boost: +1 to every other Unit on its Row."
+  },
+  "court-crossbow-marksman": {
+    "name": "Crossbow Marksman",
+    "text": ""
+  },
+  "court-tower-archer": {
+    "name": "Tower Archer",
+    "text": ""
+  },
+  "court-falconer": {
+    "name": "Falconer",
+    "text": ""
+  },
+  "court-duelling-squire": {
+    "name": "Duelling Squire",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "court-ballista-crew": {
+    "name": "Ballista Crew",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "court-sapper": {
+    "name": "Royal Sapper",
+    "text": ""
+  },
+  "court-siege-trumpeter": {
+    "name": "Siege Trumpeter",
+    "text": "Horn: doubles the other Units on its Row."
+  },
+  "court-inquisitor": {
+    "name": "Grand Inquisitor",
+    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "court-palace-sentry": {
+    "name": "Palace Sentry",
+    "text": ""
+  },
+  "court-royal-lancer": {
+    "name": "Royal Lancer",
+    "text": ""
+  },
+  "court-arbalest-master": {
+    "name": "Arbalest Master",
+    "text": ""
+  },
+  "court-trebuchet-team": {
+    "name": "Trebuchet Team",
+    "text": ""
+  },
+  "court-iron-chancellor": {
+    "name": "The Iron Chancellor",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "court-spymistress": {
+    "name": "Vesper, the Spymistress",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "court-archmedic": {
+    "name": "Archmedic Ilsa",
+    "text": "Hero: immune to every card, special and Leader ability. Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-leader-spymaster": {
+    "name": "The Spymaster",
+    "text": "Look at 3 random cards in your opponent's hand."
+  },
+  "court-leader-chancellor": {
+    "name": "The Old Chancellor",
+    "text": "Return a card of your choice from your Discard Pile to your hand."
+  },
+  "court-leader-regent": {
+    "name": "The Regent",
+    "text": "Draw a card of your choice from your deck, then shuffle it."
+  },
+  "court-leader-castellan": {
+    "name": "The Castellan",
+    "text": "Passive: Weather never lowers Units on your Siege Row."
+  },
+  "kingdom-leader-high-king": {
+    "name": "The High King",
+    "text": "Play a Sea Mist from your deck."
+  },
+  "kingdom-leader-iron-marshal": {
+    "name": "The Iron Marshal",
+    "text": "If your opponent's Siege Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "kingdom-leader-archer-prince": {
+    "name": "The Archer Prince",
+    "text": "If your opponent's Ranged Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "kingdom-leader-field-commander": {
+    "name": "The Field Commander",
+    "text": "Discard every Weather card in play."
+  },
+  "kingdom-leader-siege-lord": {
+    "name": "The Siege Lord",
+    "text": "Double the Units on your Siege Row, if its Horn slot is empty."
+  },
+  "kingdom-lord-general": {
+    "name": "The Lord General",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "kingdom-ranger-captain": {
+    "name": "The Ranger Captain",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "kingdom-old-monarch": {
+    "name": "The Old Monarch",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "kingdom-royal-sorceress": {
+    "name": "The Royal Sorceress",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "kingdom-wyrm-hunter": {
+    "name": "Wyrm Hunter",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "kingdom-catapult": {
+    "name": "Catapult",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "kingdom-trebuchet": {
+    "name": "Trebuchet",
+    "text": ""
+  },
+  "kingdom-ballista": {
+    "name": "Ballista",
+    "text": ""
+  },
+  "kingdom-siege-tower": {
+    "name": "Siege Tower",
+    "text": ""
+  },
+  "kingdom-siege-engineer": {
+    "name": "Siege Engineer",
+    "text": "Morale Boost: +1 to every other Unit on its Row."
+  },
+  "kingdom-banner-medic": {
+    "name": "Banner Medic",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "kingdom-azure-raider": {
+    "name": "Azure Raider",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "kingdom-wayward-prince": {
+    "name": "Wayward Prince",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "kingdom-gutter-informer": {
+    "name": "Gutter Informer",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "kingdom-royal-intelligencer": {
+    "name": "Royal Intelligencer",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "kingdom-battle-mage": {
+    "name": "Battle Mage",
+    "text": ""
+  },
+  "kingdom-war-adept": {
+    "name": "War Adept",
+    "text": ""
+  },
+  "kingdom-dwarven-crossbowman": {
+    "name": "Dwarven Crossbowman",
+    "text": ""
+  },
+  "kingdom-vanguard-scout": {
+    "name": "Vanguard Scout",
+    "text": ""
+  },
+  "kingdom-quartermaster": {
+    "name": "Quartermaster",
+    "text": ""
+  },
+  "kingdom-levy-spearman": {
+    "name": "Levy Spearman",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "kingdom-raw-recruit": {
+    "name": "Raw Recruit",
+    "text": ""
+  },
+  "vikings-leader-kinslayer": {
+    "name": "The Kinslayer",
+    "text": "Choose a Tight Bond Unit you have on the battlefield: Play a copy of it from your deck."
+  },
+  "vikings-leader-high-jarl": {
+    "name": "The High Jarl",
+    "text": "Passive: Weather lowers your Units only to half their Strength, rounded up."
+  },
+  "vikings-leader-sea-king": {
+    "name": "The Sea King",
+    "text": "Play a Thunderhead from your deck."
+  },
+  "vikings-leader-lame-chieftain": {
+    "name": "The Lame Chieftain",
+    "text": "Play a Bloodcap from your deck."
+  },
+  "vikings-leader-old-sea-wolf": {
+    "name": "The Old Sea Wolf",
+    "text": "Shuffle each player's Discard Pile back into their deck."
+  },
+  "vikings-shield-captain": {
+    "name": "The Shield Captain",
+    "text": "Hero: immune to every card, special and Leader ability. Muster: also Plays every Shieldmaiden from your hand and deck."
+  },
+  "vikings-shieldmaiden": {
+    "name": "Shieldmaiden",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "vikings-bearskin-chieftain": {
+    "name": "Bearskin Chieftain",
+    "text": "Agile: play to Close or Ranged. Morale Boost: +1 to every other Unit on its Row."
+  },
+  "vikings-grove-druid": {
+    "name": "The Grove Druid",
+    "text": "Hero: immune to every card, special and Leader ability. Frenzy: every Berserker you control turns into its Side Deck form."
+  },
+  "vikings-berserker": {
+    "name": "Berserker",
+    "text": "Berserker: Frenzy turns it into Raging Bear."
+  },
+  "vikings-raging-bear": {
+    "name": "Raging Bear",
+    "text": "Side Deck: a Berserker turns into this card. Morale Boost: +1 to every other Unit on its Row."
+  },
+  "vikings-young-berserker": {
+    "name": "Young Berserker",
+    "text": "Berserker: Frenzy turns it into Young Raging Bear."
+  },
+  "vikings-young-raging-bear": {
+    "name": "Young Raging Bear",
+    "text": "Side Deck: a Young Berserker turns into this card. Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "vikings-crowing-rooster": {
+    "name": "Crowing Rooster",
+    "text": "Summon: when this card is discarded from the battlefield, The Bridge Warden from your Side Deck takes its place."
+  },
+  "vikings-bridge-warden": {
+    "name": "The Bridge Warden",
+    "text": "Hero: immune to every card, special and Leader ability. Side Deck: takes the place of Crowing Rooster."
+  },
+  "vikings-wise-woman": {
+    "name": "Wise Woman",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "vikings-fire-raider": {
+    "name": "Fire Raider",
+    "text": "Scorch: destroys the strongest non-Hero Units on the whole battlefield, yours included."
+  },
+  "vikings-skald": {
+    "name": "Skald",
+    "text": "Horn: doubles the other Units on its Row."
+  },
+  "vikings-war-longship": {
+    "name": "War Longship",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "vikings-clan-warrior": {
+    "name": "Clan Warrior",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "vikings-light-longship": {
+    "name": "Light Longship",
+    "text": "Muster: also Plays every other Light Longship card from your hand and deck."
+  },
+  "vikings-giant-slayer": {
+    "name": "The Giant-Slayer",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "vikings-mad-raider": {
+    "name": "Mad Raider",
+    "text": ""
+  },
+  "vikings-fjord-archer": {
+    "name": "Fjord Archer",
+    "text": ""
+  },
+  "vikings-reaver": {
+    "name": "Reaver",
+    "text": ""
+  },
+  "vikings-shipwright": {
+    "name": "Shipwright",
+    "text": ""
+  },
+  "vikings-bloodcap": {
+    "name": "Bloodcap",
+    "text": "Frenzy: every Berserker you control turns into its Side Deck form."
+  },
+  "elves-leader-pureblood": {
+    "name": "The Pureblood Elf",
+    "text": "Play a Black Ice from your deck."
+  },
+  "elves-leader-valley-queen": {
+    "name": "The Valley Queen",
+    "text": "If your opponent's Close Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "elves-leader-fair-one": {
+    "name": "The Fair One",
+    "text": "Double the Units on your Ranged Row, if its Horn slot is empty."
+  },
+  "elves-leader-peoples-hope": {
+    "name": "The People's Hope",
+    "text": "Move each of your Agile Units to the Row where its Strength is higher."
+  },
+  "elves-leader-wildflower": {
+    "name": "The Wildflower",
+    "text": "Draw a card from your deck."
+  },
+  "elves-flame-sapper": {
+    "name": "Flame Sapper",
+    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "elves-dwarven-skirmisher": {
+    "name": "Dwarven Skirmisher",
+    "text": "Muster: also Plays every other Dwarven Skirmisher card from your hand and deck."
+  },
+  "elves-mountain-smuggler": {
+    "name": "Mountain Smuggler",
+    "text": "Muster: also Plays every other Mountain Smuggler card from your hand and deck."
+  },
+  "elves-smugglers-healer": {
+    "name": "Smugglers' Healer",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "elves-keen-eyed-huntress": {
+    "name": "Keen-Eyed Huntress",
+    "text": "Morale Boost: +1 to every other Unit on its Row."
+  },
+  "elves-wildwood-commander": {
+    "name": "Wildwood Commander",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "elves-grizzled-marshal": {
+    "name": "The Grizzled Marshal",
+    "text": "Hero: immune to every card, special and Leader ability. Morale Boost: +1 to every other Unit on its Row."
+  },
+  "elves-forest-scout": {
+    "name": "Forest Scout",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "elves-elven-skirmisher": {
+    "name": "Elven Skirmisher",
+    "text": "Muster: also Plays every other Elven Skirmisher card from your hand and deck."
+  },
+  "elves-dwarven-sergeant": {
+    "name": "Dwarven Sergeant",
+    "text": ""
+  },
+  "elves-moonlit-seer": {
+    "name": "Moonlit Seer",
+    "text": ""
+  },
+  "elves-woodland-brigade": {
+    "name": "Woodland Brigade",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "elves-mountain-defender": {
+    "name": "Mountain Defender",
+    "text": ""
+  },
+  "elves-elven-archer": {
+    "name": "Elven Archer",
+    "text": ""
+  },
+  "elves-young-outrider": {
+    "name": "Young Outrider",
+    "text": "Agile: play to Close or Ranged."
+  },
+  "elves-bitter-bowman": {
+    "name": "Bitter Bowman",
+    "text": ""
+  },
+  "elves-wayfinder": {
+    "name": "Wayfinder",
+    "text": ""
+  },
+  "neutral-black-ice": {
+    "name": "Black Ice",
+    "text": "Weather: sets every non-Hero Unit on both Close Rows to 1."
+  },
+  "neutral-sea-mist": {
+    "name": "Sea Mist",
+    "text": "Weather: sets every non-Hero Unit on both Ranged Rows to 1."
+  },
+  "neutral-mudslide": {
+    "name": "Mudslide",
+    "text": "Weather: sets every non-Hero Unit on both Siege Rows to 1."
+  },
+  "neutral-thunderhead": {
+    "name": "Thunderhead",
+    "text": "Weather: sets every non-Hero Unit on both Ranged and Siege Rows to 1."
+  },
+  "neutral-break-in-the-clouds": {
+    "name": "Break in the Clouds",
+    "text": "Discards every Weather card in play."
+  },
+  "neutral-war-drum": {
+    "name": "War Drum",
+    "text": "Place on one of your Rows: doubles the Units on that Row."
+  },
+  "neutral-straw-double": {
+    "name": "Straw Double",
+    "text": "Swap with one of your non-Hero Units, which returns to your hand. Strength 0."
+  },
+  "neutral-wildfire": {
+    "name": "Wildfire",
+    "text": "Destroys the strongest non-Hero Units on the whole battlefield, yours included."
+  },
+  "neutral-silent-elder": {
+    "name": "Silent Elder",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "neutral-lone-hunter": {
+    "name": "The Lone Hunter",
+    "text": "Hero: immune to every card, special and Leader ability. Muster: also Plays every Faithful Mare from your hand and deck."
+  },
+  "neutral-wayfaring-heir": {
+    "name": "The Wayfaring Heir",
+    "text": "Hero: immune to every card, special and Leader ability. Muster: also Plays every Faithful Mare from your hand and deck."
+  },
+  "neutral-faithful-mare": {
+    "name": "Faithful Mare",
+    "text": ""
+  },
+  "neutral-old-swordmaster": {
+    "name": "Old Swordmaster",
+    "text": ""
+  },
+  "neutral-midnight-herbalist": {
+    "name": "Midnight Herbalist",
+    "text": ""
+  },
+  "neutral-stout-axeman": {
+    "name": "Stout Axeman",
+    "text": ""
+  },
+  "neutral-gilded-wyrm": {
+    "name": "Gilded Wyrm",
+    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+  },
+  "neutral-deathless-captain": {
+    "name": "Deathless Captain",
+    "text": "Agile: play to Close or Ranged. Morale Boost: +1 to every other Unit on its Row."
+  },
+  "neutral-travelling-minstrel": {
+    "name": "Travelling Minstrel",
+    "text": "Horn: doubles the other Units on its Row."
+  },
+  "neutral-thornwood-sorceress": {
+    "name": "Thornwood Sorceress",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "neutral-smiling-stranger": {
+    "name": "The Smiling Stranger",
+    "text": "Muster: also Plays every Stranger's Shadow from your hand and deck."
+  },
+  "neutral-strangers-shadow": {
+    "name": "Stranger's Shadow",
+    "text": "Muster: also Plays every other Stranger's Shadow card from your hand and deck."
+  },
+  "neutral-pasture-cow": {
+    "name": "Pasture Cow",
+    "text": "Summon: when this card is discarded from the battlefield, Bovine Vanguard from your Side Deck takes its place."
+  },
+  "neutral-bovine-vanguard": {
+    "name": "Bovine Vanguard",
+    "text": "Side Deck: takes the place of Pasture Cow."
+  }
+}

@@ -7,6 +7,7 @@ import {
   type Seat,
 } from "@card-duel/engine";
 import { describe, expect, it } from "vitest";
+import { starterDeckOf } from "./catalog";
 import { checkCompetitiveDeck, checkValidDeck } from "./deck-checks";
 import { validateCatalog } from "./validate";
 import { getCatalog } from "./versions";
@@ -69,7 +70,7 @@ describe("Card Catalog v1", () => {
     for (let seed = 0; seed < 10; seed++) {
       let state: MatchState = createMatch({
         seed,
-        decks: [v1.starterDecks.swarm, v1.starterDecks.court],
+        decks: [starterDeckOf(v1, "swarm"), starterDeckOf(v1, "court")],
         cards: v1.cards,
       }).state;
       for (let step = 0; step < 300 && state.phase !== "ended"; step++) {
