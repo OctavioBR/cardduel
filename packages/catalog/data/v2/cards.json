@@ -1649,7 +1649,7 @@
     "faction": "neutral",
     "strength": 0,
     "row": "close",
-    "hero": false,
+    "hero": true,
     "abilities": ["spy"],
     "maxCopies": 1,
     "image": "v2/neutral-silent-elder.webp"
