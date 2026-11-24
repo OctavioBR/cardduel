@@ -202,6 +202,7 @@ _Avoid_: life, crown
 
 **Row**:
 One of the three combat lines on each side of the battlefield: Close, Ranged and Siege.
+The Row icons are a circle for Close, a triangle for Ranged and a square for Siege.
 
 **Weather**:
 A Special Card that sets the strength of all non-Hero units on one or more Rows to 1 for both players while it is in play. A Storm-Hardened Leader's player keeps half their printed Strength instead, rounded up.

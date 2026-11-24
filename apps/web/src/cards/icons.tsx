@@ -1,11 +1,10 @@
 import type { RowId, SpecialEffect, UnitAbility } from "@card-duel/engine";
 import copy from "../strings/en.json";
 
-/** Row icons from the chosen direction (#33): square Close, triangle Ranged, hexagon Siege. */
 const ROW_PATHS: Record<RowId, string> = {
-  close: "M3 3h10v10H3z",
+  close: "M3 8a5 5 0 1 0 10 0a5 5 0 1 0 -10 0z",
   ranged: "M8 2.4 14 13.2H2z",
-  siege: "M8 1.8 13.6 5v6L8 14.2 2.4 11V5z",
+  siege: "M3 3h10v10H3z",
 };
 
 export const ROW_LABEL: Record<RowId, string> = {
