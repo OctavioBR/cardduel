@@ -89,6 +89,8 @@ interface CardBase {
 
 export interface UnitDefinition extends CardBase {
   kind: "unit";
+  /** Other illustrations of the same Unit, in addition to its primary image. */
+  alternateImages?: string[];
   strength: number;
   /** The Row the Unit is played to. Agile Units carry the "agile" ability and may also use Ranged. */
   row: RowId;

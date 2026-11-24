@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Card, type CardSize } from "./Card";
@@ -16,6 +17,25 @@ describe("Card", () => {
         expect(html).toContain(`cd-f-${def.faction}`);
         if (size !== "token") expect(html).toContain(cardName(def.id).replaceAll("'", "&#x27;"));
         if (def.kind === "unit") expect(html).toContain(`>${def.strength}<`);
+      }
+    }
+  });
+
+  it("ships an illustration for every v2 card and a distinct image for each Unit copy", () => {
+    for (const def of cards) {
+      const images = [def.image, ...(def.kind === "unit" ? (def.alternateImages ?? []) : [])];
+      expect(new Set(images).size, def.id).toBe(def.kind === "unit" ? def.maxCopies : 1);
+      for (const [artIndex, image] of images.entries()) {
+        expect(image, def.id).toBeTruthy();
+        expect(existsSync(new URL(`../../public/cards/${image}`, import.meta.url)), image).toBe(
+          true,
+        );
+        expect(
+          existsSync(new URL(`../../public/cards/thumb/${image}`, import.meta.url)),
+          image,
+        ).toBe(true);
+        const html = renderToStaticMarkup(<Card cardId={def.id} size="tile" artIndex={artIndex} />);
+        expect(html).toContain(`src="/cards/${image}"`);
       }
     }
   });

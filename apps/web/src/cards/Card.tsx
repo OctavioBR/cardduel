@@ -1,7 +1,7 @@
 import type { CardDefinition, RowId } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
 import copy from "../strings/en.json";
-import { PlaceholderArt } from "./Art";
+import { CardArt } from "./Art";
 import { useCardDetailTrigger } from "./CardDetail";
 import { AbilityIcon, abilityLabel, ROW_LABEL, RowIcon } from "./icons";
 import { cardDef, cardName, cardText } from "./strings";
@@ -11,6 +11,7 @@ export type CardSize = "token" | "hand" | "tile" | "detail";
 export interface CardProps {
   cardId: string;
   size: CardSize;
+  artIndex?: number | undefined;
   /** Current Strength on the battlefield; coloured against printed Strength when given. */
   strength?: number | undefined;
   /** Copies badge ("×N") for the Deck builder. */
@@ -37,11 +38,21 @@ function strengthClass(def: CardDefinition, strength: number | undefined): strin
  * Renders any card from catalog data and strings (ADR-0004). The board token shows only
  * Strength and icons; the other sizes add name, short ability text and art.
  */
-export function Card({ cardId, size, strength, count, noDetail, keyboardDetail }: CardProps) {
-  const trigger = useCardDetailTrigger(cardId, strength);
+export function Card({
+  cardId,
+  size,
+  artIndex = 0,
+  strength,
+  count,
+  noDetail,
+  keyboardDetail,
+}: CardProps) {
+  const trigger = useCardDetailTrigger({ cardId, artIndex, strength });
   const detail = noDetail ? {} : trigger;
   const def = cardDef(cardId);
   const name = cardName(cardId);
+  const image =
+    (def?.kind === "unit" ? def.alternateImages?.[artIndex - 1] : undefined) ?? def?.image;
   if (!def) {
     return (
       <div className={`cd-card cd-${size} cd-f-neutral`} role="img" aria-label={name}>
@@ -86,6 +97,7 @@ export function Card({ cardId, size, strength, count, noDetail, keyboardDetail }
       tabIndex={keyboardDetail ? 0 : undefined}
       aria-keyshortcuts={keyboardDetail ? "I" : undefined}
       data-card-id={cardId}
+      data-art-index={artIndex || undefined}
       {...detail}
     >
       <div className="cd-top">
@@ -106,7 +118,7 @@ export function Card({ cardId, size, strength, count, noDetail, keyboardDetail }
         icons
       ) : (
         <div className="cd-art-box">
-          <PlaceholderArt cardId={cardId} image={def.image} />
+          <CardArt cardId={cardId} image={image} />
           {icons}
         </div>
       )}

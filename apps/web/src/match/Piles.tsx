@@ -107,7 +107,7 @@ function CardsOverlay({
       <div className="overlay-cards">
         {cards.length === 0 ? <p className="overlay-empty">{copy.noCards}</p> : null}
         {cards.map((c) => (
-          <Card key={c.uid} cardId={c.cardId} size="tile" keyboardDetail />
+          <Card key={c.uid} cardId={c.cardId} artIndex={c.artIndex} size="tile" keyboardDetail />
         ))}
       </div>
     </Overlay>

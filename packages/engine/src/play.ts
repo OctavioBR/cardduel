@@ -6,7 +6,10 @@ import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
 import { cardIdOf, computeStrengths, defOf, passiveInPlay, rowScore } from "./strength";
 
 export function ref(state: MatchState, uid: Uid): CardRef {
-  return { uid, cardId: cardIdOf(state, uid) };
+  const card: CardRef = { uid, cardId: cardIdOf(state, uid) };
+  const artIndex = state.cards[uid]?.artIndex;
+  if (artIndex !== undefined) card.artIndex = artIndex;
+  return card;
 }
 
 /** Draws up to `count` cards from the top of the deck; an emptier deck draws what is left. */

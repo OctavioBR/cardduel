@@ -12,6 +12,8 @@ export type Uid = number;
 
 export interface CardInstance {
   cardId: CardId;
+  /** Artwork assigned before the deal. Omitted for the primary illustration. */
+  artIndex?: number;
   /**
    * The Seat whose Deck the card came from, or that took it from the opponent's Discard
    * Pile. A Spy's Controller can differ.

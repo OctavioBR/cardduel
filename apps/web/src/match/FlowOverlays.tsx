@@ -135,7 +135,7 @@ export function OpeningOverlay({
                 aria-label={formatCopy(copy.return, { p0: cardName(card.cardId) })}
                 onClick={() => send({ type: "redraw", card: card.uid })}
               >
-                <Card cardId={card.cardId} size="tile" />
+                <Card cardId={card.cardId} artIndex={card.artIndex} size="tile" />
               </button>
             ))}
           </div>

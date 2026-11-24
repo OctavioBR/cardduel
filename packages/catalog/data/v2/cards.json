@@ -7,7 +7,8 @@
     "row": "close",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-bone-warlord.webp"
   },
   {
     "id": "swarm-hollow-seer",
@@ -17,7 +18,8 @@
     "row": "ranged",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-hollow-seer.webp"
   },
   {
     "id": "swarm-stone-colossus",
@@ -27,7 +29,8 @@
     "row": "close",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-stone-colossus.webp"
   },
   {
     "id": "swarm-coiled-leviathan",
@@ -37,7 +40,8 @@
     "row": "close",
     "hero": true,
     "abilities": ["agile", "moraleBoost"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-coiled-leviathan.webp"
   },
   {
     "id": "swarm-brood-crone",
@@ -48,7 +52,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "crones"
+    "musterGroup": "crones",
+    "image": "v2/swarm-brood-crone.webp",
+    "alternateImages": ["v2/swarm-brood-crone-2.webp", "v2/swarm-brood-crone-3.webp"]
   },
   {
     "id": "swarm-elder-night-feeder",
@@ -59,7 +65,8 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 1,
-    "musterGroup": "feeders"
+    "musterGroup": "feeders",
+    "image": "v2/swarm-elder-night-feeder.webp"
   },
   {
     "id": "swarm-night-feeder",
@@ -70,7 +77,13 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 4,
-    "musterGroup": "feeders"
+    "musterGroup": "feeders",
+    "image": "v2/swarm-night-feeder.webp",
+    "alternateImages": [
+      "v2/swarm-night-feeder-2.webp",
+      "v2/swarm-night-feeder-3.webp",
+      "v2/swarm-night-feeder-4.webp"
+    ]
   },
   {
     "id": "swarm-webmother",
@@ -81,7 +94,8 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 1,
-    "musterCalls": "crawlers"
+    "musterCalls": "crawlers",
+    "image": "v2/swarm-webmother.webp"
   },
   {
     "id": "swarm-web-crawler",
@@ -92,7 +106,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "crawlers"
+    "musterGroup": "crawlers",
+    "image": "v2/swarm-web-crawler.webp",
+    "alternateImages": ["v2/swarm-web-crawler-2.webp", "v2/swarm-web-crawler-3.webp"]
   },
   {
     "id": "swarm-burrow-gnawer",
@@ -103,7 +119,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "gnawers"
+    "musterGroup": "gnawers",
+    "image": "v2/swarm-burrow-gnawer.webp",
+    "alternateImages": ["v2/swarm-burrow-gnawer-2.webp", "v2/swarm-burrow-gnawer-3.webp"]
   },
   {
     "id": "swarm-carrion-grub",
@@ -114,7 +132,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "grubs"
+    "musterGroup": "grubs",
+    "image": "v2/swarm-carrion-grub.webp",
+    "alternateImages": ["v2/swarm-carrion-grub-2.webp", "v2/swarm-carrion-grub-3.webp"]
   },
   {
     "id": "swarm-bloated-spitter",
@@ -124,7 +144,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": ["scorch"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-bloated-spitter.webp"
   },
   {
     "id": "swarm-hive-brute",
@@ -134,7 +155,14 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 5
+    "maxCopies": 5,
+    "image": "v2/swarm-hive-brute.webp",
+    "alternateImages": [
+      "v2/swarm-hive-brute-2.webp",
+      "v2/swarm-hive-brute-3.webp",
+      "v2/swarm-hive-brute-4.webp",
+      "v2/swarm-hive-brute-5.webp"
+    ]
   },
   {
     "id": "swarm-dusk-shrieker",
@@ -144,7 +172,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-dusk-shrieker.webp"
   },
   {
     "id": "swarm-cave-lurker",
@@ -154,7 +183,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-cave-lurker.webp"
   },
   {
     "id": "swarm-mist-stalker",
@@ -164,7 +194,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-mist-stalker.webp"
   },
   {
     "id": "swarm-gale-shrike",
@@ -174,7 +205,9 @@
     "row": "close",
     "hero": false,
     "abilities": ["agile"],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/swarm-gale-shrike.webp",
+    "alternateImages": ["v2/swarm-gale-shrike-2.webp"]
   },
   {
     "id": "swarm-needle-wing",
@@ -184,7 +217,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/swarm-needle-wing.webp",
+    "alternateImages": ["v2/swarm-needle-wing-2.webp", "v2/swarm-needle-wing-3.webp"]
   },
   {
     "id": "swarm-acid-borer",
@@ -194,7 +229,8 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-acid-borer.webp"
   },
   {
     "id": "swarm-horned-ravager",
@@ -204,7 +240,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-horned-ravager.webp"
   },
   {
     "id": "swarm-rubble-golem",
@@ -214,7 +251,9 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/swarm-rubble-golem.webp",
+    "alternateImages": ["v2/swarm-rubble-golem-2.webp"]
   },
   {
     "id": "swarm-rime-giant",
@@ -224,7 +263,8 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/swarm-rime-giant.webp"
   },
   {
     "id": "swarm-leader-storm-caller",
@@ -233,7 +273,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "playWeatherFromDeck"
-    }
+    },
+    "image": "v2/swarm-leader-storm-caller.webp"
   },
   {
     "id": "swarm-leader-war-queen",
@@ -243,7 +284,8 @@
     "ability": {
       "type": "hornRow",
       "row": "close"
-    }
+    },
+    "image": "v2/swarm-leader-war-queen.webp"
   },
   {
     "id": "swarm-leader-hive-mind",
@@ -252,7 +294,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "discardToDrawChosen"
-    }
+    },
+    "image": "v2/swarm-leader-hive-mind.webp"
   },
   {
     "id": "swarm-leader-carrion-mother",
@@ -261,7 +304,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "returnFromDiscard"
-    }
+    },
+    "image": "v2/swarm-leader-carrion-mother.webp"
   },
   {
     "id": "swarm-leader-mimic-queen",
@@ -271,7 +315,8 @@
     "ability": {
       "type": "passive",
       "passive": "doubledSpies"
-    }
+    },
+    "image": "v2/swarm-leader-mimic-queen.webp"
   },
   {
     "id": "court-lord-of-engines",
@@ -281,7 +326,8 @@
     "row": "siege",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-lord-of-engines.webp"
   },
   {
     "id": "court-field-marshal",
@@ -291,7 +337,8 @@
     "row": "close",
     "hero": true,
     "abilities": ["medic"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-field-marshal.webp"
   },
   {
     "id": "court-black-blade",
@@ -301,7 +348,8 @@
     "row": "close",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-black-blade.webp"
   },
   {
     "id": "court-imperial-legate",
@@ -311,7 +359,8 @@
     "row": "ranged",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-imperial-legate.webp"
   },
   {
     "id": "court-young-courtier",
@@ -321,7 +370,9 @@
     "row": "close",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/court-young-courtier.webp",
+    "alternateImages": ["v2/court-young-courtier-2.webp"]
   },
   {
     "id": "court-outrider",
@@ -331,7 +382,9 @@
     "row": "close",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/court-outrider.webp",
+    "alternateImages": ["v2/court-outrider-2.webp", "v2/court-outrider-3.webp"]
   },
   {
     "id": "court-turncoat-general",
@@ -341,7 +394,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["spy"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-turncoat-general.webp"
   },
   {
     "id": "court-smiling-ambassador",
@@ -351,7 +405,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["spy"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-smiling-ambassador.webp"
   },
   {
     "id": "court-shadow-chamberlain",
@@ -361,7 +416,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["spy"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-shadow-chamberlain.webp"
   },
   {
     "id": "court-great-fire-ballista",
@@ -371,7 +427,8 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-great-fire-ballista.webp"
   },
   {
     "id": "court-black-legion-archer",
@@ -381,7 +438,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/court-black-legion-archer.webp",
+    "alternateImages": ["v2/court-black-legion-archer-2.webp"]
   },
   {
     "id": "court-siege-mender",
@@ -391,7 +450,8 @@
     "row": "siege",
     "hero": false,
     "abilities": ["medic"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-siege-mender.webp"
   },
   {
     "id": "court-imperial-pikeman",
@@ -401,7 +461,13 @@
     "row": "close",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 4
+    "maxCopies": 4,
+    "image": "v2/court-imperial-pikeman.webp",
+    "alternateImages": [
+      "v2/court-imperial-pikeman-2.webp",
+      "v2/court-imperial-pikeman-3.webp",
+      "v2/court-imperial-pikeman-4.webp"
+    ]
   },
   {
     "id": "court-reserve-archer",
@@ -411,7 +477,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": ["medic"],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/court-reserve-archer.webp",
+    "alternateImages": ["v2/court-reserve-archer-2.webp"]
   },
   {
     "id": "court-ebon-knight",
@@ -421,7 +489,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-ebon-knight.webp"
   },
   {
     "id": "court-court-sorceress",
@@ -431,7 +500,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/court-court-sorceress.webp",
+    "alternateImages": ["v2/court-court-sorceress-2.webp"]
   },
   {
     "id": "court-siege-engineer",
@@ -441,7 +512,8 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-siege-engineer.webp"
   },
   {
     "id": "court-marksman-captain",
@@ -451,7 +523,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-marksman-captain.webp"
   },
   {
     "id": "court-fire-ballista",
@@ -461,7 +534,8 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-fire-ballista.webp"
   },
   {
     "id": "court-palace-swordsman",
@@ -471,7 +545,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-palace-swordsman.webp"
   },
   {
     "id": "court-battle-mage",
@@ -481,7 +556,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/court-battle-mage.webp",
+    "alternateImages": ["v2/court-battle-mage-2.webp"]
   },
   {
     "id": "court-old-sergeant",
@@ -491,7 +568,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-old-sergeant.webp"
   },
   {
     "id": "court-crossbow-veteran",
@@ -501,7 +579,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-crossbow-veteran.webp"
   },
   {
     "id": "court-creaking-mangonel",
@@ -511,7 +590,8 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-creaking-mangonel.webp"
   },
   {
     "id": "court-foreign-sellsword",
@@ -521,7 +601,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/court-foreign-sellsword.webp"
   },
   {
     "id": "court-bolt-loader",
@@ -531,7 +612,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/court-bolt-loader.webp",
+    "alternateImages": ["v2/court-bolt-loader-2.webp"]
   },
   {
     "id": "court-leader-usurper",
@@ -540,7 +623,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "takeFromOpponentDiscard"
-    }
+    },
+    "image": "v2/court-leader-usurper.webp"
   },
   {
     "id": "court-leader-gambler-emperor",
@@ -550,7 +634,8 @@
     "ability": {
       "type": "passive",
       "passive": "randomMedic"
-    }
+    },
+    "image": "v2/court-leader-gambler-emperor.webp"
   },
   {
     "id": "court-leader-whisper-master",
@@ -559,7 +644,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "lookAtOpponentHand"
-    }
+    },
+    "image": "v2/court-leader-whisper-master.webp"
   },
   {
     "id": "court-leader-mist-admiral",
@@ -569,7 +655,8 @@
     "ability": {
       "type": "playCardFromDeck",
       "card": "neutral-sea-mist"
-    }
+    },
+    "image": "v2/court-leader-mist-admiral.webp"
   },
   {
     "id": "court-leader-iron-empress",
@@ -579,7 +666,8 @@
     "ability": {
       "type": "passive",
       "passive": "cancelOpponentLeader"
-    }
+    },
+    "image": "v2/court-leader-iron-empress.webp"
   },
   {
     "id": "kingdom-leader-high-king",
@@ -589,7 +677,8 @@
     "ability": {
       "type": "playCardFromDeck",
       "card": "neutral-sea-mist"
-    }
+    },
+    "image": "v2/kingdom-leader-high-king.webp"
   },
   {
     "id": "kingdom-leader-iron-marshal",
@@ -599,7 +688,8 @@
     "ability": {
       "type": "scorchRow",
       "row": "siege"
-    }
+    },
+    "image": "v2/kingdom-leader-iron-marshal.webp"
   },
   {
     "id": "kingdom-leader-archer-prince",
@@ -609,7 +699,8 @@
     "ability": {
       "type": "scorchRow",
       "row": "ranged"
-    }
+    },
+    "image": "v2/kingdom-leader-archer-prince.webp"
   },
   {
     "id": "kingdom-leader-field-commander",
@@ -618,7 +709,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "clearWeather"
-    }
+    },
+    "image": "v2/kingdom-leader-field-commander.webp"
   },
   {
     "id": "kingdom-leader-siege-lord",
@@ -628,7 +720,8 @@
     "ability": {
       "type": "hornRow",
       "row": "siege"
-    }
+    },
+    "image": "v2/kingdom-leader-siege-lord.webp"
   },
   {
     "id": "kingdom-lord-general",
@@ -638,7 +731,8 @@
     "row": "close",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-lord-general.webp"
   },
   {
     "id": "kingdom-ranger-captain",
@@ -648,7 +742,8 @@
     "row": "close",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-ranger-captain.webp"
   },
   {
     "id": "kingdom-old-monarch",
@@ -658,7 +753,8 @@
     "row": "close",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-old-monarch.webp"
   },
   {
     "id": "kingdom-royal-sorceress",
@@ -668,7 +764,8 @@
     "row": "ranged",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-royal-sorceress.webp"
   },
   {
     "id": "kingdom-wyrm-hunter",
@@ -678,7 +775,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/kingdom-wyrm-hunter.webp",
+    "alternateImages": ["v2/kingdom-wyrm-hunter-2.webp", "v2/kingdom-wyrm-hunter-3.webp"]
   },
   {
     "id": "kingdom-catapult",
@@ -688,7 +787,9 @@
     "row": "siege",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/kingdom-catapult.webp",
+    "alternateImages": ["v2/kingdom-catapult-2.webp"]
   },
   {
     "id": "kingdom-trebuchet",
@@ -698,7 +799,9 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/kingdom-trebuchet.webp",
+    "alternateImages": ["v2/kingdom-trebuchet-2.webp"]
   },
   {
     "id": "kingdom-ballista",
@@ -708,7 +811,9 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/kingdom-ballista.webp",
+    "alternateImages": ["v2/kingdom-ballista-2.webp"]
   },
   {
     "id": "kingdom-siege-tower",
@@ -718,7 +823,8 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-siege-tower.webp"
   },
   {
     "id": "kingdom-siege-engineer",
@@ -728,7 +834,9 @@
     "row": "siege",
     "hero": false,
     "abilities": ["moraleBoost"],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/kingdom-siege-engineer.webp",
+    "alternateImages": ["v2/kingdom-siege-engineer-2.webp", "v2/kingdom-siege-engineer-3.webp"]
   },
   {
     "id": "kingdom-banner-medic",
@@ -738,7 +846,8 @@
     "row": "siege",
     "hero": false,
     "abilities": ["medic"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-banner-medic.webp"
   },
   {
     "id": "kingdom-azure-raider",
@@ -748,7 +857,9 @@
     "row": "close",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/kingdom-azure-raider.webp",
+    "alternateImages": ["v2/kingdom-azure-raider-2.webp", "v2/kingdom-azure-raider-3.webp"]
   },
   {
     "id": "kingdom-wayward-prince",
@@ -758,7 +869,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["spy"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-wayward-prince.webp"
   },
   {
     "id": "kingdom-gutter-informer",
@@ -768,7 +880,8 @@
     "row": "siege",
     "hero": false,
     "abilities": ["spy"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-gutter-informer.webp"
   },
   {
     "id": "kingdom-royal-intelligencer",
@@ -778,7 +891,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["spy"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-royal-intelligencer.webp"
   },
   {
     "id": "kingdom-battle-mage",
@@ -788,7 +902,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-battle-mage.webp"
   },
   {
     "id": "kingdom-war-adept",
@@ -798,7 +913,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/kingdom-war-adept.webp",
+    "alternateImages": ["v2/kingdom-war-adept-2.webp"]
   },
   {
     "id": "kingdom-dwarven-crossbowman",
@@ -808,7 +925,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/kingdom-dwarven-crossbowman.webp",
+    "alternateImages": ["v2/kingdom-dwarven-crossbowman-2.webp"]
   },
   {
     "id": "kingdom-vanguard-scout",
@@ -818,7 +937,9 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/kingdom-vanguard-scout.webp",
+    "alternateImages": ["v2/kingdom-vanguard-scout-2.webp"]
   },
   {
     "id": "kingdom-quartermaster",
@@ -828,7 +949,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/kingdom-quartermaster.webp"
   },
   {
     "id": "kingdom-levy-spearman",
@@ -838,7 +960,9 @@
     "row": "close",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/kingdom-levy-spearman.webp",
+    "alternateImages": ["v2/kingdom-levy-spearman-2.webp", "v2/kingdom-levy-spearman-3.webp"]
   },
   {
     "id": "kingdom-raw-recruit",
@@ -848,7 +972,9 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/kingdom-raw-recruit.webp",
+    "alternateImages": ["v2/kingdom-raw-recruit-2.webp"]
   },
   {
     "id": "vikings-leader-kinslayer",
@@ -857,7 +983,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "playBondCopyFromDeck"
-    }
+    },
+    "image": "v2/vikings-leader-kinslayer.webp"
   },
   {
     "id": "vikings-leader-high-jarl",
@@ -867,7 +994,8 @@
     "ability": {
       "type": "passive",
       "passive": "stormHardened"
-    }
+    },
+    "image": "v2/vikings-leader-high-jarl.webp"
   },
   {
     "id": "vikings-leader-sea-king",
@@ -877,7 +1005,8 @@
     "ability": {
       "type": "playCardFromDeck",
       "card": "neutral-thunderhead"
-    }
+    },
+    "image": "v2/vikings-leader-sea-king.webp"
   },
   {
     "id": "vikings-leader-lame-chieftain",
@@ -887,7 +1016,8 @@
     "ability": {
       "type": "playCardFromDeck",
       "card": "vikings-bloodcap"
-    }
+    },
+    "image": "v2/vikings-leader-lame-chieftain.webp"
   },
   {
     "id": "vikings-leader-old-sea-wolf",
@@ -896,7 +1026,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "shuffleDiscardsIntoDecks"
-    }
+    },
+    "image": "v2/vikings-leader-old-sea-wolf.webp"
   },
   {
     "id": "vikings-shield-captain",
@@ -907,7 +1038,8 @@
     "hero": true,
     "abilities": ["muster"],
     "maxCopies": 1,
-    "musterCalls": "shieldmaidens"
+    "musterCalls": "shieldmaidens",
+    "image": "v2/vikings-shield-captain.webp"
   },
   {
     "id": "vikings-shieldmaiden",
@@ -918,7 +1050,9 @@
     "hero": false,
     "abilities": ["tightBond"],
     "maxCopies": 3,
-    "musterGroup": "shieldmaidens"
+    "musterGroup": "shieldmaidens",
+    "image": "v2/vikings-shieldmaiden.webp",
+    "alternateImages": ["v2/vikings-shieldmaiden-2.webp", "v2/vikings-shieldmaiden-3.webp"]
   },
   {
     "id": "vikings-bearskin-chieftain",
@@ -928,7 +1062,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["agile", "moraleBoost"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/vikings-bearskin-chieftain.webp"
   },
   {
     "id": "vikings-grove-druid",
@@ -938,7 +1073,8 @@
     "row": "ranged",
     "hero": true,
     "abilities": ["frenzy"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/vikings-grove-druid.webp"
   },
   {
     "id": "vikings-berserker",
@@ -949,7 +1085,8 @@
     "hero": false,
     "abilities": ["berserker"],
     "maxCopies": 1,
-    "transformsInto": "vikings-raging-bear"
+    "transformsInto": "vikings-raging-bear",
+    "image": "v2/vikings-berserker.webp"
   },
   {
     "id": "vikings-raging-bear",
@@ -960,7 +1097,8 @@
     "hero": false,
     "abilities": ["moraleBoost"],
     "maxCopies": 1,
-    "sideDeck": true
+    "sideDeck": true,
+    "image": "v2/vikings-raging-bear.webp"
   },
   {
     "id": "vikings-young-berserker",
@@ -971,7 +1109,9 @@
     "hero": false,
     "abilities": ["berserker"],
     "maxCopies": 3,
-    "transformsInto": "vikings-young-raging-bear"
+    "transformsInto": "vikings-young-raging-bear",
+    "image": "v2/vikings-young-berserker.webp",
+    "alternateImages": ["v2/vikings-young-berserker-2.webp", "v2/vikings-young-berserker-3.webp"]
   },
   {
     "id": "vikings-young-raging-bear",
@@ -982,7 +1122,12 @@
     "hero": false,
     "abilities": ["tightBond"],
     "maxCopies": 3,
-    "sideDeck": true
+    "sideDeck": true,
+    "image": "v2/vikings-young-raging-bear.webp",
+    "alternateImages": [
+      "v2/vikings-young-raging-bear-2.webp",
+      "v2/vikings-young-raging-bear-3.webp"
+    ]
   },
   {
     "id": "vikings-crowing-rooster",
@@ -993,7 +1138,8 @@
     "hero": false,
     "abilities": ["summon"],
     "maxCopies": 1,
-    "summons": "vikings-bridge-warden"
+    "summons": "vikings-bridge-warden",
+    "image": "v2/vikings-crowing-rooster.webp"
   },
   {
     "id": "vikings-bridge-warden",
@@ -1004,7 +1150,8 @@
     "hero": true,
     "abilities": [],
     "maxCopies": 1,
-    "sideDeck": true
+    "sideDeck": true,
+    "image": "v2/vikings-bridge-warden.webp"
   },
   {
     "id": "vikings-wise-woman",
@@ -1014,7 +1161,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["medic"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/vikings-wise-woman.webp"
   },
   {
     "id": "vikings-fire-raider",
@@ -1024,7 +1172,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": ["battlefieldScorch"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/vikings-fire-raider.webp"
   },
   {
     "id": "vikings-skald",
@@ -1034,7 +1183,8 @@
     "row": "siege",
     "hero": false,
     "abilities": ["horn"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/vikings-skald.webp"
   },
   {
     "id": "vikings-war-longship",
@@ -1044,7 +1194,9 @@
     "row": "siege",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/vikings-war-longship.webp",
+    "alternateImages": ["v2/vikings-war-longship-2.webp", "v2/vikings-war-longship-3.webp"]
   },
   {
     "id": "vikings-clan-warrior",
@@ -1054,7 +1206,9 @@
     "row": "close",
     "hero": false,
     "abilities": ["tightBond"],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/vikings-clan-warrior.webp",
+    "alternateImages": ["v2/vikings-clan-warrior-2.webp", "v2/vikings-clan-warrior-3.webp"]
   },
   {
     "id": "vikings-light-longship",
@@ -1065,7 +1219,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "light-longships"
+    "musterGroup": "light-longships",
+    "image": "v2/vikings-light-longship.webp",
+    "alternateImages": ["v2/vikings-light-longship-2.webp", "v2/vikings-light-longship-3.webp"]
   },
   {
     "id": "vikings-giant-slayer",
@@ -1075,7 +1231,8 @@
     "row": "ranged",
     "hero": true,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/vikings-giant-slayer.webp"
   },
   {
     "id": "vikings-mad-raider",
@@ -1085,7 +1242,9 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/vikings-mad-raider.webp",
+    "alternateImages": ["v2/vikings-mad-raider-2.webp"]
   },
   {
     "id": "vikings-fjord-archer",
@@ -1095,7 +1254,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/vikings-fjord-archer.webp",
+    "alternateImages": ["v2/vikings-fjord-archer-2.webp", "v2/vikings-fjord-archer-3.webp"]
   },
   {
     "id": "vikings-reaver",
@@ -1105,7 +1266,14 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 5
+    "maxCopies": 5,
+    "image": "v2/vikings-reaver.webp",
+    "alternateImages": [
+      "v2/vikings-reaver-2.webp",
+      "v2/vikings-reaver-3.webp",
+      "v2/vikings-reaver-4.webp",
+      "v2/vikings-reaver-5.webp"
+    ]
   },
   {
     "id": "vikings-shipwright",
@@ -1115,7 +1283,8 @@
     "row": "siege",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/vikings-shipwright.webp"
   },
   {
     "id": "vikings-bloodcap",
@@ -1124,7 +1293,8 @@
     "maxCopies": 3,
     "effect": {
       "type": "frenzy"
-    }
+    },
+    "image": "v2/vikings-bloodcap.webp"
   },
   {
     "id": "elves-leader-pureblood",
@@ -1134,7 +1304,8 @@
     "ability": {
       "type": "playCardFromDeck",
       "card": "neutral-black-ice"
-    }
+    },
+    "image": "v2/elves-leader-pureblood.webp"
   },
   {
     "id": "elves-leader-valley-queen",
@@ -1144,7 +1315,8 @@
     "ability": {
       "type": "scorchRow",
       "row": "close"
-    }
+    },
+    "image": "v2/elves-leader-valley-queen.webp"
   },
   {
     "id": "elves-leader-fair-one",
@@ -1154,7 +1326,8 @@
     "ability": {
       "type": "hornRow",
       "row": "ranged"
-    }
+    },
+    "image": "v2/elves-leader-fair-one.webp"
   },
   {
     "id": "elves-leader-peoples-hope",
@@ -1163,7 +1336,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "moveAgileUnits"
-    }
+    },
+    "image": "v2/elves-leader-peoples-hope.webp"
   },
   {
     "id": "elves-leader-wildflower",
@@ -1172,7 +1346,8 @@
     "maxCopies": 1,
     "ability": {
       "type": "drawFromDeck"
-    }
+    },
+    "image": "v2/elves-leader-wildflower.webp"
   },
   {
     "id": "elves-flame-sapper",
@@ -1182,7 +1357,8 @@
     "row": "siege",
     "hero": false,
     "abilities": ["scorch"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/elves-flame-sapper.webp"
   },
   {
     "id": "elves-dwarven-skirmisher",
@@ -1193,7 +1369,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "dwarven-skirmishers"
+    "musterGroup": "dwarven-skirmishers",
+    "image": "v2/elves-dwarven-skirmisher.webp",
+    "alternateImages": ["v2/elves-dwarven-skirmisher-2.webp", "v2/elves-dwarven-skirmisher-3.webp"]
   },
   {
     "id": "elves-mountain-smuggler",
@@ -1204,7 +1382,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "mountain-smugglers"
+    "musterGroup": "mountain-smugglers",
+    "image": "v2/elves-mountain-smuggler.webp",
+    "alternateImages": ["v2/elves-mountain-smuggler-2.webp", "v2/elves-mountain-smuggler-3.webp"]
   },
   {
     "id": "elves-smugglers-healer",
@@ -1214,7 +1394,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": ["medic"],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/elves-smugglers-healer.webp",
+    "alternateImages": ["v2/elves-smugglers-healer-2.webp", "v2/elves-smugglers-healer-3.webp"]
   },
   {
     "id": "elves-keen-eyed-huntress",
@@ -1224,7 +1406,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": ["moraleBoost"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/elves-keen-eyed-huntress.webp"
   },
   {
     "id": "elves-wildwood-commander",
@@ -1234,7 +1417,9 @@
     "row": "ranged",
     "hero": true,
     "abilities": [],
-    "maxCopies": 3
+    "maxCopies": 3,
+    "image": "v2/elves-wildwood-commander.webp",
+    "alternateImages": ["v2/elves-wildwood-commander-2.webp", "v2/elves-wildwood-commander-3.webp"]
   },
   {
     "id": "elves-grizzled-marshal",
@@ -1244,7 +1429,8 @@
     "row": "close",
     "hero": true,
     "abilities": ["moraleBoost"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/elves-grizzled-marshal.webp"
   },
   {
     "id": "elves-forest-scout",
@@ -1254,7 +1440,15 @@
     "row": "close",
     "hero": false,
     "abilities": ["agile"],
-    "maxCopies": 6
+    "maxCopies": 6,
+    "image": "v2/elves-forest-scout.webp",
+    "alternateImages": [
+      "v2/elves-forest-scout-2.webp",
+      "v2/elves-forest-scout-3.webp",
+      "v2/elves-forest-scout-4.webp",
+      "v2/elves-forest-scout-5.webp",
+      "v2/elves-forest-scout-6.webp"
+    ]
   },
   {
     "id": "elves-elven-skirmisher",
@@ -1265,7 +1459,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "elven-skirmishers"
+    "musterGroup": "elven-skirmishers",
+    "image": "v2/elves-elven-skirmisher.webp",
+    "alternateImages": ["v2/elves-elven-skirmisher-2.webp", "v2/elves-elven-skirmisher-3.webp"]
   },
   {
     "id": "elves-dwarven-sergeant",
@@ -1275,7 +1471,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/elves-dwarven-sergeant.webp"
   },
   {
     "id": "elves-moonlit-seer",
@@ -1285,7 +1482,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/elves-moonlit-seer.webp"
   },
   {
     "id": "elves-woodland-brigade",
@@ -1295,7 +1493,9 @@
     "row": "close",
     "hero": false,
     "abilities": ["agile"],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/elves-woodland-brigade.webp",
+    "alternateImages": ["v2/elves-woodland-brigade-2.webp"]
   },
   {
     "id": "elves-mountain-defender",
@@ -1305,7 +1505,14 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 5
+    "maxCopies": 5,
+    "image": "v2/elves-mountain-defender.webp",
+    "alternateImages": [
+      "v2/elves-mountain-defender-2.webp",
+      "v2/elves-mountain-defender-3.webp",
+      "v2/elves-mountain-defender-4.webp",
+      "v2/elves-mountain-defender-5.webp"
+    ]
   },
   {
     "id": "elves-elven-archer",
@@ -1315,7 +1522,9 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 2
+    "maxCopies": 2,
+    "image": "v2/elves-elven-archer.webp",
+    "alternateImages": ["v2/elves-elven-archer-2.webp"]
   },
   {
     "id": "elves-young-outrider",
@@ -1325,7 +1534,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["agile"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/elves-young-outrider.webp"
   },
   {
     "id": "elves-bitter-bowman",
@@ -1335,7 +1545,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/elves-bitter-bowman.webp"
   },
   {
     "id": "elves-wayfinder",
@@ -1345,7 +1556,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/elves-wayfinder.webp"
   },
   {
     "id": "neutral-black-ice",
@@ -1355,7 +1567,8 @@
     "effect": {
       "type": "weather",
       "rows": ["close"]
-    }
+    },
+    "image": "v2/neutral-black-ice.webp"
   },
   {
     "id": "neutral-sea-mist",
@@ -1365,7 +1578,8 @@
     "effect": {
       "type": "weather",
       "rows": ["ranged"]
-    }
+    },
+    "image": "v2/neutral-sea-mist.webp"
   },
   {
     "id": "neutral-mudslide",
@@ -1375,7 +1589,8 @@
     "effect": {
       "type": "weather",
       "rows": ["siege"]
-    }
+    },
+    "image": "v2/neutral-mudslide.webp"
   },
   {
     "id": "neutral-thunderhead",
@@ -1385,7 +1600,8 @@
     "effect": {
       "type": "weather",
       "rows": ["ranged", "siege"]
-    }
+    },
+    "image": "v2/neutral-thunderhead.webp"
   },
   {
     "id": "neutral-break-in-the-clouds",
@@ -1394,7 +1610,8 @@
     "maxCopies": 3,
     "effect": {
       "type": "clearWeather"
-    }
+    },
+    "image": "v2/neutral-break-in-the-clouds.webp"
   },
   {
     "id": "neutral-war-drum",
@@ -1403,7 +1620,8 @@
     "maxCopies": 3,
     "effect": {
       "type": "horn"
-    }
+    },
+    "image": "v2/neutral-war-drum.webp"
   },
   {
     "id": "neutral-straw-double",
@@ -1412,7 +1630,8 @@
     "maxCopies": 3,
     "effect": {
       "type": "decoy"
-    }
+    },
+    "image": "v2/neutral-straw-double.webp"
   },
   {
     "id": "neutral-wildfire",
@@ -1421,7 +1640,8 @@
     "maxCopies": 3,
     "effect": {
       "type": "scorch"
-    }
+    },
+    "image": "v2/neutral-wildfire.webp"
   },
   {
     "id": "neutral-silent-elder",
@@ -1431,7 +1651,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["spy"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/neutral-silent-elder.webp"
   },
   {
     "id": "neutral-lone-hunter",
@@ -1442,7 +1663,8 @@
     "hero": true,
     "abilities": ["muster"],
     "maxCopies": 1,
-    "musterCalls": "mare"
+    "musterCalls": "mare",
+    "image": "v2/neutral-lone-hunter.webp"
   },
   {
     "id": "neutral-wayfaring-heir",
@@ -1453,7 +1675,8 @@
     "hero": true,
     "abilities": ["muster"],
     "maxCopies": 1,
-    "musterCalls": "mare"
+    "musterCalls": "mare",
+    "image": "v2/neutral-wayfaring-heir.webp"
   },
   {
     "id": "neutral-faithful-mare",
@@ -1464,7 +1687,8 @@
     "hero": false,
     "abilities": [],
     "maxCopies": 1,
-    "musterGroup": "mare"
+    "musterGroup": "mare",
+    "image": "v2/neutral-faithful-mare.webp"
   },
   {
     "id": "neutral-old-swordmaster",
@@ -1474,7 +1698,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/neutral-old-swordmaster.webp"
   },
   {
     "id": "neutral-midnight-herbalist",
@@ -1484,7 +1709,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/neutral-midnight-herbalist.webp"
   },
   {
     "id": "neutral-stout-axeman",
@@ -1494,7 +1720,8 @@
     "row": "close",
     "hero": false,
     "abilities": [],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/neutral-stout-axeman.webp"
   },
   {
     "id": "neutral-gilded-wyrm",
@@ -1504,7 +1731,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["scorch"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/neutral-gilded-wyrm.webp"
   },
   {
     "id": "neutral-deathless-captain",
@@ -1514,7 +1742,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["agile", "moraleBoost"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/neutral-deathless-captain.webp"
   },
   {
     "id": "neutral-travelling-minstrel",
@@ -1524,7 +1753,8 @@
     "row": "close",
     "hero": false,
     "abilities": ["horn"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/neutral-travelling-minstrel.webp"
   },
   {
     "id": "neutral-thornwood-sorceress",
@@ -1534,7 +1764,8 @@
     "row": "ranged",
     "hero": false,
     "abilities": ["medic"],
-    "maxCopies": 1
+    "maxCopies": 1,
+    "image": "v2/neutral-thornwood-sorceress.webp"
   },
   {
     "id": "neutral-smiling-stranger",
@@ -1545,7 +1776,8 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 1,
-    "musterCalls": "shadows"
+    "musterCalls": "shadows",
+    "image": "v2/neutral-smiling-stranger.webp"
   },
   {
     "id": "neutral-strangers-shadow",
@@ -1556,7 +1788,9 @@
     "hero": false,
     "abilities": ["muster"],
     "maxCopies": 3,
-    "musterGroup": "shadows"
+    "musterGroup": "shadows",
+    "image": "v2/neutral-strangers-shadow.webp",
+    "alternateImages": ["v2/neutral-strangers-shadow-2.webp", "v2/neutral-strangers-shadow-3.webp"]
   },
   {
     "id": "neutral-pasture-cow",
@@ -1567,7 +1801,8 @@
     "hero": false,
     "abilities": ["summon"],
     "maxCopies": 1,
-    "summons": "neutral-bovine-vanguard"
+    "summons": "neutral-bovine-vanguard",
+    "image": "v2/neutral-pasture-cow.webp"
   },
   {
     "id": "neutral-bovine-vanguard",
@@ -1578,6 +1813,7 @@
     "hero": false,
     "abilities": [],
     "maxCopies": 1,
-    "sideDeck": true
+    "sideDeck": true,
+    "image": "v2/neutral-bovine-vanguard.webp"
   }
 ]

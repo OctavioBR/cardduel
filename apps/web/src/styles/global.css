@@ -506,6 +506,12 @@ input.turn-timer-input {
 .leader-picker input {
   margin-top: 0.2rem;
 }
+.leader-portrait {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--cd-radius);
+  object-fit: cover;
+}
 .leader-option {
   display: flex;
   flex-direction: column;

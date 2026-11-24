@@ -31,14 +31,6 @@ export function ChoiceOverlay({
   const kind = view.pendingChoice?.kind;
   if (!kind) return null;
   const options = view.legalActions.filter((a) => a.type === "choose");
-  const cardIdOf = (a: (typeof options)[number]) =>
-    a.type !== "choose"
-      ? ""
-      : (a.cardId ??
-        [...view.you.discard, ...view.you.hand, ...view.opponent.discard].find(
-          (c) => c.uid === a.card,
-        )?.cardId ??
-        "");
   if (kind === "firstTurn") {
     return (
       <Overlay title={TITLE[kind]}>
@@ -67,7 +59,10 @@ export function ChoiceOverlay({
       <div className="overlay-cards choice-options">
         {options.map((option) => {
           if (option.type !== "choose") return null;
-          const cardId = cardIdOf(option);
+          const card = [...view.you.discard, ...view.you.hand, ...view.opponent.discard].find(
+            (c) => c.uid === option.card,
+          );
+          const cardId = option.cardId ?? card?.cardId ?? "";
           const where = option.row ? formatCopy(copy.to, { p0: ROW_LABEL[option.row] }) : "";
           return (
             <button
@@ -78,7 +73,7 @@ export function ChoiceOverlay({
               onClick={() => send(option)}
               aria-label={formatCopy(copy.choose, { p0: cardName(cardId), p1: where })}
             >
-              <Card cardId={cardId} size="tile" />
+              <Card cardId={cardId} artIndex={card?.artIndex} size="tile" />
               {option.row ? (
                 <span className="choice-row">
                   {ROW_LABEL[option.row]}

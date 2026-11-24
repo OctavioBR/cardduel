@@ -96,7 +96,12 @@ export function BoardRow(props: {
           const returned = effects?.returned.has(unit.uid) ?? false;
           const token = (
             <>
-              <Card cardId={unit.cardId} size="token" strength={delta ? delta.to : unit.strength} />
+              <Card
+                cardId={unit.cardId}
+                artIndex={unit.artIndex}
+                size="token"
+                strength={delta ? delta.to : unit.strength}
+              />
               {delta ? (
                 <span className={`delta badge ${delta.to > delta.from ? "up" : "down"}`}>
                   {signed(delta.to - delta.from)}

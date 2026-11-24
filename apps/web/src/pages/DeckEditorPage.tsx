@@ -3,6 +3,7 @@ import type { CardDefinition, UnitAbility } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
+import { CardImage } from "../cards/Art";
 import { Card } from "../cards/Card";
 import { CardDetailProvider } from "../cards/CardDetail";
 import { FACTION_NAME } from "../cards/factions";
@@ -240,7 +241,9 @@ function Editor({ initial }: { initial: Deck }) {
           </div>
           <div className="tile-grid">
             {pool.map((def) => {
-              const left = def.maxCopies - (copies.get(def.id) ?? 0);
+              const used = copies.get(def.id) ?? 0;
+              const left = def.maxCopies - used;
+              const artIndex = Math.min(used, def.maxCopies - 1);
               return (
                 <button
                   key={def.id}
@@ -250,10 +253,10 @@ function Editor({ initial }: { initial: Deck }) {
                   aria-label={formatCopy(copy.addLeft, { p0: cardName(def.id), p1: left })}
                   data-testid="pool-tile"
                   data-card={def.id}
-                  onPointerDown={left > 0 ? drag.start(def.id, "pool") : undefined}
+                  onPointerDown={left > 0 ? drag.start(def.id, "pool", artIndex) : undefined}
                   onClick={() => !drag.ignoreClick() && add(def)}
                 >
-                  <Card cardId={def.id} size="tile" count={left} />
+                  <Card cardId={def.id} size="tile" artIndex={artIndex} count={left} />
                 </button>
               );
             })}
@@ -277,6 +280,7 @@ function Editor({ initial }: { initial: Deck }) {
                   onChange={() => edit("leader", l.id)}
                   aria-describedby={`leader-text-${l.id}`}
                 />
+                {l.image && <CardImage className="leader-portrait" image={l.image} />}
                 <span className="leader-option">
                   <span className="leader-option-name">{cardName(l.id)}</span>
                   <span className="leader-option-text" id={`leader-text-${l.id}`}>
@@ -344,10 +348,10 @@ function Editor({ initial }: { initial: Deck }) {
                     className="tile"
                     aria-label={formatCopy(copy.removeInDeck, { p0: cardName(def.id), p1: count })}
                     data-testid="deck-tile"
-                    onPointerDown={drag.start(def.id, "deck")}
+                    onPointerDown={drag.start(def.id, "deck", count - 1)}
                     onClick={() => !drag.ignoreClick() && remove(def.id)}
                   >
-                    <Card cardId={def.id} size="tile" count={count} />
+                    <Card cardId={def.id} size="tile" artIndex={count - 1} count={count} />
                   </button>
                 ))}
               </div>
@@ -363,7 +367,7 @@ function Editor({ initial }: { initial: Deck }) {
           aria-hidden="true"
           data-testid="tile-ghost"
         >
-          <Card cardId={drag.ghost.cardId} size="tile" />
+          <Card cardId={drag.ghost.cardId} artIndex={drag.ghost.artIndex} size="tile" />
         </div>
       ) : null}
     </main>

@@ -58,6 +58,19 @@ describe("Card Catalog v2", () => {
     }
   });
 
+  it("assigns distinct artwork to each Seat's Unit copies, including Side Deck forms", () => {
+    const berserker = "vikings-young-berserker";
+    const bear = "vikings-young-raging-bear";
+    const deck = { ...starterDeckOf(v2, "vikings"), cards: Array<string>(3).fill(berserker) };
+    const { state } = createMatch({ seed: 42, decks: [deck, deck], cards: v2.cards });
+    for (const owner of [0, 1]) {
+      for (const cardId of [berserker, bear]) {
+        const copies = state.cards.filter((card) => card.owner === owner && card.cardId === cardId);
+        expect(copies.map((card) => card.artIndex ?? 0).sort()).toEqual([0, 1, 2]);
+      }
+    }
+  });
+
   it("refuses Side Deck cards in a Deck", () => {
     const deck = starterDeckOf(v2, "vikings");
     const problems = checkValidDeck({ ...deck, cards: [...deck.cards, "vikings-raging-bear"] }, v2);

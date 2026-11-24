@@ -19,8 +19,11 @@ for (const scale of [1, 2]) {
       for (const size of ["token", "hand", "tile", "detail"]) {
         expect(await page.locator(`.cd-${size}`).count()).toBeGreaterThanOrEqual(count);
       }
-      // Vector only: no raster card art that could blur at 2x.
-      expect(await page.locator(".cd-card img").count()).toBe(0);
+      await expect(rows.locator(".cd-detail img")).toHaveCount(count);
+      const art = rows.first().locator(".cd-detail img");
+      await expect
+        .poll(() => art.evaluate((img: HTMLImageElement) => img.naturalWidth))
+        .toBeGreaterThan(0);
       expect(errors).toEqual([]);
     });
   });

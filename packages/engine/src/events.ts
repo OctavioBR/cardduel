@@ -5,6 +5,7 @@ import type { MatchResult, PendingKind, Seat, Uid } from "./state";
 export interface CardRef {
   uid: Uid;
   cardId: CardId;
+  artIndex?: number;
 }
 
 export interface StrengthChange {

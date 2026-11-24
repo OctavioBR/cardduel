@@ -31,6 +31,10 @@ export function CardGalleryPage() {
               </>
             ) : null}
             <Card cardId={def.id} size="tile" count={def.maxCopies} />
+            {def.kind === "unit" &&
+              def.alternateImages?.map((image, i) => (
+                <Card key={image} cardId={def.id} size="tile" artIndex={i + 1} />
+              ))}
           </section>
         ))}
       </main>

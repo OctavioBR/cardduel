@@ -1,16 +1,30 @@
 /** Small deterministic hash of a card id, for its placeholder art. */
-export function hashId(id: string): number {
+function hashId(id: string): number {
   let h = 2166136261;
   for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
   return h;
 }
 
-/**
- * Abstract placeholder art: a few faction-tinted shapes placed from the card id's hash, so
- * every card looks different but needs no image. Vector, so it is sharp at any pixel ratio.
- */
-export function PlaceholderArt({ cardId, image }: { cardId: string; image?: string | undefined }) {
-  if (image) return <img className="cd-art-img" src={`/cards/${image}`} alt="" />;
+/** The v2 illustrations ship in two sizes for tiles and Card Detail. */
+export function CardImage({ image, className }: { image: string; className: string }) {
+  const src = `/cards/${image}`;
+  const srcSet = image.startsWith("v2/") ? `/cards/thumb/${image} 224w, ${src} 512w` : undefined;
+  return (
+    <img
+      className={className}
+      src={src}
+      srcSet={srcSet}
+      sizes="auto, 256px"
+      alt=""
+      draggable={false}
+      loading="lazy"
+    />
+  );
+}
+
+/** Older catalog cards and development fixtures fall back to deterministic Faction shapes. */
+export function CardArt({ cardId, image }: { cardId: string; image?: string | undefined }) {
+  if (image) return <CardImage image={image} className="cd-art-img" />;
   const h = hashId(cardId);
   const shapes = [0, 1, 2].map((i) => {
     const v = (h >>> (i * 9)) & 511;

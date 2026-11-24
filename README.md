@@ -135,7 +135,7 @@ These pages exist only in the Vite dev server (`import.meta.env.DEV`); productio
 | Route | What it shows |
 |---|---|
 | `/dev/local` | A **Local Room**: one browser plays both Seats of a Match. The **Local Room · looking at** box (top right) switches between Seat 1 and Seat 2. |
-| `/dev/cards` | The **card gallery**: every card of the current Card Catalog at every size, with raised and lowered Strength. |
+| `/dev/cards` | The **card gallery**: every card of the current Card Catalog at every size, with alternate Unit Card artwork and raised and lowered Strength. |
 
 `/dev/local` takes these query parameters:
 

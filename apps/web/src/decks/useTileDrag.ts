@@ -9,9 +9,15 @@ const THRESHOLD = 8;
  * A press without movement stays a click.
  */
 export function useTileDrag(onDrop: (cardId: string, from: DropZone, to: DropZone) => void) {
-  const [ghost, setGhost] = useState<{ cardId: string; x: number; y: number } | null>(null);
+  const [ghost, setGhost] = useState<{
+    cardId: string;
+    artIndex: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const session = useRef<{
     cardId: string;
+    artIndex: number;
     from: DropZone;
     x: number;
     y: number;
@@ -35,7 +41,7 @@ export function useTileDrag(onDrop: (cardId: string, from: DropZone, to: DropZon
         s.active = true;
       }
       e.preventDefault();
-      setGhost({ cardId: s.cardId, x: e.clientX, y: e.clientY });
+      setGhost({ cardId: s.cardId, artIndex: s.artIndex, x: e.clientX, y: e.clientY });
     };
     const end = (e: PointerEvent) => {
       const s = session.current;
@@ -64,9 +70,9 @@ export function useTileDrag(onDrop: (cardId: string, from: DropZone, to: DropZon
 
   return {
     ghost,
-    start: (cardId: string, from: DropZone) => (e: ReactPointerEvent) => {
+    start: (cardId: string, from: DropZone, artIndex: number) => (e: ReactPointerEvent) => {
       if (e.button !== 0) return;
-      session.current = { cardId, from, x: e.clientX, y: e.clientY, active: false };
+      session.current = { cardId, artIndex, from, x: e.clientX, y: e.clientY, active: false };
     },
     ignoreClick: () => suppress.current,
   };

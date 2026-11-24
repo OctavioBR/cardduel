@@ -20,9 +20,13 @@ export const HOVER_DELAY_MS = 450;
 export const LONG_PRESS_MS = 500;
 const MOVE_TOLERANCE = 8;
 
-interface Opened {
+interface DetailCard {
+  artIndex?: number | undefined;
   cardId: string;
   strength?: number | undefined;
+}
+
+interface Opened extends DetailCard {
   via: "hover" | "press" | "key";
 }
 
@@ -31,7 +35,7 @@ interface CardDetailApi {
   close: () => void;
   /** True right after a long-press, so a drag must not start. */
   pressActive: () => boolean;
-  hovered: (cardId: string, strength: number | undefined) => void;
+  hovered: (card: DetailCard) => void;
   unhovered: () => void;
 }
 
@@ -57,12 +61,9 @@ export function CardDetailProvider({ children }: { children: ReactNode }) {
       },
       close,
       pressActive: () => press.current,
-      hovered: (cardId, strength) => {
+      hovered: (card) => {
         if (hoverTimer.current) clearTimeout(hoverTimer.current);
-        hoverTimer.current = setTimeout(
-          () => setOpened({ cardId, strength, via: "hover" }),
-          HOVER_DELAY_MS,
-        );
+        hoverTimer.current = setTimeout(() => setOpened({ ...card, via: "hover" }), HOVER_DELAY_MS);
       },
       unhovered: () => {
         if (hoverTimer.current) clearTimeout(hoverTimer.current);
@@ -84,7 +85,7 @@ export function CardDetailProvider({ children }: { children: ReactNode }) {
           active?.closest<HTMLElement>("[data-card-id]") ??
           active?.querySelector<HTMLElement>("[data-card-id]");
         const id = card?.dataset.cardId;
-        if (id) setOpened({ cardId: id, via: "key" });
+        if (id) setOpened({ cardId: id, artIndex: Number(card.dataset.artIndex ?? 0), via: "key" });
       }
     };
     const onUp = () => {
@@ -122,7 +123,13 @@ export function CardDetailProvider({ children }: { children: ReactNode }) {
           aria-label={formatCopy(copy.cardDetail, { p0: cardName(opened.cardId) })}
           data-testid="card-detail"
         >
-          <Card cardId={opened.cardId} size="detail" strength={opened.strength} noDetail />
+          <Card
+            cardId={opened.cardId}
+            size="detail"
+            artIndex={opened.artIndex}
+            strength={opened.strength}
+            noDetail
+          />
           <p className="card-detail-text">{cardText(opened.cardId)}</p>
           {opened.via !== "hover" ? (
             <button type="button" onClick={close}>
@@ -142,7 +149,7 @@ export function useCardDetailPress(): () => boolean {
 }
 
 /** Pointer handlers a Card attaches to open Card Detail. Empty outside a provider. */
-export function useCardDetailTrigger(cardId: string, strength: number | undefined) {
+export function useCardDetailTrigger(card: DetailCard) {
   const api = useContext(Ctx);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
@@ -153,7 +160,7 @@ export function useCardDetailTrigger(cardId: string, strength: number | undefine
   };
   return {
     onPointerEnter: (e: React.PointerEvent) => {
-      if (e.pointerType === "mouse" || e.pointerType === "pen") api.hovered(cardId, strength);
+      if (e.pointerType === "mouse" || e.pointerType === "pen") api.hovered(card);
     },
     onPointerLeave: (e: React.PointerEvent) => {
       if (e.pointerType === "mouse" || e.pointerType === "pen") api.unhovered();
@@ -163,7 +170,7 @@ export function useCardDetailTrigger(cardId: string, strength: number | undefine
       if (e.pointerType !== "touch") return;
       start.current = { x: e.clientX, y: e.clientY };
       cancel();
-      timer.current = setTimeout(() => api.open({ cardId, strength, via: "press" }), LONG_PRESS_MS);
+      timer.current = setTimeout(() => api.open({ ...card, via: "press" }), LONG_PRESS_MS);
     },
     onPointerMove: (e: React.PointerEvent) => {
       const s = start.current;

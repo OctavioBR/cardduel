@@ -71,6 +71,7 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
     }
   }
 
+  assignUnitArtwork(state, setup.seed);
   const events: MatchEvent[] = [];
   const starter: Seat = nextInt(state, 2) === 0 ? 0 : 1;
   state.roundStarter = starter;
@@ -82,6 +83,27 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
   }
   // Both Seats now Redraw privately; the first Turn starts when both have confirmed.
   return { state, events };
+}
+
+/** Deal from the full set of illustrations per Seat, independently of the gameplay shuffle.
+ * Seeing an illustration should not tell the opponent how many copies started in the Deck.
+ */
+function assignUnitArtwork(state: MatchState, seed: number): void {
+  const artRng = { rng: toSeed(~seed) };
+  const remaining = [new Map<string, number[]>(), new Map<string, number[]>()] as const;
+  for (const card of state.cards) {
+    const def = state.defs[card.cardId];
+    if (def?.kind !== "unit" || !def.alternateImages?.length) continue;
+    const byId = remaining[card.owner];
+    let indices = byId.get(card.cardId);
+    if (!indices?.length) {
+      indices = Array.from({ length: def.alternateImages.length + 1 }, (_, i) => i);
+      shuffle(artRng, indices);
+      byId.set(card.cardId, indices);
+    }
+    const index = indices.pop();
+    if (index) card.artIndex = index;
+  }
 }
 
 export interface ApplyOptions {
