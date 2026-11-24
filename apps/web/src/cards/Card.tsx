@@ -84,7 +84,7 @@ export function Card({
       <div className="cd-icons">
         {hero ? <AbilityIcon name="hero" size={iconSize} /> : null}
         {abilities.map((a) => (
-          <AbilityIcon key={a} name={a} size={iconSize} />
+          <AbilityIcon key={a} name={a} size={iconSize} unit />
         ))}
       </div>
     ) : null;
