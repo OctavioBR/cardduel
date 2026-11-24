@@ -13,12 +13,14 @@ import {
 
 /**
  * The whole product with two players. The local Worker runs with a fixed Match seed (see
- * `playwright.config.ts`): with the two Starter Decks it deals the first Seat a Brood Tender (a
- * Medic) and Wildfire (Scorch) in the opening hand, and that Seat plays first.
+ * `playwright.config.ts`): with the two Starter Decks it deals the second Seat (Court) a Siege
+ * Mender (a Medic) and Wildfire (Scorch) in the opening hand.
  */
 
+const MEDIC = "Siege Mender";
+
 /** Cards the generic play skips: the journey plays the first two on purpose, and the others need a target of their own (a Unit, a Horn slot). */
-const HELD = ["Brood Tender", "Wildfire", "Straw Double", "War Drum"];
+const HELD = [MEDIC, "Wildfire", "Straw Double", "War Drum"];
 
 interface Seen {
   medic: boolean;
@@ -77,8 +79,8 @@ async function takeJourneyTurn(page: Page, seen: Seen): Promise<void> {
   const names = await playableNames(page);
   const holds = (name: string) => names.some((n) => n.startsWith(name));
 
-  if (current >= 2 && holds("Brood Tender") && (await discardCount(page)) > 0) {
-    await play(page, "Brood Tender");
+  if (current >= 2 && holds(MEDIC) && (await discardCount(page)) > 0) {
+    await play(page, MEDIC);
     await expect(page.getByRole("dialog", { name: /Medic/ })).toBeVisible();
     await resolveChoices(page);
     seen.medic = true;
@@ -108,7 +110,7 @@ async function redrawOne(page: Page): Promise<void> {
   await expect(redraw).toBeVisible();
   const before = await actionCount(page);
   await redraw
-    .getByRole("button", { name: /^Return (?!Brood Tender|Wildfire)/ })
+    .getByRole("button", { name: /^Return (?!Siege Mender|Wildfire)/ })
     .first()
     .click();
   await expect.poll(() => actionCount(page)).toBeGreaterThan(before);

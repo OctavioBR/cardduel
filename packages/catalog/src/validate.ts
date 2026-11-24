@@ -34,6 +34,8 @@ export const LEADER_KINDS = [
   "scorchRow",
   "returnFromDiscard",
   "drawChosenFromDeck",
+  "discardToDrawChosen",
+  "takeFromOpponentDiscard",
   "lookAtOpponentHand",
   "playBondCopyFromDeck",
   "shuffleDiscardsIntoDecks",
@@ -42,7 +44,13 @@ export const LEADER_KINDS = [
   "passive",
 ] as const;
 /** Passive Leader kinds: Steady Ground was approved in the card set review (#29). */
-export const PASSIVE_LEADER_KINDS = ["steadyGround", "stormHardened"] as const;
+export const PASSIVE_LEADER_KINDS = [
+  "steadyGround",
+  "stormHardened",
+  "doubledSpies",
+  "randomMedic",
+  "cancelOpponentLeader",
+] as const;
 /** Special Cards a playCardFromDeck Leader may name: those needing no Row or target. */
 const LEADER_PLAYABLE_EFFECTS = ["weather", "clearWeather", "scorch", "frenzy"];
 const FACTIONS = ["swarm", "court", "kingdom", "vikings", "elves"] as const;

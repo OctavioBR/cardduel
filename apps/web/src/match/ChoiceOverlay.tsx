@@ -13,6 +13,8 @@ const TITLE: Record<PendingKind, string> = {
   leaderReturn: copy.chooseACardToReturnFrom,
   leaderDraw: copy.chooseACardToDrawFrom,
   leaderBond: copy.chooseATightBondCardTo,
+  leaderDiscard: copy.chooseACardToDiscardFrom,
+  leaderTake: copy.chooseACardToTakeFrom,
   firstTurn: copy.elvesChooseWhoTakesTheFirstTurn,
 };
 
@@ -33,7 +35,9 @@ export function ChoiceOverlay({
     a.type !== "choose"
       ? ""
       : (a.cardId ??
-        [...view.you.discard, ...view.you.hand].find((c) => c.uid === a.card)?.cardId ??
+        [...view.you.discard, ...view.you.hand, ...view.opponent.discard].find(
+          (c) => c.uid === a.card,
+        )?.cardId ??
         "");
   if (kind === "firstTurn") {
     return (

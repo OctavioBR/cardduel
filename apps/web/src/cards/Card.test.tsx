@@ -21,7 +21,7 @@ describe("Card", () => {
   });
 
   it("the board token shows only Strength and icons", () => {
-    const html = renderToStaticMarkup(<Card cardId="swarm-hive-drone" size="token" />);
+    const html = renderToStaticMarkup(<Card cardId="swarm-burrow-gnawer" size="token" />);
     expect(html).not.toContain("cd-name");
     expect(html).not.toContain("cd-art");
     expect(html).toContain('aria-label="Muster"');
@@ -29,21 +29,21 @@ describe("Card", () => {
 
   it("colours current Strength against printed Strength", () => {
     expect(
-      renderToStaticMarkup(<Card cardId="swarm-hive-drone" size="token" strength={5} />),
+      renderToStaticMarkup(<Card cardId="swarm-burrow-gnawer" size="token" strength={5} />),
     ).toContain("cd-raised");
     expect(
-      renderToStaticMarkup(<Card cardId="swarm-hive-drone" size="token" strength={1} />),
+      renderToStaticMarkup(<Card cardId="swarm-burrow-gnawer" size="token" strength={1} />),
     ).toContain("cd-lowered");
     expect(
-      renderToStaticMarkup(<Card cardId="swarm-hive-drone" size="token" strength={2} />),
+      renderToStaticMarkup(<Card cardId="swarm-burrow-gnawer" size="token" strength={2} />),
     ).not.toMatch(/cd-raised|cd-lowered/);
   });
 
   it("marks Heroes, both Rows for Agile, and Special Cards by effect", () => {
-    expect(renderToStaticMarkup(<Card cardId="swarm-hollow-colossus" size="hand" />)).toContain(
+    expect(renderToStaticMarkup(<Card cardId="swarm-bone-warlord" size="hand" />)).toContain(
       "cd-hero",
     );
-    const agile = renderToStaticMarkup(<Card cardId="swarm-skitterling" size="hand" />);
+    const agile = renderToStaticMarkup(<Card cardId="swarm-gale-shrike" size="hand" />);
     expect(agile).toContain('aria-label="Close"');
     expect(agile).toContain('aria-label="Ranged"');
     expect(renderToStaticMarkup(<Card cardId="neutral-black-ice" size="hand" />)).toContain(
@@ -59,13 +59,15 @@ describe("Card", () => {
   });
 
   it("describes the card for assistive technology", () => {
-    const html = renderToStaticMarkup(<Card cardId="swarm-hive-drone" size="token" strength={3} />);
-    expect(html).toContain('aria-label="Hive Drone, Strength 3, Ranged, Muster"');
+    const html = renderToStaticMarkup(
+      <Card cardId="swarm-burrow-gnawer" size="token" strength={3} />,
+    );
+    expect(html).toContain('aria-label="Burrow Gnawer, Strength 3, Close, Muster"');
   });
 
   it("shows a copies badge in the Deck builder", () => {
     expect(
-      renderToStaticMarkup(<Card cardId="swarm-hive-drone" size="tile" count={2} />),
+      renderToStaticMarkup(<Card cardId="swarm-burrow-gnawer" size="tile" count={2} />),
     ).toContain("×2");
   });
 });

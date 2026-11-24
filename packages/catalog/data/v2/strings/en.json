@@ -1,231 +1,235 @@
 {
-  "swarm-gnawing-mite": {
-    "name": "Gnawing Mite",
-    "text": "Muster: also Plays every other Mite card from your hand and deck."
+  "swarm-bone-warlord": {
+    "name": "The Bone Warlord",
+    "text": "Hero: immune to every card, special and Leader ability."
   },
-  "swarm-mite-matron": {
-    "name": "Mite Matron",
-    "text": "Muster: also Plays every other Mite card from your hand and deck."
+  "swarm-hollow-seer": {
+    "name": "The Hollow Seer",
+    "text": "Hero: immune to every card, special and Leader ability."
   },
-  "swarm-hive-drone": {
-    "name": "Hive Drone",
-    "text": "Muster: also Plays every other Drone card from your hand and deck."
+  "swarm-stone-colossus": {
+    "name": "The Stone Colossus",
+    "text": "Hero: immune to every card, special and Leader ability."
   },
-  "swarm-drone-warden": {
-    "name": "Drone Warden",
-    "text": "Muster: also Plays every other Drone card from your hand and deck."
+  "swarm-coiled-leviathan": {
+    "name": "The Coiled Leviathan",
+    "text": "Hero: immune to every card, special and Leader ability. Agile: play to Close or Ranged. Morale Boost: +1 to every other Unit on its Row."
   },
-  "swarm-tunnel-burrower": {
-    "name": "Tunnel Burrower",
-    "text": "Muster: also Plays every other Burrower card from your hand and deck."
+  "swarm-brood-crone": {
+    "name": "Brood Crone",
+    "text": "Muster: also Plays every other Brood Crone card from your hand and deck."
   },
-  "swarm-carapace-guard": {
-    "name": "Carapace Guard",
-    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  "swarm-elder-night-feeder": {
+    "name": "Elder Night Feeder",
+    "text": "Muster: also Plays every other Night Feeder card from your hand and deck."
   },
-  "swarm-thornback-crawler": {
-    "name": "Thornback Crawler",
-    "text": ""
+  "swarm-night-feeder": {
+    "name": "Night Feeder",
+    "text": "Muster: also Plays every other Night Feeder card from your hand and deck."
   },
-  "swarm-lurking-mantis": {
-    "name": "Lurking Mantis",
-    "text": ""
+  "swarm-webmother": {
+    "name": "Webmother",
+    "text": "Muster: also Plays every Web Crawler from your hand and deck."
   },
-  "swarm-amber-sentinel": {
-    "name": "Amber Sentinel",
-    "text": ""
+  "swarm-web-crawler": {
+    "name": "Web Crawler",
+    "text": "Muster: also Plays every other Web Crawler card from your hand and deck."
   },
-  "swarm-skitterling": {
-    "name": "Skitterling",
-    "text": "Agile: play to Close or Ranged."
+  "swarm-burrow-gnawer": {
+    "name": "Burrow Gnawer",
+    "text": "Muster: also Plays every other Burrow Gnawer card from your hand and deck."
   },
-  "swarm-wingbeat-hunter": {
-    "name": "Wingbeat Hunter",
-    "text": "Agile: play to Close or Ranged."
+  "swarm-carrion-grub": {
+    "name": "Carrion Grub",
+    "text": "Muster: also Plays every other Carrion Grub card from your hand and deck."
   },
-  "swarm-needle-stinger": {
-    "name": "Needle Stinger",
-    "text": ""
-  },
-  "swarm-chitter-herald": {
-    "name": "Chitter Herald",
-    "text": "Morale Boost: +1 to every other Unit on its Row."
-  },
-  "swarm-glasswing": {
-    "name": "Glasswing",
-    "text": ""
-  },
-  "swarm-siege-grub": {
-    "name": "Siege Grub",
-    "text": ""
-  },
-  "swarm-spore-lobber": {
-    "name": "Spore Lobber",
-    "text": ""
-  },
-  "swarm-drumming-beetle": {
-    "name": "Drumming Beetle",
-    "text": "Horn: doubles the other Units on its Row."
-  },
-  "swarm-pyre-beetle": {
-    "name": "Pyre Beetle",
+  "swarm-bloated-spitter": {
+    "name": "Bloated Spitter",
     "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
   },
-  "swarm-brood-tender": {
-    "name": "Brood Tender",
-    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
-  },
-  "swarm-infiltrator-larva": {
-    "name": "Infiltrator Larva",
-    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
-  },
-  "swarm-silk-spinner": {
-    "name": "Silk Spinner",
+  "swarm-hive-brute": {
+    "name": "Hive Brute",
     "text": ""
   },
-  "swarm-siegebreaker": {
-    "name": "Hive Siegebreaker",
+  "swarm-dusk-shrieker": {
+    "name": "Dusk Shrieker",
     "text": ""
   },
-  "swarm-hollow-colossus": {
-    "name": "The Hollow Colossus",
-    "text": "Hero: immune to every card, special and Leader ability."
+  "swarm-cave-lurker": {
+    "name": "Cave Lurker",
+    "text": ""
   },
-  "swarm-pale-oracle": {
-    "name": "The Pale Oracle",
-    "text": "Hero: immune to every card, special and Leader ability."
+  "swarm-mist-stalker": {
+    "name": "Mist Stalker",
+    "text": ""
   },
-  "swarm-deep-maw": {
-    "name": "Maw of the Deep Hive",
-    "text": "Hero: immune to every card, special and Leader ability."
+  "swarm-gale-shrike": {
+    "name": "Gale Shrike",
+    "text": "Agile: play to Close or Ranged."
   },
-  "swarm-leader-queen": {
-    "name": "Queen of the Deep Hive",
-    "text": "Double the Units on one of your Rows whose Horn slot is empty."
+  "swarm-needle-wing": {
+    "name": "Needle Wing",
+    "text": ""
   },
-  "swarm-leader-swarmlord": {
-    "name": "The Burning Swarmlord",
-    "text": "If your opponent's Close Row has 10 or more, destroy its strongest non-Hero Units."
+  "swarm-acid-borer": {
+    "name": "Acid Borer",
+    "text": ""
   },
-  "swarm-leader-spore-mother": {
-    "name": "Mother of Spores",
+  "swarm-horned-ravager": {
+    "name": "Horned Ravager",
+    "text": ""
+  },
+  "swarm-rubble-golem": {
+    "name": "Rubble Golem",
+    "text": ""
+  },
+  "swarm-rime-giant": {
+    "name": "Rime Giant",
+    "text": ""
+  },
+  "swarm-leader-storm-caller": {
+    "name": "The Storm Caller",
     "text": "Play a Weather card of your choice from your deck."
   },
-  "court-palace-informant": {
-    "name": "Palace Informant",
-    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  "swarm-leader-war-queen": {
+    "name": "The War Queen",
+    "text": "Double the Units on your Close Row, if its Horn slot is empty."
   },
-  "court-masked-envoy": {
-    "name": "Masked Envoy",
-    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  "swarm-leader-hive-mind": {
+    "name": "The Hive Mind",
+    "text": "Discard 2 cards of your choice from your hand, then draw a card of your choice from your deck."
   },
-  "court-double-agent": {
-    "name": "Double Agent",
-    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
-  },
-  "court-royal-physician": {
-    "name": "Royal Physician",
-    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
-  },
-  "court-field-surgeon": {
-    "name": "Field Surgeon",
-    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
-  },
-  "court-halberd-guard": {
-    "name": "Halberd Guard",
-    "text": ""
-  },
-  "court-twin-duelist": {
-    "name": "Twin Duelist",
-    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
-  },
-  "court-banner-knight": {
-    "name": "Banner Knight",
-    "text": ""
-  },
-  "court-palace-champion": {
-    "name": "Palace Champion",
-    "text": ""
-  },
-  "court-court-herald": {
-    "name": "Court Herald",
-    "text": "Morale Boost: +1 to every other Unit on its Row."
-  },
-  "court-crossbow-marksman": {
-    "name": "Crossbow Marksman",
-    "text": ""
-  },
-  "court-tower-archer": {
-    "name": "Tower Archer",
-    "text": ""
-  },
-  "court-falconer": {
-    "name": "Falconer",
-    "text": ""
-  },
-  "court-duelling-squire": {
-    "name": "Duelling Squire",
-    "text": "Agile: play to Close or Ranged."
-  },
-  "court-ballista-crew": {
-    "name": "Ballista Crew",
-    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
-  },
-  "court-sapper": {
-    "name": "Royal Sapper",
-    "text": ""
-  },
-  "court-siege-trumpeter": {
-    "name": "Siege Trumpeter",
-    "text": "Horn: doubles the other Units on its Row."
-  },
-  "court-inquisitor": {
-    "name": "Grand Inquisitor",
-    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
-  },
-  "court-palace-sentry": {
-    "name": "Palace Sentry",
-    "text": ""
-  },
-  "court-royal-lancer": {
-    "name": "Royal Lancer",
-    "text": ""
-  },
-  "court-arbalest-master": {
-    "name": "Arbalest Master",
-    "text": ""
-  },
-  "court-trebuchet-team": {
-    "name": "Trebuchet Team",
-    "text": ""
-  },
-  "court-iron-chancellor": {
-    "name": "The Iron Chancellor",
-    "text": "Hero: immune to every card, special and Leader ability."
-  },
-  "court-spymistress": {
-    "name": "Vesper, the Spymistress",
-    "text": "Hero: immune to every card, special and Leader ability."
-  },
-  "court-archmedic": {
-    "name": "Archmedic Ilsa",
-    "text": "Hero: immune to every card, special and Leader ability. Medic: Play a non-Hero Unit from your Discard Pile."
-  },
-  "court-leader-spymaster": {
-    "name": "The Spymaster",
-    "text": "Look at 3 random cards in your opponent's hand."
-  },
-  "court-leader-chancellor": {
-    "name": "The Old Chancellor",
+  "swarm-leader-carrion-mother": {
+    "name": "The Carrion Mother",
     "text": "Return a card of your choice from your Discard Pile to your hand."
   },
-  "court-leader-regent": {
-    "name": "The Regent",
-    "text": "Draw a card of your choice from your deck, then shuffle it."
+  "swarm-leader-mimic-queen": {
+    "name": "The Mimic Queen",
+    "text": "Passive: every non-Hero Spy on the battlefield, either player's, has double Strength."
   },
-  "court-leader-castellan": {
-    "name": "The Castellan",
-    "text": "Passive: Weather never lowers Units on your Siege Row."
+  "court-lord-of-engines": {
+    "name": "The Lord of Engines",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "court-field-marshal": {
+    "name": "The Field Marshal",
+    "text": "Hero: immune to every card, special and Leader ability. Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-black-blade": {
+    "name": "The Black Blade",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "court-imperial-legate": {
+    "name": "The Imperial Legate",
+    "text": "Hero: immune to every card, special and Leader ability."
+  },
+  "court-young-courtier": {
+    "name": "Young Courtier",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "court-outrider": {
+    "name": "Outrider",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "court-turncoat-general": {
+    "name": "Turncoat General",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-smiling-ambassador": {
+    "name": "Smiling Ambassador",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-shadow-chamberlain": {
+    "name": "Shadow Chamberlain",
+    "text": "Spy: goes to your opponent's side and counts for them. Draw 2 cards."
+  },
+  "court-great-fire-ballista": {
+    "name": "Great Fire Ballista",
+    "text": ""
+  },
+  "court-black-legion-archer": {
+    "name": "Black Legion Archer",
+    "text": ""
+  },
+  "court-siege-mender": {
+    "name": "Siege Mender",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-imperial-pikeman": {
+    "name": "Imperial Pikeman",
+    "text": "Tight Bond: multiplied by the number of copies of this card on its Row."
+  },
+  "court-reserve-archer": {
+    "name": "Reserve Archer",
+    "text": "Medic: Play a non-Hero Unit from your Discard Pile."
+  },
+  "court-ebon-knight": {
+    "name": "Ebon Knight",
+    "text": ""
+  },
+  "court-court-sorceress": {
+    "name": "Court Sorceress",
+    "text": ""
+  },
+  "court-siege-engineer": {
+    "name": "Siege Engineer",
+    "text": ""
+  },
+  "court-marksman-captain": {
+    "name": "Marksman Captain",
+    "text": ""
+  },
+  "court-fire-ballista": {
+    "name": "Fire Ballista",
+    "text": ""
+  },
+  "court-palace-swordsman": {
+    "name": "Palace Swordsman",
+    "text": ""
+  },
+  "court-battle-mage": {
+    "name": "Battle Mage",
+    "text": ""
+  },
+  "court-old-sergeant": {
+    "name": "Old Sergeant",
+    "text": ""
+  },
+  "court-crossbow-veteran": {
+    "name": "Crossbow Veteran",
+    "text": ""
+  },
+  "court-creaking-mangonel": {
+    "name": "Creaking Mangonel",
+    "text": ""
+  },
+  "court-foreign-sellsword": {
+    "name": "Foreign Sellsword",
+    "text": ""
+  },
+  "court-bolt-loader": {
+    "name": "Bolt Loader",
+    "text": ""
+  },
+  "court-leader-usurper": {
+    "name": "The Usurper",
+    "text": "Take a non-Hero card of your choice from your opponent's Discard Pile into your hand."
+  },
+  "court-leader-gambler-emperor": {
+    "name": "The Gambler Emperor",
+    "text": "Passive: every Medic, either player's, Plays a random non-Hero Unit from its player's Discard Pile."
+  },
+  "court-leader-whisper-master": {
+    "name": "The Whisper Master",
+    "text": "Look at 3 random cards in your opponent's hand."
+  },
+  "court-leader-mist-admiral": {
+    "name": "The Mist Admiral",
+    "text": "Play a Sea Mist from your deck."
+  },
+  "court-leader-iron-empress": {
+    "name": "The Iron Empress",
+    "text": "Passive: your opponent's Leader has no ability."
   },
   "kingdom-leader-high-king": {
     "name": "The High King",

@@ -230,7 +230,7 @@ describe("Room", () => {
   it("refuses an invalid Deck with a readable message", async () => {
     const cookie = await newPlayer();
     const code = await createRoom(cookie);
-    const deck = await savedDeck(cookie, { faction: "swarm", cards: ["swarm-gnawing-mite"] });
+    const deck = await savedDeck(cookie, { faction: "swarm", cards: ["swarm-carrion-grub"] });
     const socket = await TestSocket.open(code, cookie);
     await socket.nextLobby();
     socket.takeSeat(deck);

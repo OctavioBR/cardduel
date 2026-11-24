@@ -24,29 +24,29 @@ describe("pool", () => {
 
   it("filters by Row (Agile counts for Close and Ranged), type and ability", () => {
     const ranged = poolCards(cards, "swarm", { ...all, row: "ranged" });
-    expect(ranged.map((c) => c.id)).toContain("swarm-skitterling");
+    expect(ranged.map((c) => c.id)).toContain("swarm-gale-shrike");
     expect(
       poolCards(cards, "swarm", { ...all, type: "hero" }).every((c) => c.kind === "unit" && c.hero),
     ).toBe(true);
     expect(poolCards(cards, "swarm", { ...all, ability: "muster" }).map((c) => c.id)).toContain(
-      "swarm-hive-drone",
+      "swarm-burrow-gnawer",
     );
   });
 
   it("counts copies and the Deck's live counters, and groups the Deck by Row", () => {
     const deck = [
-      "swarm-hive-drone",
-      "swarm-hive-drone",
-      "swarm-hollow-colossus",
+      "swarm-needle-wing",
+      "swarm-needle-wing",
+      "swarm-bone-warlord",
       "neutral-war-drum",
     ];
-    expect(countCopies(deck).get("swarm-hive-drone")).toBe(2);
-    expect(deckCounters(deck, cardDef)).toEqual({ units: 3, specials: 1, strength: 16, heroes: 1 });
+    expect(countCopies(deck).get("swarm-needle-wing")).toBe(2);
+    expect(deckCounters(deck, cardDef)).toEqual({ units: 3, specials: 1, strength: 14, heroes: 1 });
     expect(
       deckGroups(deck, cardDef).map((g) => [g.label, g.entries.map((e) => [e.def.id, e.count])]),
     ).toEqual([
-      ["Close", [["swarm-hollow-colossus", 1]]],
-      ["Ranged", [["swarm-hive-drone", 2]]],
+      ["Close", [["swarm-bone-warlord", 1]]],
+      ["Ranged", [["swarm-needle-wing", 2]]],
       ["Special Cards", [["neutral-war-drum", 1]]],
     ]);
   });

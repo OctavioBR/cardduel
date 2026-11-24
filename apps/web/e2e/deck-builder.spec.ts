@@ -23,7 +23,7 @@ test("build a Valid Deck from scratch; Competitive warnings appear; saved change
 }) => {
   await newDeck(page);
   await expect(page.getByTestId("deck-error")).toContainText(["Choose a Leader."]);
-  await page.getByRole("radio", { name: "Queen of the Deep Hive" }).check();
+  await page.getByRole("radio", { name: "The Hive Mind" }).check();
 
   // The pool lists the strongest Units first: taking them breaks the 130 Strength cap.
   for (let i = 0; i < 40 && (await units(page)) < 22; i++) {
@@ -49,7 +49,7 @@ test("build a Valid Deck from scratch; Competitive warnings appear; saved change
   await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
   await page.reload();
   await expect(page.getByTestId("count-units")).toHaveText("22/22");
-  await expect(page.getByRole("radio", { name: "Queen of the Deep Hive" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "The Hive Mind" })).toBeChecked();
   await expect(page.getByTestId("deck-warning")).toBeVisible();
 });
 
@@ -107,12 +107,12 @@ test("Copy a Starter Deck gives an additional Competitive Deck; filters narrow t
   expect(ids.length).toBeGreaterThan(0);
   for (const id of ids) expect(id.startsWith("neutral-")).toBe(true);
   await page.getByLabel("Type").selectOption("all");
-  await page.getByLabel("Ability").selectOption("spy");
+  await page.getByRole("combobox", { name: /^Ability/ }).selectOption("spy");
   const spies = await tiles.evaluateAll((els) => els.map((e) => e.getAttribute("data-card") ?? ""));
   expect(spies.sort()).toEqual([
-    "court-double-agent",
-    "court-masked-envoy",
-    "court-palace-informant",
+    "court-shadow-chamberlain",
+    "court-smiling-ambassador",
+    "court-turncoat-general",
     "neutral-silent-elder",
   ]);
 });

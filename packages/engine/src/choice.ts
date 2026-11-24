@@ -1,6 +1,12 @@
 import type { Action, ChooseAction } from "./actions";
 import type { MatchEvent } from "./events";
-import { bondCopies, distinctIds, takeFromDeck, weatherInDeck } from "./leader";
+import {
+  bondCopies,
+  distinctIds,
+  takeableFromOpponent,
+  takeFromDeck,
+  weatherInDeck,
+} from "./leader";
 import { playableRows } from "./legal";
 import { medicTargets, playUnit, ref } from "./play";
 import { shuffle } from "./rng";
@@ -31,6 +37,12 @@ export function choiceOptions(state: MatchState, pending: PendingChoice): Action
     case "leaderBond":
       return bondCopies(state, pending.seat).map(
         ({ cardId, row }): ChooseAction => ({ type: "choose", cardId, row }),
+      );
+    case "leaderDiscard":
+      return state.sides[pending.seat].hand.map((card): ChooseAction => ({ type: "choose", card }));
+    case "leaderTake":
+      return takeableFromOpponent(state, pending.seat).map(
+        (card): ChooseAction => ({ type: "choose", card }),
       );
     case "firstTurn":
       return [pending.seat, opponent(pending.seat)].map(
@@ -89,6 +101,24 @@ export function resolveChoice(
         throw new Error("Needs a card id and Row");
       const uid = takeFromDeck(state, pending.seat, action.cardId);
       playUnit(state, pending.seat, uid, action.row, events, "leader");
+      return;
+    }
+    case "leaderDiscard": {
+      if (action.card === undefined) throw new Error("Needs a card");
+      const side = state.sides[pending.seat];
+      side.hand.splice(side.hand.indexOf(action.card), 1);
+      side.discard.push(action.card);
+      events.push({ type: "cardsDiscarded", cards: [ref(state, action.card)] });
+      return;
+    }
+    case "leaderTake": {
+      if (action.card === undefined) throw new Error("Needs a card");
+      const from = state.sides[opponent(pending.seat)].discard;
+      from.splice(from.indexOf(action.card), 1);
+      state.sides[pending.seat].hand.push(action.card);
+      const card = state.cards[action.card];
+      if (card) card.owner = pending.seat;
+      events.push({ type: "returnedToHand", seat: pending.seat, card: ref(state, action.card) });
       return;
     }
     case "firstTurn":

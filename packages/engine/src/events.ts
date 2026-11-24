@@ -49,7 +49,7 @@ export type MatchEvent =
     }
   /** Each player's Discard Pile was shuffled back into their deck (a Leader ability). */
   | { type: "discardsShuffled"; counts: [number, number] }
-  /** A card left the battlefield for its player's hand (Decoy). */
+  /** A card went to `seat`'s hand from the battlefield (Decoy) or a Discard Pile (a Leader). */
   | { type: "returnedToHand"; seat: Seat; card: CardRef }
   /** Current Strength of Units on the battlefield changed. */
   | { type: "strengthChanged"; changes: StrengthChange[] }

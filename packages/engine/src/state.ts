@@ -12,7 +12,10 @@ export type Uid = number;
 
 export interface CardInstance {
   cardId: CardId;
-  /** The Seat whose Deck the card came from. A Spy's Controller can differ. */
+  /**
+   * The Seat whose Deck the card came from, or that took it from the opponent's Discard
+   * Pile. A Spy's Controller can differ.
+   */
   owner: Seat;
 }
 
@@ -59,6 +62,10 @@ export type PendingKind =
   | "leaderReturn"
   | "leaderDraw"
   | "leaderBond"
+  /** One of the cards a Discard-to-Draw Leader discards from the hand. */
+  | "leaderDiscard"
+  /** The card a Leader takes from the opponent's Discard Pile. */
+  | "leaderTake"
   /** Elves chooses who takes the first Turn of the Match. */
   | "firstTurn";
 

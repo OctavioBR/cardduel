@@ -49,6 +49,10 @@ export type LeaderAbility =
   | { type: "scorchRow"; row: RowId }
   | { type: "returnFromDiscard" }
   | { type: "drawChosenFromDeck" }
+  /** Discards 2 cards of the player's choice from the hand, then draws a card of their choice from the deck. */
+  | { type: "discardToDrawChosen" }
+  /** Takes a non-Hero card of the player's choice from the opponent's Discard Pile into the hand. */
+  | { type: "takeFromOpponentDiscard" }
   | { type: "lookAtOpponentHand" }
   /** Plays, from the deck, a copy of a Tight Bond Unit the player has on the battlefield. */
   | { type: "playBondCopyFromDeck" }
@@ -63,9 +67,16 @@ export type LeaderAbility =
 /**
  * Passive Leader kinds. Steady Ground (#29): Weather never lowers Units on the Leader's
  * Controller's Siege Row. Storm-Hardened: Weather lowers the Controller's Units to half their
- * printed Strength (rounded up), not to 1.
+ * printed Strength (rounded up), not to 1. The rest act on both players: Doubled Spies doubles
+ * every non-Hero Spy on the battlefield; Random Medic makes every Medic Play a random non-Hero
+ * Unit; Cancel Opponent Leader takes the opponent's Leader ability away.
  */
-export type PassiveLeaderKind = "steadyGround" | "stormHardened";
+export type PassiveLeaderKind =
+  | "steadyGround"
+  | "stormHardened"
+  | "doubledSpies"
+  | "randomMedic"
+  | "cancelOpponentLeader";
 
 interface CardBase {
   id: CardId;

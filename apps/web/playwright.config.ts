@@ -5,9 +5,9 @@ import { writeWorkerConfig } from "./e2e/write-worker-config";
 const VITE_PORT = Number(process.env.E2E_VITE_PORT ?? 5173);
 /**
  * Fixed Match seed for the local Worker only (never deployed): with the two Starter Decks it deals
- * Seat 0 a Brood Tender (Medic) and Wildfire (Scorch) in the opening hand, and Seat 0 plays first.
+ * Seat 1 (Court) a Siege Mender (Medic) and Wildfire (Scorch) in the opening hand.
  */
-const E2E_SEED = 29;
+const E2E_SEED = 21;
 const WORKER_PORT = Number(process.env.E2E_WORKER_PORT ?? 8787);
 writeWorkerConfig(WORKER_PORT, E2E_SEED);
 

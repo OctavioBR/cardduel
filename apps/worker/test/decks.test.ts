@@ -103,7 +103,7 @@ describe("Deck API", () => {
     const me = await newPlayer();
     const deck = await deckOf(await api(me, "/copy-starter", "POST", { faction: "court" }));
     expect(deck.faction).toBe("court");
-    expect(deck.leader).toBe("court-leader-spymaster");
+    expect(deck.leader).toBe("court-leader-whisper-master");
     expect(deck.cards.length).toBeGreaterThanOrEqual(22);
     expect(deck.problems).toEqual({ valid: [], competitive: [] });
   });
@@ -125,12 +125,12 @@ describe("Deck API", () => {
     const extra = ["neutral-black-ice", "neutral-mudslide", "neutral-sea-mist"];
     const res = await api(me, `/${created.id}`, "PUT", {
       name: "Heavier",
-      leader: "swarm-leader-swarmlord",
+      leader: "swarm-leader-hive-mind",
       cards: [...created.cards, ...extra],
     });
     expect(res.status).toBe(200);
     const updated = await deckOf(res);
-    expect(updated).toMatchObject({ name: "Heavier", leader: "swarm-leader-swarmlord" });
+    expect(updated).toMatchObject({ name: "Heavier", leader: "swarm-leader-hive-mind" });
     expect(updated.problems.valid).toEqual([]);
     expect(updated.problems.competitive.map((p) => p.code)).toEqual(["competitive_specials"]);
     expect(await deckOf(await api(me, `/${created.id}`))).toMatchObject({ name: "Heavier" });

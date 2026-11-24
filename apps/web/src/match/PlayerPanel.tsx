@@ -5,6 +5,7 @@ import { cardName } from "../cards/strings";
 import copy from "../strings/en.json";
 
 export function leaderState(leader: LeaderView): { text: string; ready: boolean } {
+  if (leader.cancelled) return { text: copy.cancelled, ready: false };
   if (leader.passive) return { text: copy.passive, ready: false };
   if (leader.used) return { text: copy.used, ready: false };
   return { text: copy.ready, ready: true };

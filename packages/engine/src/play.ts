@@ -1,9 +1,9 @@
 import type { PlayAction } from "./actions";
 import { ROWS, type RowId } from "./cards";
 import type { CardRef, MatchEvent, PlayedVia } from "./events";
-import { shuffle } from "./rng";
+import { nextInt, shuffle } from "./rng";
 import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
-import { cardIdOf, computeStrengths, defOf, rowScore } from "./strength";
+import { cardIdOf, computeStrengths, defOf, passiveInPlay, rowScore } from "./strength";
 
 export function ref(state: MatchState, uid: Uid): CardRef {
   return { uid, cardId: cardIdOf(state, uid) };
@@ -142,9 +142,7 @@ export function playUnit(
   if (def.abilities.includes("scorch")) scorchRow(state, opponent(seat), row, events);
   if (def.abilities.includes("battlefieldScorch")) scorchBattlefield(state, events);
   if (def.abilities.includes("frenzy")) frenzy(state, seat, events);
-  if (def.abilities.includes("medic") && medicTargets(state, seat).length > 0) {
-    state.pending.push({ seat, kind: "medic" });
-  }
+  if (def.abilities.includes("medic")) medic(state, seat, events);
   const group = def.musterCalls ?? def.musterGroup;
   if (def.abilities.includes("muster") && group && via !== "muster") {
     muster(state, seat, uid, group, events);
@@ -233,6 +231,25 @@ function muster(
     if (def.kind === "unit") playUnit(state, seat, uid, def.row, events, "muster");
   }
   shuffle(state, side.deck);
+}
+
+/**
+ * Medic: queues the Seat's choice of a non-Hero Unit from its Discard Pile, or, while a
+ * Random Medic Leader is in the Match, Plays a random one to its printed Row at once.
+ */
+function medic(state: MatchState, seat: Seat, events: MatchEvent[]): void {
+  const targets = medicTargets(state, seat);
+  if (targets.length === 0) return;
+  if (!passiveInPlay(state, "randomMedic")) {
+    state.pending.push({ seat, kind: "medic" });
+    return;
+  }
+  const uid = targets[nextInt(state, targets.length)] as Uid;
+  const def = defOf(state, uid);
+  if (def.kind !== "unit") return;
+  const discard = state.sides[seat].discard;
+  discard.splice(discard.indexOf(uid), 1);
+  playUnit(state, seat, uid, def.row, events, "medic");
 }
 
 /** Non-Hero Units in the Seat's Discard Pile: what a Medic may Play. */

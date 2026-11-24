@@ -67,7 +67,7 @@ The ability of the Bloodcap Special Card and some Units: when Played, it turns e
 _Avoid_: transform (as the name of the ability)
 
 **Leader**:
-The single card chosen before a match that grants a passive or once-per-match active ability.
+The single card chosen before a match that grants a passive or once-per-match active ability. Some passives act on both players, and one cancels the opponent's Leader ability for the whole Match.
 
 **Unit Card**:
 A card with a strength value that is placed on a combat row.
@@ -85,7 +85,7 @@ A card that belongs to no Faction and may be included in a Deck of any Faction.
 A Unit Card its player plays onto the opponent's side, where it counts for the opponent and belongs to them from then on; playing it draws its player two cards.
 
 **Medic**:
-A Unit Card whose on-play ability Plays a non-Hero Unit Card of its player's choice from their Discard Pile.
+A Unit Card whose on-play ability Plays a non-Hero Unit Card of its player's choice from their Discard Pile, or a random one while either player's Leader has the Random Medic passive.
 
 **Muster**:
 An ability that, when its card is Played, also Plays every other card of the same Muster group from its player's hand and deck. Some Heroes call another group, such as their companion's, without being called back by it.

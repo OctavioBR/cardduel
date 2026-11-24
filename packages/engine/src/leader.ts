@@ -5,14 +5,17 @@ import { hornSlotEmpty } from "./legal";
 import { discardToOwner, draw, playSpecial, ref, scorchRow } from "./play";
 import { nextInt, shuffle } from "./rng";
 import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
-import { computeStrengths, defOf } from "./strength";
+import { computeStrengths, defOf, leaderAbilityOf } from "./strength";
 
 /** How many cards a "look at the opponent's hand" Leader reveals. */
 export const LOOK_COUNT = 3;
 
+/** How many cards a Discard-to-Draw Leader discards from the hand. */
+export const LEADER_DISCARD_COUNT = 2;
+
+/** The Seat's Leader ability, or null when it has none or the opponent's Leader cancels it. */
 export function leaderAbility(state: MatchState, seat: Seat): LeaderAbility | null {
-  const def = state.defs[state.sides[seat].leader];
-  return def?.kind === "leader" ? def.ability : null;
+  return leaderAbilityOf(state, seat);
 }
 
 /**
@@ -53,6 +56,12 @@ export function leaderActions(state: MatchState, seat: Seat): LeaderAction[] {
       return side.discard.length > 0 ? [{ type: "leader" }] : [];
     case "drawChosenFromDeck":
       return side.deck.length > 0 ? [{ type: "leader" }] : [];
+    case "discardToDrawChosen":
+      return side.hand.length >= LEADER_DISCARD_COUNT && side.deck.length > 0
+        ? [{ type: "leader" }]
+        : [];
+    case "takeFromOpponentDiscard":
+      return takeableFromOpponent(state, seat).length > 0 ? [{ type: "leader" }] : [];
     case "lookAtOpponentHand":
       return state.sides[opponent(seat)].hand.length > 0 ? [{ type: "leader" }] : [];
     case "clearWeather":
@@ -87,6 +96,15 @@ export function useLeader(
       return;
     case "drawChosenFromDeck":
       state.pending.push({ seat, kind: "leaderDraw" });
+      return;
+    case "discardToDrawChosen":
+      for (let i = 0; i < LEADER_DISCARD_COUNT; i++) {
+        state.pending.push({ seat, kind: "leaderDiscard" });
+      }
+      state.pending.push({ seat, kind: "leaderDraw" });
+      return;
+    case "takeFromOpponentDiscard":
+      state.pending.push({ seat, kind: "leaderTake" });
       return;
     case "playBondCopyFromDeck":
       state.pending.push({ seat, kind: "leaderBond" });
@@ -213,6 +231,14 @@ export function agileMoves(
     rows.ranged.units = saved.ranged;
   }
   return moves;
+}
+
+/** Non-Hero cards in the opponent's Discard Pile: what a Take-from-Discard Leader may take. */
+export function takeableFromOpponent(state: MatchState, seat: Seat): Uid[] {
+  return state.sides[opponent(seat)].discard.filter((uid) => {
+    const def = defOf(state, uid);
+    return !(def.kind === "unit" && def.hero);
+  });
 }
 
 /** Distinct Weather card ids in the Seat's deck. */
