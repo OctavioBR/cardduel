@@ -26,6 +26,10 @@ for (const competitive of [false, true]) {
       await expect(host.getByTestId("record-draws")).toHaveText("0");
       await expect(host.getByTestId("record-disconnectWins")).toHaveText("0");
       await expect(host.getByTestId("record-disconnectLosses")).toHaveText("0");
+      // The viewer always counts among the Recently Active Players (#119).
+      await expect(host.getByTestId("recently-active")).toHaveText(
+        /^\d+ recently active players?$/,
+      );
       await expect(host.getByRole("button", { name: "Find a Match" })).toBeEnabled();
       await expect(host.getByRole("button", { name: "Create Room" })).toBeEnabled();
       await starter(host, "swarm");

@@ -4,6 +4,7 @@ import {
   MIN_TURN_TIMER_SECONDS,
 } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
+import { countRecentlyActive } from "./activity";
 import { me, updateProfile } from "./auth/routes";
 import { readSession } from "./auth/session";
 import { handleDecks } from "./decks";
@@ -44,13 +45,16 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (pathname === "/api/record" && request.method === "GET") {
     const session = await readSession(env.DB, request, env);
     if (!session) return json({ error: "signed_out", message: copy.signInFirst }, { status: 401 });
-    const record = await env.DB.prepare(
-      "SELECT wins, losses, draws, disconnect_wins AS disconnectWins, disconnect_losses AS disconnectLosses FROM records WHERE account_id = ?",
-    )
-      .bind(session.account.id)
-      .first();
-    const response = json({ record });
-    return response;
+    const [record, recentlyActive] = await Promise.all([
+      env.DB.prepare(
+        "SELECT wins, losses, draws, disconnect_wins AS disconnectWins, disconnect_losses AS disconnectLosses FROM records WHERE account_id = ?",
+      )
+        .bind(session.account.id)
+        .first(),
+      // Home shows the Recently Active Players with the Record, so it needs no request of its own.
+      countRecentlyActive(env.DB, session.account.id),
+    ]);
+    return json({ record, recentlyActive });
   }
   if (pathname === "/api/decks" || pathname.startsWith("/api/decks/")) {
     const session = await readSession(env.DB, request, env);

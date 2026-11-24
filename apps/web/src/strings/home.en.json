@@ -26,6 +26,8 @@
   "finishADeckHint": ". Only a Valid Deck can take a Seat.",
   "notCompetitive": "Not a Competitive Deck: {reason}",
   "findAMatch": "Find a Match",
+  "oneRecentlyActivePlayer": "1 recently active player",
+  "recentlyActivePlayers": "{count} recently active players",
   "competitiveQueue": "Competitive Queue",
   "competitiveRoom": "Competitive Room",
   "searching": "Searching…",

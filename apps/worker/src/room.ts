@@ -29,6 +29,7 @@ import {
   waitingOn,
   withoutPreview,
 } from "@card-duel/engine";
+import { activityIsStale, recordActivity } from "./activity";
 import { ACCOUNT_ID_HEADER, DISPLAY_NAME_HEADER } from "./headers";
 import { MATCHMAKER_NAME } from "./matchmaker";
 import { writeMatchResult } from "./results";
@@ -86,6 +87,8 @@ interface StoredMatch {
 export class Room extends DurableObject<Env> {
   private loaded = false;
   private lastActivityAt = 0;
+  /** When each account's activity was last written; forgotten on hibernation, which is safe. */
+  private activityRecordedAt = new Map<string, number>();
   private disconnectedAt: [number | null, number | null] = [null, null];
   private rematch: { accepted: [boolean, boolean]; declined: boolean } = {
     accepted: [false, false],
@@ -188,6 +191,7 @@ export class Room extends DurableObject<Env> {
     if (!this.ctx.getWebSockets(seatTag(seat)).includes(ws) || ws.readyState !== WebSocket.OPEN)
       return;
     await this.touch();
+    this.recordPlayersActive();
     const message = parseClientMessage(raw);
     if (!message) {
       send(ws, { type: "error", code: "bad_message", message: copy.unreadableMessage });
@@ -317,6 +321,21 @@ export class Room extends DurableObject<Env> {
 
   override async webSocketError(ws: WebSocket): Promise<void> {
     await this.webSocketClose(ws, 1011);
+  }
+
+  /**
+   * Both connected players count as Recently Active Players whenever either sends a message,
+   * so the one waiting on the other's Turn stays counted (#119). At most once a minute each.
+   */
+  private recordPlayersActive(): void {
+    const now = Date.now();
+    for (const seat of SEATS) {
+      const holder = this.seats[seat];
+      if (!holder || !this.present(seat)) continue;
+      if (!activityIsStale(this.activityRecordedAt.get(holder.accountId) ?? null, now)) continue;
+      this.activityRecordedAt.set(holder.accountId, now);
+      this.ctx.waitUntil(recordActivity(this.env.DB, holder.accountId, now));
+    }
   }
 
   private present(seat: Seat): boolean {

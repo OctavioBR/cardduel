@@ -1,4 +1,6 @@
+import { waitUntil } from "cloudflare:workers";
 import { createClerkClient } from "@clerk/backend";
+import { activityIsStale, recordActivity } from "../activity";
 import { starterDeck } from "../starter-decks";
 
 // Intersect with generated bindings so local .dev.vars inference may also declare these keys.
@@ -9,7 +11,10 @@ export interface Account {
   displayName: string | null;
 }
 
-/** Identity comes only from a verified Clerk session. D1 stores the game profile. */
+/**
+ * Identity comes only from a verified Clerk session. D1 stores the game profile. Every
+ * signed-in request also counts as activity for Recently Active Players (#119).
+ */
 export async function readSession(
   db: D1Database,
   request: Request,
@@ -57,9 +62,11 @@ export async function readSession(
   if (!userId) return null;
   const select = () =>
     db
-      .prepare("SELECT id, display_name AS displayName FROM accounts WHERE clerk_user_id = ?")
+      .prepare(
+        "SELECT id, display_name AS displayName, last_seen AS lastSeen FROM accounts WHERE clerk_user_id = ?",
+      )
       .bind(userId)
-      .first<Account>();
+      .first<Account & { lastSeen: number | null }>();
   let account = await select();
   if (!account) {
     const accountId = crypto.randomUUID();
@@ -95,5 +102,9 @@ export async function readSession(
     ]);
     account = await select();
   }
-  return account ? { account } : null;
+  if (!account) return null;
+  const { lastSeen, ...profile } = account;
+  // Written after the response, and only once a minute per account.
+  if (activityIsStale(lastSeen, Date.now())) waitUntil(recordActivity(db, profile.id));
+  return { account: profile };
 }
