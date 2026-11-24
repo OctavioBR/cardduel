@@ -16,5 +16,6 @@ it("Record endpoint requires authentication and returns only the current player'
   const result = await SELF.fetch(`${BASE}/api/record`, { headers: { Cookie: cookie } });
   expect(await result.json()).toEqual({
     record: { wins: 4, losses: 3, draws: 2, disconnectWins: 1, disconnectLosses: 1 },
+    recentlyActive: expect.any(Number),
   });
 });

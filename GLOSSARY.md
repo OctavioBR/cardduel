@@ -8,6 +8,10 @@ An online two-player card game played over rounds on a three-row battlefield. Pl
 A player's editable public name, shown in Rooms and account controls. Display names do not need to be unique. An immutable account ID owns Decks and Records; email and password belong to Clerk authentication.
 _Avoid_: username (when referring to the public name)
 
+**Recently Active Player**:
+A signed-in player who has done anything in the game within the last few minutes, whether on Home, in the Decks, in a Queue or in a Room. Home shows signed-in players how many there are, the viewer included.
+_Avoid_: online player, active user, concurrent user, presence
+
 ## Cards and decks
 
 **Card Catalog**:

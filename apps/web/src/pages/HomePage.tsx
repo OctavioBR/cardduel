@@ -34,8 +34,9 @@ export interface HomeEntry {
 }
 
 /**
- * Home, top to bottom: title, Deck picker, Find a Match, one compact Room row (Create, then
- * join by code) and the Record (#108). The selected Deck is the one that takes the Seat.
+ * Home, top to bottom: title, Deck picker, the Recently Active Players count (#119), Find a
+ * Match, one compact Room row (Create, then join by code) and the Record (#108). The selected
+ * Deck is the one that takes the Seat.
  */
 export function HomePage() {
   const navigate = useNavigate();
@@ -43,16 +44,21 @@ export function HomePage() {
   const { account } = useAuth();
   const [record, setRecord] = useState<Record | null>(null);
   const [recordError, setRecordError] = useState(false);
+  // Recently Active Players come with the Record (#119); on failure the count just stays hidden.
+  const [recentlyActive, setRecentlyActive] = useState<number | null>(null);
   useEffect(() => {
     let alive = true;
     setRecord(null);
     setRecordError(false);
+    setRecentlyActive(null);
     if (account)
       fetch("/api/record")
         .then(async (res) => {
           if (!res.ok) throw new Error();
-          const body = (await res.json()) as { record: Record };
-          if (alive) setRecord(body.record);
+          const body = (await res.json()) as { record: Record; recentlyActive: number };
+          if (!alive) return;
+          setRecord(body.record);
+          setRecentlyActive(body.recentlyActive);
         })
         .catch(() => {
           if (alive) setRecordError(true);
@@ -216,6 +222,13 @@ export function HomePage() {
       </section>
 
       <section className="home-find" aria-label={en.findAMatch}>
+        {recentlyActive !== null ? (
+          <p className="hint" data-testid="recently-active">
+            {recentlyActive === 1
+              ? en.oneRecentlyActivePlayer
+              : formatCopy(en.recentlyActivePlayers, { count: recentlyActive })}
+          </p>
+        ) : null}
         {searching ? (
           <div className="home-row">
             <Searching state={search.state} />
