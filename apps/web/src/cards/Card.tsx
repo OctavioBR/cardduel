@@ -4,7 +4,7 @@ import copy from "../strings/en.json";
 import { CardArt } from "./Art";
 import { useCardDetailTrigger } from "./CardDetail";
 import { AbilityIcon, abilityLabel, ROW_LABEL, RowIcon } from "./icons";
-import { cardDef, cardName, cardText } from "./strings";
+import { cardDef, cardName } from "./strings";
 
 export type CardSize = "token" | "hand" | "tile" | "detail";
 
@@ -36,7 +36,8 @@ function strengthClass(def: CardDefinition, strength: number | undefined): strin
 
 /**
  * Renders any card from catalog data and strings (ADR-0004). The board token shows only
- * Strength and icons; the other sizes add name, short ability text and art.
+ * Strength and icons; the other sizes add name and art.
+ * Ability text shows only in Card Detail, under the card.
  */
 export function Card({
   cardId,
@@ -123,9 +124,6 @@ export function Card({
         </div>
       )}
       {size !== "token" ? <div className="cd-name">{name}</div> : null}
-      {size === "hand" || size === "tile" || size === "detail" ? (
-        <div className="cd-text">{cardText(cardId)}</div>
-      ) : null}
       {count !== undefined ? (
         <span className="cd-count">
           {copy.label}

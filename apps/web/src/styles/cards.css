@@ -114,12 +114,6 @@
   text-align: center;
   line-height: 1.1;
 }
-.cd-text {
-  color: var(--cd-muted);
-  text-align: center;
-  line-height: 1.2;
-  overflow: hidden;
-}
 .cd-count {
   position: absolute;
   top: 4px;
@@ -162,10 +156,6 @@
 .cd-hand .cd-name {
   font-size: 10.5px;
 }
-.cd-hand .cd-text {
-  font-size: 8.5px;
-  max-height: 20px;
-}
 
 /* Deck builder tile. */
 .cd-tile {
@@ -177,10 +167,6 @@
 }
 .cd-tile .cd-name {
   font-size: 12px;
-}
-.cd-tile .cd-text {
-  font-size: 9.5px;
-  max-height: 34px;
 }
 
 /* Card Detail. */
@@ -200,11 +186,6 @@
 }
 .cd-detail .cd-name {
   font-size: 22px;
-}
-.cd-detail .cd-text {
-  font-size: 15px;
-  color: var(--cd-text);
-  max-height: none;
 }
 .cd-detail .cd-top {
   gap: 10px;
