@@ -45,7 +45,7 @@
   },
   "swarm-bloated-spitter": {
     "name": "Bloated Spitter",
-    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+    "text": "Scorch: if your opponent's side has 10 or more, destroy their strongest non-Hero Units."
   },
   "swarm-hive-brute": {
     "name": "Hive Brute",
@@ -469,7 +469,7 @@
   },
   "elves-flame-sapper": {
     "name": "Flame Sapper",
-    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+    "text": "Scorch: if your opponent's side has 10 or more, destroy their strongest non-Hero Units."
   },
   "elves-dwarven-skirmisher": {
     "name": "Dwarven Skirmisher",
@@ -601,7 +601,7 @@
   },
   "neutral-gilded-wyrm": {
     "name": "Gilded Wyrm",
-    "text": "Scorch: if your opponent's opposite Row has 10 or more, destroy its strongest non-Hero Units."
+    "text": "Scorch: if your opponent's side has 10 or more, destroy their strongest non-Hero Units."
   },
   "neutral-deathless-captain": {
     "name": "Deathless Captain",

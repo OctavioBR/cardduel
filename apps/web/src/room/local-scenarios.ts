@@ -1,7 +1,6 @@
 import { getCatalog, starterDeckOf } from "@card-duel/catalog";
 import {
   applyAction,
-  type CardDefinition,
   type LeaderAbility,
   type MatchSetup,
   type MatchState,
@@ -12,9 +11,10 @@ import {
 } from "@card-duel/engine";
 
 /**
- * Development-only Local Room scenarios: fixed boards for building and testing the Match
- * UI. They rearrange a fresh Match directly; never used outside /dev routes. Seat 0 (the
- * Swarm Deck) always has the Turn.
+ * Development-only Local Room scenarios: fixed boards on the current (v2) Card Catalog for
+ * building and testing the Match UI. They rearrange a fresh Match directly; never used
+ * outside /dev routes. Seat 0 always has the Turn; it plays Swarm against Court, except in
+ * the Medic scenario, where it plays Court (the Faction with Medics) against Swarm.
  */
 export interface Scenario {
   setup: MatchSetup;
@@ -33,23 +33,35 @@ interface Arrangement {
   weather?: string[];
 }
 
-/** Leader kinds a scenario can give Seat 0; v1 Leaders where they exist, else a dev Leader. */
-export const LEADER_KINDS: LeaderAbility["type"][] = [
-  "playWeatherFromDeck",
-  "clearWeather",
-  "hornRow",
-  "scorchRow",
-  "returnFromDiscard",
-  "drawChosenFromDeck",
-  "lookAtOpponentHand",
-];
+/** The v2 Leader each Leader scenario gives Seat 0, by Leader kind. */
+const LEADERS: Partial<Record<LeaderAbility["type"], string>> = {
+  playWeatherFromDeck: "swarm-leader-storm-caller",
+  clearWeather: "kingdom-leader-field-commander",
+  hornRow: "swarm-leader-war-queen",
+  scorchRow: "elves-leader-valley-queen",
+  returnFromDiscard: "swarm-leader-carrion-mother",
+  discardToDrawChosen: "swarm-leader-hive-mind",
+  lookAtOpponentHand: "court-leader-whisper-master",
+};
 
-const DEV_CLEAR_LEADER: CardDefinition = {
-  id: "dev-leader-clear-weather",
-  kind: "leader",
-  faction: "swarm",
-  maxCopies: 1,
-  ability: { type: "clearWeather" },
+/** Leader kinds a scenario can give Seat 0. */
+export const LEADER_KINDS = Object.keys(LEADERS) as LeaderAbility["type"][];
+
+/** Extra cards each scenario Deck carries on top of its v2 Starter Deck. */
+const EXTRAS: Record<"swarm" | "court", string[]> = {
+  swarm: [
+    "neutral-black-ice",
+    "swarm-horned-ravager",
+    "swarm-cave-lurker",
+    "swarm-needle-wing",
+    "swarm-rubble-golem",
+  ],
+  court: [
+    "court-siege-mender",
+    "court-ebon-knight",
+    "court-palace-swordsman",
+    "court-marksman-captain",
+  ],
 };
 
 export const SCENARIOS: Record<string, Scenario> = {
@@ -58,12 +70,12 @@ export const SCENARIOS: Record<string, Scenario> = {
     prepare: (state) =>
       arrange(state, {
         you: {
-          close: ["swarm-thornback-crawler", "swarm-carapace-guard"],
-          ranged: ["swarm-hive-drone"],
+          close: ["swarm-horned-ravager", "swarm-cave-lurker"],
+          ranged: ["swarm-needle-wing"],
         },
         opponent: {
-          close: ["court-palace-champion", "court-halberd-guard"],
-          ranged: ["court-tower-archer"],
+          close: ["court-ebon-knight", "court-palace-swordsman"],
+          ranged: ["court-marksman-captain"],
         },
         hand: ["neutral-wildfire"],
       }),
@@ -73,71 +85,53 @@ export const SCENARIOS: Record<string, Scenario> = {
     prepare: (state) =>
       arrange(state, {
         you: {
-          close: ["swarm-thornback-crawler", "swarm-carapace-guard"],
-          siege: ["swarm-siege-grub"],
+          close: ["swarm-horned-ravager", "swarm-cave-lurker"],
+          siege: ["swarm-rubble-golem"],
         },
-        opponent: { ranged: ["court-tower-archer"] },
+        opponent: { ranged: ["court-marksman-captain"] },
         hand: ["neutral-war-drum"],
       }),
   },
   medic: {
-    setup: starterSetup(13, [
-      "swarm-brood-tender",
-      "swarm-brood-tender",
-      "swarm-thornback-crawler",
-    ]),
+    setup: starterSetup(13, "court"),
     prepare: (state) =>
       arrange(state, {
-        you: { close: ["swarm-carapace-guard"] },
-        hand: ["swarm-brood-tender"],
-        discard: ["swarm-brood-tender", "swarm-thornback-crawler"],
+        you: { close: ["court-palace-swordsman"] },
+        hand: ["court-siege-mender"],
+        discard: ["court-reserve-archer", "court-ebon-knight"],
       }),
   },
   ...Object.fromEntries(LEADER_KINDS.map((kind) => [`leader-${kind}`, leaderScenario(kind)])),
 };
 
 function leaderScenario(kind: LeaderAbility["type"]): Scenario {
-  const v1 = getCatalog("v1");
-  const leader =
-    v1.cards.find((c) => c.kind === "leader" && c.ability.type === kind) ?? DEV_CLEAR_LEADER;
-  const base = starterSetup(20 + LEADER_KINDS.indexOf(kind), ["swarm-thornback-crawler"]);
+  const base = starterSetup(20 + LEADER_KINDS.indexOf(kind));
+  const leader = LEADERS[kind] as string;
   const setup: MatchSetup = {
     ...base,
-    decks: [{ ...base.decks[0], leader: leader.id }, base.decks[1]],
-    cards: [...base.cards, DEV_CLEAR_LEADER],
+    decks: [{ ...base.decks[0], leader }, base.decks[1]],
   };
   return {
     setup,
     prepare: (state) =>
       arrange(state, {
-        you: { close: ["swarm-carapace-guard"] },
-        opponent: { close: ["court-palace-champion", "court-halberd-guard"] },
-        discard: ["swarm-thornback-crawler"],
+        you: { close: ["swarm-cave-lurker"] },
+        opponent: { close: ["court-ebon-knight", "court-palace-swordsman"] },
+        discard: ["swarm-horned-ravager"],
         deck: kind === "clearWeather" ? [] : ["neutral-black-ice"],
         weather: kind === "clearWeather" ? ["neutral-black-ice"] : [],
       }),
   };
 }
 
-function starterSetup(seed: number, extraSwarm: string[] = []): MatchSetup {
-  const v1 = getCatalog("v1");
-  const swarmStarter = starterDeckOf(v1, "swarm");
-  const courtStarter = starterDeckOf(v1, "court");
-  const swarm = {
-    ...swarmStarter,
-    cards: [
-      ...swarmStarter.cards,
-      "neutral-wildfire",
-      "swarm-thornback-crawler",
-      "swarm-siege-grub",
-      ...extraSwarm,
-    ],
+function starterSetup(seed: number, you: "swarm" | "court" = "swarm"): MatchSetup {
+  const v2 = getCatalog("v2");
+  const deck = (faction: "swarm" | "court") => {
+    const starter = starterDeckOf(v2, faction);
+    return { ...starter, cards: [...starter.cards, ...EXTRAS[faction]] };
   };
-  const court = {
-    ...courtStarter,
-    cards: [...courtStarter.cards, "court-palace-champion"],
-  };
-  return { seed, decks: [swarm, court], cards: v1.cards };
+  const opponent = you === "swarm" ? "court" : "swarm";
+  return { seed, decks: [deck(you), deck(opponent)], cards: v2.cards };
 }
 
 /** Confirms both Redraws, then moves named cards onto the battlefield, hand, deck and Discard Pile. */

@@ -24,13 +24,13 @@ const LOCAL_FACTIONS = {
 } as const;
 
 /**
- * `?deck=starter` plays the v1 Starter Decks (Swarm against Court); `?deck=v2` and
- * `?deck=elves` the v2 Starter Decks of Kingdom against Vikings and Elves against Vikings.
+ * `?deck=starter`, `?deck=v2` and `?deck=elves` play the v2 Starter Decks of Swarm against
+ * Court, Kingdom against Vikings and Elves against Vikings.
  * The default is plain Units.
  */
 export function createDevLocalRoom(seed: number, decks: LocalDecks = "plain"): LocalRoom {
   if (decks !== "plain") {
-    const catalog = getCatalog(decks === "starter" ? "v1" : "v2");
+    const catalog = getCatalog("v2");
     const factions = LOCAL_FACTIONS[decks];
     return new LocalRoom({
       seed,

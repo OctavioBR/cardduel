@@ -90,6 +90,10 @@ A Unit Card whose on-play ability Plays a non-Hero Unit Card of its player's cho
 **Muster**:
 An ability that, when its card is Played, also Plays every other card of the same Muster group from its player's hand and deck. Some Heroes call another group, such as their companion's, without being called back by it.
 
+**Scorch**:
+Destroys the non-Hero Units with the highest current Strength, all ties included, sending each to its Controller's Discard Pile. The Wildfire Special Card and some Units Scorch the whole battlefield, both sides. A Unit's Scorch on the opponent's side fires only when their Score is 10 or more and hits only their Units, on any Row.
+_Avoid_: burn, kill
+
 **Discard Pile**:
 A player's face-up pile of cards that have left their side of the battlefield or been used from their hand.
 _Avoid_: graveyard, cemetery

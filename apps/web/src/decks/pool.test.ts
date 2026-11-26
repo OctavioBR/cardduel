@@ -33,6 +33,12 @@ describe("pool", () => {
     );
   });
 
+  it("has one Scorch filter for every kind of Unit Scorch", () => {
+    const scorch = { ...all, ability: "scorch" } as const;
+    expect(poolCards(cards, "vikings", scorch).map((c) => c.id)).toContain("vikings-fire-raider");
+    expect(poolCards(cards, "elves", scorch).map((c) => c.id)).toContain("elves-flame-sapper");
+  });
+
   it("counts copies and the Deck's live counters, and groups the Deck by Row", () => {
     const deck = [
       "swarm-needle-wing",

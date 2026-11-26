@@ -19,6 +19,7 @@ export type UnitAbility =
   | "moraleBoost"
   | "muster"
   | "tightBond"
+  /** On-play Scorch of the opponent's whole side, when their Score is 10 or more. */
   | "scorch"
   | "spy"
   /** On-play Scorch of the whole battlefield, like the Scorch Special Card. */

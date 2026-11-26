@@ -3,7 +3,7 @@ import { ROWS, type RowId } from "./cards";
 import type { CardRef, MatchEvent, PlayedVia } from "./events";
 import { nextInt, shuffle } from "./rng";
 import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
-import { cardIdOf, computeStrengths, defOf, passiveInPlay, rowScore } from "./strength";
+import { cardIdOf, computeStrengths, defOf, passiveInPlay, rowScore, totalScore } from "./strength";
 
 export function ref(state: MatchState, uid: Uid): CardRef {
   const card: CardRef = { uid, cardId: cardIdOf(state, uid) };
@@ -142,7 +142,7 @@ export function playUnit(
     ...(via === "hand" ? {} : { via }),
   });
   if (spy) draw(state, seat, 2, events);
-  if (def.abilities.includes("scorch")) scorchRow(state, opponent(seat), row, events);
+  if (def.abilities.includes("scorch")) scorchSide(state, opponent(seat), events);
   if (def.abilities.includes("battlefieldScorch")) scorchBattlefield(state, events);
   if (def.abilities.includes("frenzy")) frenzy(state, seat, events);
   if (def.abilities.includes("medic")) medic(state, seat, events);
@@ -263,17 +263,28 @@ export function medicTargets(state: MatchState, seat: Seat): Uid[] {
   });
 }
 
-/** Minimum current Score of a Row for a Row Scorch (Unit or Leader) to fire. */
-export const ROW_SCORCH_THRESHOLD = 10;
+/** Minimum current Score of a side (Unit Scorch) or a Row (Leader Row Scorch) for it to fire. */
+export const SCORCH_THRESHOLD = 10;
 
 /**
- * Row Scorch: if the Seat's Row has a current Score of 10 or more, destroys its highest
+ * Leader Row Scorch: if the Seat's Row has a current Score of 10 or more, destroys its highest
  * current-Strength non-Hero Unit or Units.
  */
 export function scorchRow(state: MatchState, seat: Seat, row: RowId, events: MatchEvent[]): void {
   const strengths = computeStrengths(state);
-  if (rowScore(state, seat, row, strengths) < ROW_SCORCH_THRESHOLD) return;
+  if (rowScore(state, seat, row, strengths) < SCORCH_THRESHOLD) return;
   destroyStrongest(state, strengths, [{ seat, row }], events);
+}
+
+/**
+ * Unit Scorch: if the Seat's Score is 10 or more, destroys its highest current-Strength
+ * non-Hero Unit or Units across all of its Rows.
+ */
+export function scorchSide(state: MatchState, seat: Seat, events: MatchEvent[]): void {
+  const strengths = computeStrengths(state);
+  if (totalScore(state, seat, strengths) < SCORCH_THRESHOLD) return;
+  const rows = ROWS.map((row) => ({ seat, row }));
+  destroyStrongest(state, strengths, rows, events);
 }
 
 /**

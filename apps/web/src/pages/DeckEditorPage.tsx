@@ -22,7 +22,6 @@ const ABILITIES: UnitAbility[] = [
   "muster",
   "tightBond",
   "scorch",
-  "battlefieldScorch",
   "spy",
   "summon",
   "berserker",

@@ -6,6 +6,11 @@ export type TypeFilter = "all" | "unit" | "hero" | "special";
 export type RowFilter = "all" | RowId;
 export type AbilityFilter = "all" | UnitAbility;
 
+/** The Scorch filter covers every on-play Scorch a Unit can carry. */
+const FILTER_MATCHES: Partial<Record<UnitAbility, UnitAbility[]>> = {
+  scorch: ["scorch", "battlefieldScorch"],
+};
+
 export interface PoolFilters {
   row: RowFilter;
   type: TypeFilter;
@@ -46,11 +51,10 @@ export function poolCards(
         const rows = c.abilities.includes("agile") ? ["close", "ranged"] : [c.row];
         if (!rows.includes(filters.row)) return false;
       }
-      if (
-        filters.ability !== "all" &&
-        !(c.kind === "unit" && c.abilities.includes(filters.ability))
-      )
-        return false;
+      if (filters.ability !== "all") {
+        const matches = FILTER_MATCHES[filters.ability] ?? [filters.ability];
+        if (!(c.kind === "unit" && matches.some((a) => c.abilities.includes(a)))) return false;
+      }
       return true;
     })
     .sort(compareCards);
