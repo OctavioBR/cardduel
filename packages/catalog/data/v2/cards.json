@@ -1773,7 +1773,7 @@
     "faction": "neutral",
     "strength": 7,
     "row": "ranged",
-    "hero": false,
+    "hero": true,
     "abilities": ["medic"],
     "maxCopies": 1,
     "image": "v2/neutral-thornwood-sorceress.webp"
