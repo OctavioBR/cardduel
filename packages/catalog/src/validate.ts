@@ -13,6 +13,7 @@ export const UNIT_ABILITIES: readonly UnitAbility[] = [
   "tightBond",
   "scorch",
   "spy",
+  "sideScorch",
   "battlefieldScorch",
   "summon",
   "berserker",

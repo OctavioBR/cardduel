@@ -19,8 +19,11 @@ export type UnitAbility =
   | "moraleBoost"
   | "muster"
   | "tightBond"
+  /** On-play Scorch of the opponent's Row matching the Row it was Played to (Catalog v1). */
   | "scorch"
   | "spy"
+  /** On-play Scorch of the opponent's whole side, when their Score is 10 or more. */
+  | "sideScorch"
   /** On-play Scorch of the whole battlefield, like the Scorch Special Card. */
   | "battlefieldScorch"
   /** When discarded from the battlefield, its Side Deck card takes its place (`summons`). */
