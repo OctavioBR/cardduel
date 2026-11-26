@@ -9,7 +9,7 @@ test("desktop: hovering a battlefield card opens Card Detail after a short delay
   await token.hover();
   const detail = page.getByTestId("card-detail");
   await expect(detail).toBeVisible();
-  await expect(detail).toContainText("Thornback Crawler");
+  await expect(detail).toContainText("Horned Ravager");
   await page.mouse.move(5, 5);
   await expect(detail).toBeHidden();
 });

@@ -7,7 +7,7 @@ const LEADER_KINDS = [
   "hornRow",
   "scorchRow",
   "returnFromDiscard",
-  "drawChosenFromDeck",
+  "discardToDrawChosen",
   "lookAtOpponentHand",
 ];
 
@@ -19,7 +19,7 @@ async function step(page: Page, act: () => Promise<void>) {
 
 test("a Medic chain: a Medic Plays a Medic, which Plays a Unit", async ({ page }) => {
   await page.goto("/dev/local?scenario=medic");
-  await page.getByRole("button", { name: "Brood Tender" }).click();
+  await page.getByRole("button", { name: "Siege Mender" }).click();
   await step(page, () => page.getByRole("button", { name: /Play to Your Siege Row/ }).click());
 
   const choice = page.getByRole("dialog", { name: /Medic: choose a Unit/ });
@@ -29,13 +29,14 @@ test("a Medic chain: a Medic Plays a Medic, which Plays a Unit", async ({ page }
   await page.keyboard.press("Escape");
   await expect(choice).toBeVisible();
   await expect(choice.getByTestId("preview-summary").first()).toContainText("You");
-  await step(page, () => choice.getByRole("button", { name: /Choose Brood Tender/ }).click());
+  await step(page, () => choice.getByRole("button", { name: /Choose Reserve Archer/ }).click());
 
   await expect(page.getByRole("dialog", { name: /Medic: choose a Unit/ })).toBeVisible();
-  await step(page, () => page.getByRole("button", { name: /Choose Thornback Crawler/ }).click());
+  await step(page, () => page.getByRole("button", { name: /Choose Ebon Knight/ }).click());
   await expect(page.getByRole("dialog", { name: /Medic/ })).toHaveCount(0);
-  await expect(page.getByTestId("row-you-siege").locator(".unit")).toHaveCount(2);
-  await expect(page.getByTestId("row-you-close")).toContainText("8");
+  await expect(page.getByTestId("row-you-siege").locator(".unit")).toHaveCount(1);
+  await expect(page.getByTestId("row-you-ranged").locator(".unit")).toHaveCount(1);
+  await expect(page.getByTestId("row-you-close").locator(".unit")).toHaveCount(2);
 });
 
 for (const kind of LEADER_KINDS) {
@@ -48,8 +49,9 @@ for (const kind of LEADER_KINDS) {
     await expect(dialog.getByTestId("preview-summary").first()).toBeVisible();
     await step(page, () => use.click());
 
+    // Some Leaders ask for several choices in a row (The Hive Mind: two discards, then a draw).
     const choice = page.getByRole("dialog", { name: /Choose/ });
-    if (await choice.isVisible()) {
+    for (let i = 0; i < 3 && (await choice.isVisible()); i++) {
       await step(page, () =>
         choice
           .getByRole("button", { name: /Choose/ })

@@ -8,7 +8,7 @@ export type AbilityFilter = "all" | UnitAbility;
 
 /** The Scorch filter covers every on-play Scorch a Unit can carry. */
 const FILTER_MATCHES: Partial<Record<UnitAbility, UnitAbility[]>> = {
-  scorch: ["scorch", "sideScorch", "battlefieldScorch"],
+  scorch: ["scorch", "battlefieldScorch"],
 };
 
 export interface PoolFilters {

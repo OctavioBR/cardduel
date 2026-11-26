@@ -22,7 +22,6 @@ const CARDS = [
   unit("archer", 4, "ranged"),
   unit("torch", 2, "close", { abilities: ["scorch"] }),
   unit("sapper", 8, "siege", { abilities: ["scorch"] }),
-  unit("flame", 8, "siege", { abilities: ["sideScorch"] }),
   unit("bond", 3, "close", { abilities: ["tightBond"] }),
   special("scorch", { type: "scorch" }),
   special("frost", { type: "weather", rows: ["close"] }),
@@ -37,7 +36,6 @@ const LIST = [
   "archer",
   ...repeat("torch", 2),
   "sapper",
-  "flame",
   ...repeat("bond", 2),
   ...repeat("scorch", 2),
   "frost",
@@ -131,7 +129,7 @@ describe("Special Scorch", () => {
 });
 
 describe("Unit Scorch", () => {
-  it("destroys the opponent's highest non-Hero Units on the opposite Row at a Score of 10", () => {
+  it("destroys the opponent's highest non-Hero Units when their side has a Score of 10", () => {
     const { state, a, b } = board();
     const six = place(state, b, "u6", "close");
     const four = place(state, b, "u4", "close");
@@ -168,47 +166,26 @@ describe("Unit Scorch", () => {
     expect(onBoard(after, three)).toBe(true);
   });
 
-  it("hits a Leader-Horned Row of 4s when played on that same Row", () => {
-    const { state, a, b } = board();
-    const fours = [0, 1, 2].map(() => place(state, b, "u4", "close"));
-    state.sides[b].rows.close.leaderHorn = true;
-    const torch = toHand(state, a, "torch");
-    const { state: after } = act(state, a, { type: "play", card: torch, row: "close" });
-    for (const uid of fours) expect(onBoard(after, uid)).toBe(false);
-  });
-
-  it("from the Siege Row, checks only the opponent's Siege Row", () => {
-    const { state, a, b } = board();
-    const fours = [0, 1, 2].map(() => place(state, b, "u4", "close"));
-    state.sides[b].rows.close.leaderHorn = true;
-    const sapper = toHand(state, a, "sapper");
-    const { state: after, events } = act(state, a, { type: "play", card: sapper, row: "siege" });
-    for (const uid of fours) expect(onBoard(after, uid)).toBe(true);
-    expect(events.some((e) => e.type === "destroyed")).toBe(false);
-  });
-});
-
-describe("Side Scorch", () => {
-  it("destroys the opponent's strongest non-Hero Units on any Row when their side has 10", () => {
+  it("from the Siege Row, destroys a Leader-Horned Close Row of 4s and spares weaker Rows", () => {
     const { state, a, b } = board();
     const fours = [0, 1, 2].map(() => place(state, b, "u4", "close"));
     state.sides[b].rows.close.leaderHorn = true;
     const archer = place(state, b, "archer", "ranged");
     const mine = place(state, a, "u9", "close");
-    const flame = toHand(state, a, "flame");
-    const { state: after } = act(state, a, { type: "play", card: flame, row: "siege" });
+    const sapper = toHand(state, a, "sapper");
+    const { state: after } = act(state, a, { type: "play", card: sapper, row: "siege" });
     for (const uid of fours) expect(onBoard(after, uid)).toBe(false);
     expect(onBoard(after, archer)).toBe(true);
     expect(onBoard(after, mine)).toBe(true);
-    expect(onBoard(after, flame)).toBe(true);
+    expect(onBoard(after, sapper)).toBe(true);
   });
 
   it("counts the whole side toward 10 but never destroys Heroes", () => {
     const { state, a, b } = board();
     const hero = place(state, b, "hero", "close");
     const archer = place(state, b, "archer", "ranged");
-    const flame = toHand(state, a, "flame");
-    const { state: after } = act(state, a, { type: "play", card: flame, row: "siege" });
+    const sapper = toHand(state, a, "sapper");
+    const { state: after } = act(state, a, { type: "play", card: sapper, row: "siege" });
     expect(onBoard(after, hero)).toBe(true);
     expect(onBoard(after, archer)).toBe(false);
   });
@@ -217,8 +194,8 @@ describe("Side Scorch", () => {
     const { state, a, b } = board();
     const five = place(state, b, "u5", "close");
     const archer = place(state, b, "archer", "ranged");
-    const flame = toHand(state, a, "flame");
-    const { state: after, events } = act(state, a, { type: "play", card: flame, row: "siege" });
+    const sapper = toHand(state, a, "sapper");
+    const { state: after, events } = act(state, a, { type: "play", card: sapper, row: "siege" });
     expect(onBoard(after, five)).toBe(true);
     expect(onBoard(after, archer)).toBe(true);
     expect(events.some((e) => e.type === "destroyed")).toBe(false);

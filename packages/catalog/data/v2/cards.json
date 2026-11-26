@@ -143,7 +143,7 @@
     "strength": 7,
     "row": "ranged",
     "hero": false,
-    "abilities": ["sideScorch"],
+    "abilities": ["scorch"],
     "maxCopies": 1,
     "image": "v2/swarm-bloated-spitter.webp"
   },
@@ -1356,7 +1356,7 @@
     "strength": 8,
     "row": "siege",
     "hero": false,
-    "abilities": ["sideScorch"],
+    "abilities": ["scorch"],
     "maxCopies": 1,
     "image": "v2/elves-flame-sapper.webp"
   },
@@ -1741,7 +1741,7 @@
     "strength": 7,
     "row": "close",
     "hero": false,
-    "abilities": ["sideScorch"],
+    "abilities": ["scorch"],
     "maxCopies": 1,
     "image": "v2/neutral-gilded-wyrm.webp"
   },

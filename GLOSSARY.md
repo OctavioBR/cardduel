@@ -91,7 +91,7 @@ A Unit Card whose on-play ability Plays a non-Hero Unit Card of its player's cho
 An ability that, when its card is Played, also Plays every other card of the same Muster group from its player's hand and deck. Some Heroes call another group, such as their companion's, without being called back by it.
 
 **Scorch**:
-Destroys the non-Hero Units with the highest current Strength, all ties included, sending each to its Controller's Discard Pile. The Wildfire Special Card and some Units Scorch the whole battlefield, both sides. A Unit's Scorch on the opponent's side fires only when their Score is 10 or more and hits only their Units, on any Row. In Catalog v1, a Unit's Scorch checks only the opponent's Row matching the one it was Played to.
+Destroys the non-Hero Units with the highest current Strength, all ties included, sending each to its Controller's Discard Pile. The Wildfire Special Card and some Units Scorch the whole battlefield, both sides. A Unit's Scorch on the opponent's side fires only when their Score is 10 or more and hits only their Units, on any Row.
 _Avoid_: burn, kill
 
 **Discard Pile**:
