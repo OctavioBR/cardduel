@@ -14,7 +14,7 @@ import {
   type Seat,
   type Uid,
 } from "./state";
-import { cardIdOf, computeStrengths, rowScore, totalScore } from "./strength";
+import { cardIdOf, computeStrengths, leaderCancelled, rowScore, totalScore } from "./strength";
 
 /** A legal action, with its Play Preview when it has one. */
 export type LegalAction = Action & { preview?: PlayPreview };
@@ -47,6 +47,8 @@ export interface LeaderView {
   used: boolean;
   /** A passive Leader has no ability to use; its rule is always on. */
   passive: boolean;
+  /** The opponent's Leader takes this Leader's ability away for the whole Match. */
+  cancelled: boolean;
 }
 
 export interface DeckCount {
@@ -171,6 +173,7 @@ function leaderView(state: MatchState, seat: Seat): LeaderView {
     cardId: side.leader,
     used: side.leaderUsed,
     passive: leaderAbility(state, seat)?.type === "passive",
+    cancelled: leaderCancelled(state, seat),
   };
 }
 

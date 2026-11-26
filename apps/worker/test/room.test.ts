@@ -1,9 +1,11 @@
 import { env, evictDurableObject, runInDurableObject, SELF } from "cloudflare:test";
+import { CURRENT_CATALOG_VERSION } from "@card-duel/catalog";
 import {
   CLOSE_ROOM_FULL,
   CLOSE_SIGNED_OUT,
   type LoggedAction,
   type MatchEvent,
+  type MatchState,
   type SeatView,
   type TurnTimerInfo,
 } from "@card-duel/engine";
@@ -12,6 +14,7 @@ import { DISCONNECT_GRACE_MS, ROOM_IDLE_MS } from "../src/room";
 import { ROOM_CODE_ALPHABET } from "../src/room-code";
 import {
   BASE,
+  competitiveDeck,
   createRoom,
   firstPlay,
   newPlayer,
@@ -40,7 +43,8 @@ async function seatBoth(
   { turnTimer = null, redraw = true }: { turnTimer?: number | null; redraw?: boolean } = {},
 ): Promise<Seated> {
   const cookies: [string, string] = [await newPlayer(), await newPlayer()];
-  const decks = [await starterDeck(cookies[0], "swarm"), await starterDeck(cookies[1], "court")];
+  const deckOf = competitive ? competitiveDeck : starterDeck;
+  const decks = [await deckOf(cookies[0], "swarm"), await deckOf(cookies[1], "court")];
   const code = await createRoom(cookies[0], competitive, turnTimer);
   const a = await TestSocket.open(code, cookies[0]);
   expect(await a.nextLobby()).toMatchObject({ code, seat: 0, opponent: { present: false } });
@@ -228,7 +232,7 @@ describe("Room", () => {
   it("refuses an invalid Deck with a readable message", async () => {
     const cookie = await newPlayer();
     const code = await createRoom(cookie);
-    const deck = await savedDeck(cookie, { faction: "swarm", cards: ["swarm-gnawing-mite"] });
+    const deck = await savedDeck(cookie, { faction: "swarm", cards: ["swarm-carrion-grub"] });
     const socket = await TestSocket.open(code, cookie);
     await socket.nextLobby();
     socket.takeSeat(deck);
@@ -327,6 +331,23 @@ describe("Room", () => {
     closeAll(room);
   });
 
+  it("rebuilds a snapshot of an older state shape from seed plus action log", async () => {
+    const room = await seatBoth();
+    await play(room, mover(room.views));
+    const before = room.views;
+    const stub = env.ROOMS.getByName(room.code);
+    await runInDurableObject(stub, async (_instance, state) => {
+      const snapshot = await state.storage.get<MatchState>("snapshot");
+      // An older shape, marked wrong so only a rebuild can show the right round.
+      await state.storage.put("snapshot", { ...snapshot, version: 1, round: 99 });
+    });
+    await evictDurableObject(stub);
+    const again = await TestSocket.open(room.code, room.cookies[0]);
+    const { view } = await again.nextView();
+    expect(view).toEqual(before[0]);
+    again.close();
+  });
+
   it("replays seed plus action log when the snapshot is missing, with the pinned catalog", async () => {
     const room = await seatBoth();
     await play(room, mover(room.views));
@@ -337,7 +358,7 @@ describe("Room", () => {
       await state.storage.delete("snapshot");
       return state.storage.get<string>("catalogVersion");
     });
-    expect(version).toBe("v1");
+    expect(version).toBe(CURRENT_CATALOG_VERSION);
     await evictDurableObject(stub);
     const again = await TestSocket.open(room.code, room.cookies[0]);
     const { view } = await again.nextView();

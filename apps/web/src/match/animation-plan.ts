@@ -31,7 +31,7 @@ export function planAnimations(events: readonly MatchEvent[], seat: Seat): Anima
           from:
             e.via === "muster" || e.via === "leader"
               ? "deck"
-              : e.via === "medic"
+              : e.via === "medic" || e.via === "summon"
                 ? "none"
                 : mine(e.seat)
                   ? "yourHand"
@@ -48,6 +48,13 @@ export function planAnimations(events: readonly MatchEvent[], seat: Seat): Anima
       case "destroyed":
         steps.push({ kind: "leave", uids: e.cards.map((c) => c.uid), style: "destroyed" });
         break;
+      case "transformed":
+        // Frenzy: each Berserker leaves, then its Side Deck form appears in its place.
+        steps.push(
+          { kind: "leave", uids: e.changes.map((c) => c.from.uid), style: "discarded" },
+          { kind: "enter", uids: e.changes.map((c) => c.to.uid), from: "none" },
+        );
+        break;
       case "strengthChanged":
         steps.push({
           kind: "strength",
@@ -56,6 +63,9 @@ export function planAnimations(events: readonly MatchEvent[], seat: Seat): Anima
         break;
       case "returnedToHand":
         steps.push({ kind: "move", uids: [e.card.uid] });
+        break;
+      case "unitsMoved":
+        steps.push({ kind: "move", uids: e.moves.map((m) => m.card.uid) });
         break;
       case "drew":
         steps.push({
@@ -74,6 +84,11 @@ export function planAnimations(events: readonly MatchEvent[], seat: Seat): Anima
         steps.push({ kind: "round", text });
         break;
       }
+      case "factionPassive":
+        if (e.faction === "vikings") {
+          steps.push({ kind: "enter", uids: e.cards.map((c) => c.uid), from: "none" });
+        }
+        break;
       case "cardsDiscarded":
         steps.push({ kind: "leave", uids: e.cards.map((c) => c.uid), style: "discarded" });
         break;

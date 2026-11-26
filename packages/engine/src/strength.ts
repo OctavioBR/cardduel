@@ -1,5 +1,11 @@
-import { type CardDefinition, ROWS, type RowId } from "./cards";
-import type { MatchState, Seat, Uid } from "./state";
+import {
+  type CardDefinition,
+  type LeaderAbility,
+  type PassiveLeaderKind,
+  ROWS,
+  type RowId,
+} from "./cards";
+import { type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
 
 export function cardIdOf(state: MatchState, uid: Uid): string {
   const card = state.cards[uid];
@@ -25,25 +31,67 @@ export function weatheredRows(state: MatchState): Set<RowId> {
   return rows;
 }
 
-/** Whether Weather lowers non-Hero Units on this Seat's Row; false under Steady Ground. */
-function weatherLowers(state: MatchState, seat: Seat, row: RowId, weathered: Set<RowId>): boolean {
-  if (!weathered.has(row)) return false;
+function printedAbility(state: MatchState, seat: Seat): LeaderAbility | null {
   const leader = state.defs[state.sides[seat].leader];
-  const steady =
-    leader?.kind === "leader" &&
-    leader.ability.type === "passive" &&
-    leader.ability.passive === "steadyGround";
-  return !(steady && row === "siege");
+  return leader?.kind === "leader" ? leader.ability : null;
+}
+
+function isCanceller(ability: LeaderAbility | null): boolean {
+  return ability?.type === "passive" && ability.passive === "cancelOpponentLeader";
+}
+
+/**
+ * Whether the opponent's Cancel Opponent Leader passive takes this Seat's Leader ability
+ * away. Two such Leaders leave each other be.
+ */
+export function leaderCancelled(state: MatchState, seat: Seat): boolean {
+  const own = printedAbility(state, seat);
+  return own !== null && !isCanceller(own) && isCanceller(printedAbility(state, opponent(seat)));
+}
+
+/** The Seat's Leader ability, or null when it has none or the opponent's Leader cancels it. */
+export function leaderAbilityOf(state: MatchState, seat: Seat): LeaderAbility | null {
+  return leaderCancelled(state, seat) ? null : printedAbility(state, seat);
+}
+
+function passiveOf(state: MatchState, seat: Seat): PassiveLeaderKind | null {
+  const ability = leaderAbilityOf(state, seat);
+  return ability?.type === "passive" ? ability.passive : null;
+}
+
+/** Whether either Seat's Leader has this passive (one that acts on both players). */
+export function passiveInPlay(state: MatchState, passive: PassiveLeaderKind): boolean {
+  return SEATS.some((seat) => passiveOf(state, seat) === passive);
+}
+
+/**
+ * Strength a non-Hero Unit keeps under Weather on this Seat's Row, or null when Weather does
+ * not lower it: 1, or half its printed Strength rounded up under Storm-Hardened. Steady
+ * Ground shields the Siege Row.
+ */
+function weatheredStrength(
+  state: MatchState,
+  seat: Seat,
+  row: RowId,
+  weathered: Set<RowId>,
+  printed: number,
+): number | null {
+  if (!weathered.has(row)) return null;
+  const passive = passiveOf(state, seat);
+  if (passive === "steadyGround" && row === "siege") return null;
+  if (passive === "stormHardened") return Math.max(1, Math.ceil(printed / 2));
+  return 1;
 }
 
 /**
  * Current Strength of every card in a battlefield Row, keyed by uid. Recomputed from the
- * battlefield in this order: Weather, Tight Bond, Morale Boost, Horn. Heroes ignore all of
- * them; cards that are not Units (a Decoy) count 0.
+ * battlefield in this order: Weather, Doubled Spies, Tight Bond, Morale Boost, Horn. Heroes
+ * ignore all of them; cards that are not Units (a Decoy) count 0.
  */
 export function computeStrengths(state: MatchState): Map<Uid, number> {
   const result = new Map<Uid, number>();
   const weathered = weatheredRows(state);
+  const doubledSpies = passiveInPlay(state, "doubledSpies");
   for (const [seat, side] of state.sides.entries()) {
     for (const row of ROWS) {
       const rowState = side.rows[row];
@@ -64,7 +112,9 @@ export function computeStrengths(state: MatchState): Map<Uid, number> {
           result.set(uid, def.strength);
           continue;
         }
-        let strength = weatherLowers(state, seat as Seat, row, weathered) ? 1 : def.strength;
+        let strength =
+          weatheredStrength(state, seat as Seat, row, weathered, def.strength) ?? def.strength;
+        if (doubledSpies && def.abilities.includes("spy")) strength *= 2;
         if (def.abilities.includes("tightBond")) {
           strength *= units.filter((u) => u.def.id === def.id).length;
         }

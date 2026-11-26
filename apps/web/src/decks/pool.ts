@@ -25,7 +25,10 @@ export function compareCards(a: CardDefinition, b: CardDefinition): number {
   return cardName(a.id).localeCompare(cardName(b.id));
 }
 
-/** The pool for a Faction: its cards plus Neutral Cards (no Leaders), filtered and sorted. */
+/**
+ * The pool for a Faction: its cards plus Neutral Cards (no Leaders, no Side Deck cards),
+ * filtered and sorted.
+ */
 export function poolCards(
   cards: CardDefinition[],
   faction: FactionId,
@@ -33,6 +36,7 @@ export function poolCards(
 ): CardDefinition[] {
   return cards
     .filter((c) => c.kind !== "leader" && (c.faction === faction || c.faction === "neutral"))
+    .filter((c) => !(c.kind === "unit" && c.sideDeck))
     .filter((c) => {
       if (filters.type === "special" && c.kind !== "special") return false;
       if (filters.type === "unit" && !(c.kind === "unit" && !c.hero)) return false;

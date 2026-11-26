@@ -29,6 +29,9 @@ body {
   border: 1px solid var(--cd-line);
   background: var(--cd-panel);
   color: var(--cd-text);
+}
+/* A Room code shows uppercase and spaced out, whatever case is typed. */
+.page input.room-code {
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -104,6 +107,46 @@ button:disabled {
   padding: 16px;
   background: var(--cd-bg);
 }
+.gallery-layout {
+  display: grid;
+  grid-template-areas: "groups nav";
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+}
+.gallery-nav {
+  grid-area: nav;
+  position: sticky;
+  top: 1rem;
+  z-index: 1;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.375rem;
+  border: 1px solid var(--cd-line);
+  border-radius: var(--cd-radius);
+  background: var(--cd-panel);
+}
+.gallery-nav a {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--cd-radius);
+  color: var(--cd-text);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  text-decoration: none;
+}
+.gallery-nav a:hover {
+  background: var(--cd-bg);
+  text-decoration: underline;
+}
+.gallery-groups {
+  grid-area: groups;
+  display: grid;
+  gap: 1.5rem;
+}
+.gallery-groups h2 {
+  margin: 0;
+  scroll-margin-top: 1rem;
+}
 .gallery-row {
   display: flex;
   gap: 12px;
@@ -111,6 +154,24 @@ button:disabled {
   flex-wrap: wrap;
   padding: 12px 0;
   border-bottom: 1px solid var(--cd-line);
+}
+
+@media (max-width: 36rem) {
+  .gallery-layout {
+    display: block;
+  }
+  .gallery-nav {
+    top: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  .gallery-nav a {
+    padding-inline: 0.25rem;
+  }
+  .gallery-groups h2 {
+    scroll-margin-top: 7rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -174,8 +235,6 @@ button:disabled {
   margin: 0 0 0.5rem;
 }
 .auth-form input {
-  text-transform: none;
-  letter-spacing: normal;
   font: inherit;
   padding: 0.6rem 0.75rem;
   border-radius: var(--cd-radius);
@@ -228,6 +287,49 @@ button.link {
   background: var(--cd-panel);
   color: var(--cd-text);
 }
+/* The Deck picker's label: a stack of card backs, the top one in the selected Deck's Faction. */
+.home-deck-icon {
+  --tint: var(--cd-neutral);
+  display: inline-flex;
+}
+.home-deck-icon.f-swarm {
+  --tint: var(--cd-swarm);
+}
+.home-deck-icon.f-court {
+  --tint: var(--cd-court);
+}
+.home-deck-icon.f-kingdom {
+  --tint: var(--cd-kingdom);
+}
+.home-deck-icon.f-vikings {
+  --tint: var(--cd-vikings);
+}
+.home-deck-icon.f-elves {
+  --tint: var(--cd-elves);
+}
+.home-deck-icon svg {
+  display: block;
+  overflow: visible;
+}
+.home-deck-icon .back {
+  fill: var(--cd-card-2);
+  stroke: var(--cd-muted);
+}
+.home-deck-icon .top {
+  fill: var(--tint);
+  stroke: var(--cd-court-ink);
+  stroke-width: 1;
+  transition: fill 150ms;
+}
+.home-deck-icon .top-inner {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-deck-icon .top {
+    transition: none;
+  }
+}
 .home-label {
   margin: 0 0 0.4rem;
   font-size: 0.8rem;
@@ -254,7 +356,6 @@ button.link {
 }
 input.turn-timer-input {
   width: 5.5rem;
-  letter-spacing: normal;
 }
 .page form.home-join {
   margin-inline-start: auto;
@@ -286,10 +387,51 @@ input.turn-timer-input {
 .page.wide {
   max-width: 80rem;
 }
+/* Faction tabs stack down the left of the Deck list; on narrow screens they sit in a row above. */
+.decks-layout {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.decks-main {
+  min-width: 0;
+}
 .tabs {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+}
+@media (max-width: 48rem) {
+  .decks-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+/* Each Faction tab carries its colour along the bottom edge, as a card does. */
+.tab {
+  --tint: var(--cd-neutral);
+  text-align: center;
+  box-shadow: inset 0 -4px 0 var(--tint);
+}
+.tab.f-swarm {
+  --tint: var(--cd-swarm);
+}
+.tab.f-court {
+  --tint: var(--cd-court);
+}
+.tab.f-kingdom {
+  --tint: var(--cd-kingdom);
+}
+.tab.f-vikings {
+  --tint: var(--cd-vikings);
+}
+.tab.f-elves {
+  --tint: var(--cd-elves);
 }
 .tab[aria-selected="true"] {
   background: var(--cd-text);
@@ -303,6 +445,8 @@ input.turn-timer-input {
   margin-bottom: 1rem;
 }
 .deck-list {
+  /* Keeps a Deck's status and Delete near its name on wide screens. */
+  max-width: 36rem;
   list-style: none;
   padding: 0;
   display: flex;
@@ -327,7 +471,13 @@ input.turn-timer-input {
   font-size: 0.8rem;
   color: var(--cd-muted);
 }
-.status.ok {
+.status.incomplete {
+  color: var(--cd-lowered);
+}
+.status.valid {
+  color: var(--cd-warning);
+}
+.status.competitive {
   color: var(--cd-raised);
 }
 .editor-head {
@@ -371,6 +521,19 @@ input.turn-timer-input {
 .deck-choice.f-court {
   background: var(--cd-court);
   color: #fff;
+  box-shadow: inset 0 0 0 1px var(--cd-court-ink);
+}
+.deck-choice.f-kingdom {
+  background: var(--cd-kingdom);
+  color: #fff;
+}
+.deck-choice.f-vikings {
+  background: var(--cd-vikings);
+  color: #111;
+}
+.deck-choice.f-elves {
+  background: var(--cd-elves);
+  color: #fff;
 }
 .deck-choice:hover {
   filter: brightness(1.1);
@@ -391,6 +554,18 @@ input.turn-timer-input {
 }
 .faction-badge.f-court {
   background: var(--cd-court);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px var(--cd-court-ink);
+}
+.faction-badge.f-kingdom {
+  background: var(--cd-kingdom);
+  color: #fff;
+}
+.faction-badge.f-vikings {
+  background: var(--cd-vikings);
+}
+.faction-badge.f-elves {
+  background: var(--cd-elves);
   color: #fff;
 }
 .editor-actions {
@@ -480,6 +655,12 @@ input.turn-timer-input {
 }
 .leader-picker input {
   margin-top: 0.2rem;
+}
+.leader-portrait {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--cd-radius);
+  object-fit: cover;
 }
 .leader-option {
   display: flex;

@@ -6,6 +6,7 @@ import {
   matchOver,
   passTurn,
   round,
+  saveCompetitiveDeck,
   settled,
   signUpVia,
   uniqueName,
@@ -13,22 +14,24 @@ import {
 
 /**
  * The whole product with two players. The local Worker runs with a fixed Match seed (see
- * `playwright.config.ts`): with the two Starter Decks it deals the first Seat a Brood Tender (a
- * Medic) and Wildfire (Scorch) in the opening hand, and that Seat plays first.
+ * `playwright.config.ts`): with the e2e Competitive Decks (board.ts) it deals the second Seat (Court) a Siege
+ * Mender (a Medic) and Wildfire (Scorch) in the opening hand.
  */
 
+const MEDIC = "Siege Mender";
+
 /** Cards the generic play skips: the journey plays the first two on purpose, and the others need a target of their own (a Unit, a Horn slot). */
-const HELD = ["Brood Tender", "Wildfire", "Straw Double", "War Drum"];
+const HELD = [MEDIC, "Wildfire", "Straw Double", "War Drum"];
 
 interface Seen {
   medic: boolean;
   scorch: boolean;
 }
 
-async function openStarterDeck(page: Page, faction: "Swarm" | "Court"): Promise<void> {
-  await page.goto("/decks");
+async function openCompetitiveDeck(page: Page, faction: "Swarm" | "Court"): Promise<void> {
+  await saveCompetitiveDeck(page, faction === "Swarm" ? "swarm" : "court");
   await page.getByRole("tab", { name: faction }).click();
-  await page.getByRole("link", { name: `${faction} Starter`, exact: true }).click();
+  await page.getByRole("link", { name: `${faction} Competitive`, exact: true }).click();
   await expect(page.getByTestId("deck-status")).toHaveText("Competitive Deck");
 }
 
@@ -77,8 +80,8 @@ async function takeJourneyTurn(page: Page, seen: Seen): Promise<void> {
   const names = await playableNames(page);
   const holds = (name: string) => names.some((n) => n.startsWith(name));
 
-  if (current >= 2 && holds("Brood Tender") && (await discardCount(page)) > 0) {
-    await play(page, "Brood Tender");
+  if (current >= 2 && holds(MEDIC) && (await discardCount(page)) > 0) {
+    await play(page, MEDIC);
     await expect(page.getByRole("dialog", { name: /Medic/ })).toBeVisible();
     await resolveChoices(page);
     seen.medic = true;
@@ -108,7 +111,7 @@ async function redrawOne(page: Page): Promise<void> {
   await expect(redraw).toBeVisible();
   const before = await actionCount(page);
   await redraw
-    .getByRole("button", { name: /^Return (?!Brood Tender|Wildfire)/ })
+    .getByRole("button", { name: /^Return (?!Siege Mender|Wildfire)/ })
     .first()
     .click();
   await expect.poll(() => actionCount(page)).toBeGreaterThan(before);
@@ -127,23 +130,23 @@ test("two players: Decks, Competitive Room, Redraw, Scorch, Medic, Match end and
     const alice = await a.newPage();
     const bob = await b.newPage();
     await signUpVia(alice, uniqueName("alice"), "/decks");
-    await openStarterDeck(alice, "Swarm");
+    await openCompetitiveDeck(alice, "Swarm");
     await signUpVia(bob, uniqueName("bob"), "/decks");
-    await openStarterDeck(bob, "Court");
+    await openCompetitiveDeck(bob, "Court");
 
     await alice.goto("/");
     await alice.getByLabel("Competitive Room").check();
     await alice
       .getByLabel("Deck", { exact: true })
-      .selectOption({ label: "Swarm Starter · Swarm" });
+      .selectOption({ label: "Swarm Competitive · Swarm" });
     await alice.getByRole("button", { name: "Create Room" }).click();
     await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
     const url = alice.url();
     await expect(alice.getByText("Competitive Room", { exact: true })).toBeVisible();
-    await expect(alice.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
+    await expect(alice.getByText("You chose Swarm Competitive", { exact: false })).toBeVisible();
     await bob.goto(url);
     await expect(bob.getByText("Competitive Room", { exact: true })).toBeVisible();
-    await bob.getByRole("button", { name: /Court Starter/ }).click();
+    await bob.getByRole("button", { name: /Court Competitive/ }).click();
     await expect(alice.getByTestId("board")).toBeVisible();
     await expect(bob.getByTestId("board")).toBeVisible();
 
@@ -165,8 +168,8 @@ test("two players: Decks, Competitive Room, Redraw, Scorch, Medic, Match end and
     await alice.getByRole("button", { name: "Rematch", exact: true }).click();
     await expect(bob.getByTestId("rematch-status")).toContainText("offered a Rematch");
     await bob.getByRole("button", { name: "Rematch", exact: true }).click();
-    await alice.getByRole("button", { name: /Swarm Starter/ }).click();
-    await bob.getByRole("button", { name: /Court Starter/ }).click();
+    await alice.getByRole("button", { name: /Swarm Competitive/ }).click();
+    await bob.getByRole("button", { name: /Court Competitive/ }).click();
     await expect(alice.getByTestId("redraw")).toBeVisible();
     await expect(bob.getByTestId("redraw")).toBeVisible();
     await expect(alice.getByTestId("result")).toHaveCount(0);

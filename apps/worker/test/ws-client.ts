@@ -1,4 +1,11 @@
 import { SELF } from "cloudflare:test";
+import {
+  CURRENT_CATALOG_VERSION,
+  checkCompetitiveDeck,
+  checkValidDeck,
+  getCatalog,
+  starterDeckOf,
+} from "@card-duel/catalog";
 import type {
   Action,
   ClientMessage,
@@ -111,9 +118,53 @@ async function deckRequest(cookie: string, path: string, body: unknown): Promise
   return ((await res.json()) as { deck: { id: string } }).deck.id;
 }
 
-/** Copies a Starter Deck (a Competitive Deck) for the account. */
+/** Copies a Starter Deck (a Valid Deck, not necessarily a Competitive Deck) for the account. */
 export function starterDeck(cookie: string, faction: "swarm" | "court"): Promise<string> {
   return deckRequest(cookie, "/copy-starter", { faction });
+}
+
+/**
+ * A Competitive Deck for tests: the Faction's current Starter Deck (which need not be
+ * a Competitive Deck) minus cards over the Competitive limits, refilled with plain
+ * Faction Units so it stays a Valid Deck.
+ */
+function competitiveDeckSpec(faction: "swarm" | "court") {
+  if (!CURRENT_CATALOG_VERSION) throw new Error("No catalog version");
+  const catalog = getCatalog(CURRENT_CATALOG_VERSION);
+  const { leader, cards } = starterDeckOf(catalog, faction);
+  const limits = catalog.limits.competitive;
+  const counts = { special: 0, medic: 0, spy: 0 };
+  const kept = cards.filter((id) => {
+    const card = catalog.byId.get(id);
+    if (card?.kind === "special") return ++counts.special <= limits.maxSpecials;
+    if (card?.kind !== "unit") return true;
+    if (card.abilities.includes("medic")) return ++counts.medic <= limits.maxMedics;
+    if (card.abilities.includes("spy")) return ++counts.spy <= limits.maxSpies;
+    return true;
+  });
+  const plain = catalog.cards.filter(
+    (c) =>
+      c.faction === faction &&
+      c.kind === "unit" &&
+      !c.abilities.some((a) => a === "medic" || a === "spy"),
+  );
+  const tooFew = () =>
+    checkValidDeck({ faction, leader, cards: kept }, catalog).some(
+      (p) => p.code === "too_few_units",
+    );
+  for (const card of plain) {
+    while (tooFew() && kept.filter((id) => id === card.id).length < card.maxCopies)
+      kept.push(card.id);
+  }
+  const deck = { faction, leader, cards: kept };
+  const problems = [...checkValidDeck(deck, catalog), ...checkCompetitiveDeck(deck, catalog)];
+  if (problems.length > 0) throw new Error(`Not a Competitive Deck: ${problems[0]?.message}`);
+  return deck;
+}
+
+/** Saves a Competitive Deck built from the Faction's Starter Deck. */
+export function competitiveDeck(cookie: string, faction: "swarm" | "court"): Promise<string> {
+  return savedDeck(cookie, competitiveDeckSpec(faction));
 }
 
 /** Saves an arbitrary Deck for the account. */

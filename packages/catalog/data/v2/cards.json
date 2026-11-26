@@ -1,0 +1,1830 @@
+[
+  {
+    "id": "swarm-bone-warlord",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-bone-warlord.webp"
+  },
+  {
+    "id": "swarm-hollow-seer",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 10,
+    "row": "ranged",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-hollow-seer.webp"
+  },
+  {
+    "id": "swarm-stone-colossus",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-stone-colossus.webp"
+  },
+  {
+    "id": "swarm-coiled-leviathan",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 8,
+    "row": "close",
+    "hero": true,
+    "abilities": ["agile", "moraleBoost"],
+    "maxCopies": 1,
+    "image": "v2/swarm-coiled-leviathan.webp"
+  },
+  {
+    "id": "swarm-brood-crone",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "crones",
+    "image": "v2/swarm-brood-crone.webp",
+    "alternateImages": ["v2/swarm-brood-crone-2.webp", "v2/swarm-brood-crone-3.webp"]
+  },
+  {
+    "id": "swarm-elder-night-feeder",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 1,
+    "musterGroup": "feeders",
+    "image": "v2/swarm-elder-night-feeder.webp"
+  },
+  {
+    "id": "swarm-night-feeder",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 4,
+    "musterGroup": "feeders",
+    "image": "v2/swarm-night-feeder.webp",
+    "alternateImages": [
+      "v2/swarm-night-feeder-2.webp",
+      "v2/swarm-night-feeder-3.webp",
+      "v2/swarm-night-feeder-4.webp"
+    ]
+  },
+  {
+    "id": "swarm-webmother",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 1,
+    "musterCalls": "crawlers",
+    "image": "v2/swarm-webmother.webp"
+  },
+  {
+    "id": "swarm-web-crawler",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "crawlers",
+    "image": "v2/swarm-web-crawler.webp",
+    "alternateImages": ["v2/swarm-web-crawler-2.webp", "v2/swarm-web-crawler-3.webp"]
+  },
+  {
+    "id": "swarm-burrow-gnawer",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "gnawers",
+    "image": "v2/swarm-burrow-gnawer.webp",
+    "alternateImages": ["v2/swarm-burrow-gnawer-2.webp", "v2/swarm-burrow-gnawer-3.webp"]
+  },
+  {
+    "id": "swarm-carrion-grub",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 1,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "grubs",
+    "image": "v2/swarm-carrion-grub.webp",
+    "alternateImages": ["v2/swarm-carrion-grub-2.webp", "v2/swarm-carrion-grub-3.webp"]
+  },
+  {
+    "id": "swarm-bloated-spitter",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 7,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["scorch"],
+    "maxCopies": 1,
+    "image": "v2/swarm-bloated-spitter.webp"
+  },
+  {
+    "id": "swarm-hive-brute",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 5,
+    "image": "v2/swarm-hive-brute.webp",
+    "alternateImages": [
+      "v2/swarm-hive-brute-2.webp",
+      "v2/swarm-hive-brute-3.webp",
+      "v2/swarm-hive-brute-4.webp",
+      "v2/swarm-hive-brute-5.webp"
+    ]
+  },
+  {
+    "id": "swarm-dusk-shrieker",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 5,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-dusk-shrieker.webp"
+  },
+  {
+    "id": "swarm-cave-lurker",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-cave-lurker.webp"
+  },
+  {
+    "id": "swarm-mist-stalker",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-mist-stalker.webp"
+  },
+  {
+    "id": "swarm-gale-shrike",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile"],
+    "maxCopies": 2,
+    "image": "v2/swarm-gale-shrike.webp",
+    "alternateImages": ["v2/swarm-gale-shrike-2.webp"]
+  },
+  {
+    "id": "swarm-needle-wing",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 3,
+    "image": "v2/swarm-needle-wing.webp",
+    "alternateImages": ["v2/swarm-needle-wing-2.webp", "v2/swarm-needle-wing-3.webp"]
+  },
+  {
+    "id": "swarm-acid-borer",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 2,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-acid-borer.webp"
+  },
+  {
+    "id": "swarm-horned-ravager",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-horned-ravager.webp"
+  },
+  {
+    "id": "swarm-rubble-golem",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/swarm-rubble-golem.webp",
+    "alternateImages": ["v2/swarm-rubble-golem-2.webp"]
+  },
+  {
+    "id": "swarm-rime-giant",
+    "kind": "unit",
+    "faction": "swarm",
+    "strength": 5,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/swarm-rime-giant.webp"
+  },
+  {
+    "id": "swarm-leader-storm-caller",
+    "kind": "leader",
+    "faction": "swarm",
+    "maxCopies": 1,
+    "ability": {
+      "type": "playWeatherFromDeck"
+    },
+    "image": "v2/swarm-leader-storm-caller.webp"
+  },
+  {
+    "id": "swarm-leader-war-queen",
+    "kind": "leader",
+    "faction": "swarm",
+    "maxCopies": 1,
+    "ability": {
+      "type": "hornRow",
+      "row": "close"
+    },
+    "image": "v2/swarm-leader-war-queen.webp"
+  },
+  {
+    "id": "swarm-leader-hive-mind",
+    "kind": "leader",
+    "faction": "swarm",
+    "maxCopies": 1,
+    "ability": {
+      "type": "discardToDrawChosen"
+    },
+    "image": "v2/swarm-leader-hive-mind.webp"
+  },
+  {
+    "id": "swarm-leader-carrion-mother",
+    "kind": "leader",
+    "faction": "swarm",
+    "maxCopies": 1,
+    "ability": {
+      "type": "returnFromDiscard"
+    },
+    "image": "v2/swarm-leader-carrion-mother.webp"
+  },
+  {
+    "id": "swarm-leader-mimic-queen",
+    "kind": "leader",
+    "faction": "swarm",
+    "maxCopies": 1,
+    "ability": {
+      "type": "passive",
+      "passive": "doubledSpies"
+    },
+    "image": "v2/swarm-leader-mimic-queen.webp"
+  },
+  {
+    "id": "court-lord-of-engines",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 10,
+    "row": "siege",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-lord-of-engines.webp"
+  },
+  {
+    "id": "court-field-marshal",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": ["medic"],
+    "maxCopies": 1,
+    "image": "v2/court-field-marshal.webp"
+  },
+  {
+    "id": "court-black-blade",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-black-blade.webp"
+  },
+  {
+    "id": "court-imperial-legate",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 10,
+    "row": "ranged",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-imperial-legate.webp"
+  },
+  {
+    "id": "court-young-courtier",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 2,
+    "image": "v2/court-young-courtier.webp",
+    "alternateImages": ["v2/court-young-courtier-2.webp"]
+  },
+  {
+    "id": "court-outrider",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3,
+    "image": "v2/court-outrider.webp",
+    "alternateImages": ["v2/court-outrider-2.webp", "v2/court-outrider-3.webp"]
+  },
+  {
+    "id": "court-turncoat-general",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 9,
+    "row": "close",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1,
+    "image": "v2/court-turncoat-general.webp"
+  },
+  {
+    "id": "court-smiling-ambassador",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 7,
+    "row": "close",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1,
+    "image": "v2/court-smiling-ambassador.webp"
+  },
+  {
+    "id": "court-shadow-chamberlain",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1,
+    "image": "v2/court-shadow-chamberlain.webp"
+  },
+  {
+    "id": "court-great-fire-ballista",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 10,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-great-fire-ballista.webp"
+  },
+  {
+    "id": "court-black-legion-archer",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 10,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/court-black-legion-archer.webp",
+    "alternateImages": ["v2/court-black-legion-archer-2.webp"]
+  },
+  {
+    "id": "court-siege-mender",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 0,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 1,
+    "image": "v2/court-siege-mender.webp"
+  },
+  {
+    "id": "court-imperial-pikeman",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 3,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 4,
+    "image": "v2/court-imperial-pikeman.webp",
+    "alternateImages": [
+      "v2/court-imperial-pikeman-2.webp",
+      "v2/court-imperial-pikeman-3.webp",
+      "v2/court-imperial-pikeman-4.webp"
+    ]
+  },
+  {
+    "id": "court-reserve-archer",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 1,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 2,
+    "image": "v2/court-reserve-archer.webp",
+    "alternateImages": ["v2/court-reserve-archer-2.webp"]
+  },
+  {
+    "id": "court-ebon-knight",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-ebon-knight.webp"
+  },
+  {
+    "id": "court-court-sorceress",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 6,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/court-court-sorceress.webp",
+    "alternateImages": ["v2/court-court-sorceress-2.webp"]
+  },
+  {
+    "id": "court-siege-engineer",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-siege-engineer.webp"
+  },
+  {
+    "id": "court-marksman-captain",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 5,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-marksman-captain.webp"
+  },
+  {
+    "id": "court-fire-ballista",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 5,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-fire-ballista.webp"
+  },
+  {
+    "id": "court-palace-swordsman",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-palace-swordsman.webp"
+  },
+  {
+    "id": "court-battle-mage",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 4,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/court-battle-mage.webp",
+    "alternateImages": ["v2/court-battle-mage-2.webp"]
+  },
+  {
+    "id": "court-old-sergeant",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 3,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-old-sergeant.webp"
+  },
+  {
+    "id": "court-crossbow-veteran",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 3,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-crossbow-veteran.webp"
+  },
+  {
+    "id": "court-creaking-mangonel",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 3,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-creaking-mangonel.webp"
+  },
+  {
+    "id": "court-foreign-sellsword",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/court-foreign-sellsword.webp"
+  },
+  {
+    "id": "court-bolt-loader",
+    "kind": "unit",
+    "faction": "court",
+    "strength": 2,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/court-bolt-loader.webp",
+    "alternateImages": ["v2/court-bolt-loader-2.webp"]
+  },
+  {
+    "id": "court-leader-usurper",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "takeFromOpponentDiscard"
+    },
+    "image": "v2/court-leader-usurper.webp"
+  },
+  {
+    "id": "court-leader-gambler-emperor",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "passive",
+      "passive": "randomMedic"
+    },
+    "image": "v2/court-leader-gambler-emperor.webp"
+  },
+  {
+    "id": "court-leader-whisper-master",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "lookAtOpponentHand"
+    },
+    "image": "v2/court-leader-whisper-master.webp"
+  },
+  {
+    "id": "court-leader-mist-admiral",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "playCardFromDeck",
+      "card": "neutral-sea-mist"
+    },
+    "image": "v2/court-leader-mist-admiral.webp"
+  },
+  {
+    "id": "court-leader-iron-empress",
+    "kind": "leader",
+    "faction": "court",
+    "maxCopies": 1,
+    "ability": {
+      "type": "passive",
+      "passive": "cancelOpponentLeader"
+    },
+    "image": "v2/court-leader-iron-empress.webp"
+  },
+  {
+    "id": "kingdom-leader-high-king",
+    "kind": "leader",
+    "faction": "kingdom",
+    "maxCopies": 1,
+    "ability": {
+      "type": "playCardFromDeck",
+      "card": "neutral-sea-mist"
+    },
+    "image": "v2/kingdom-leader-high-king.webp"
+  },
+  {
+    "id": "kingdom-leader-iron-marshal",
+    "kind": "leader",
+    "faction": "kingdom",
+    "maxCopies": 1,
+    "ability": {
+      "type": "scorchRow",
+      "row": "siege"
+    },
+    "image": "v2/kingdom-leader-iron-marshal.webp"
+  },
+  {
+    "id": "kingdom-leader-archer-prince",
+    "kind": "leader",
+    "faction": "kingdom",
+    "maxCopies": 1,
+    "ability": {
+      "type": "scorchRow",
+      "row": "ranged"
+    },
+    "image": "v2/kingdom-leader-archer-prince.webp"
+  },
+  {
+    "id": "kingdom-leader-field-commander",
+    "kind": "leader",
+    "faction": "kingdom",
+    "maxCopies": 1,
+    "ability": {
+      "type": "clearWeather"
+    },
+    "image": "v2/kingdom-leader-field-commander.webp"
+  },
+  {
+    "id": "kingdom-leader-siege-lord",
+    "kind": "leader",
+    "faction": "kingdom",
+    "maxCopies": 1,
+    "ability": {
+      "type": "hornRow",
+      "row": "siege"
+    },
+    "image": "v2/kingdom-leader-siege-lord.webp"
+  },
+  {
+    "id": "kingdom-lord-general",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/kingdom-lord-general.webp"
+  },
+  {
+    "id": "kingdom-ranger-captain",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/kingdom-ranger-captain.webp"
+  },
+  {
+    "id": "kingdom-old-monarch",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/kingdom-old-monarch.webp"
+  },
+  {
+    "id": "kingdom-royal-sorceress",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 10,
+    "row": "ranged",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/kingdom-royal-sorceress.webp"
+  },
+  {
+    "id": "kingdom-wyrm-hunter",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 5,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3,
+    "image": "v2/kingdom-wyrm-hunter.webp",
+    "alternateImages": ["v2/kingdom-wyrm-hunter-2.webp", "v2/kingdom-wyrm-hunter-3.webp"]
+  },
+  {
+    "id": "kingdom-catapult",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 8,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 2,
+    "image": "v2/kingdom-catapult.webp",
+    "alternateImages": ["v2/kingdom-catapult-2.webp"]
+  },
+  {
+    "id": "kingdom-trebuchet",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/kingdom-trebuchet.webp",
+    "alternateImages": ["v2/kingdom-trebuchet-2.webp"]
+  },
+  {
+    "id": "kingdom-ballista",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/kingdom-ballista.webp",
+    "alternateImages": ["v2/kingdom-ballista-2.webp"]
+  },
+  {
+    "id": "kingdom-siege-tower",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/kingdom-siege-tower.webp"
+  },
+  {
+    "id": "kingdom-siege-engineer",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 1,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["moraleBoost"],
+    "maxCopies": 3,
+    "image": "v2/kingdom-siege-engineer.webp",
+    "alternateImages": ["v2/kingdom-siege-engineer-2.webp", "v2/kingdom-siege-engineer-3.webp"]
+  },
+  {
+    "id": "kingdom-banner-medic",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 5,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 1,
+    "image": "v2/kingdom-banner-medic.webp"
+  },
+  {
+    "id": "kingdom-azure-raider",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3,
+    "image": "v2/kingdom-azure-raider.webp",
+    "alternateImages": ["v2/kingdom-azure-raider-2.webp", "v2/kingdom-azure-raider-3.webp"]
+  },
+  {
+    "id": "kingdom-wayward-prince",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1,
+    "image": "v2/kingdom-wayward-prince.webp"
+  },
+  {
+    "id": "kingdom-gutter-informer",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 1,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1,
+    "image": "v2/kingdom-gutter-informer.webp"
+  },
+  {
+    "id": "kingdom-royal-intelligencer",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["spy"],
+    "maxCopies": 1,
+    "image": "v2/kingdom-royal-intelligencer.webp"
+  },
+  {
+    "id": "kingdom-battle-mage",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 6,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/kingdom-battle-mage.webp"
+  },
+  {
+    "id": "kingdom-war-adept",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 5,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/kingdom-war-adept.webp",
+    "alternateImages": ["v2/kingdom-war-adept-2.webp"]
+  },
+  {
+    "id": "kingdom-dwarven-crossbowman",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 4,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/kingdom-dwarven-crossbowman.webp",
+    "alternateImages": ["v2/kingdom-dwarven-crossbowman-2.webp"]
+  },
+  {
+    "id": "kingdom-vanguard-scout",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/kingdom-vanguard-scout.webp",
+    "alternateImages": ["v2/kingdom-vanguard-scout-2.webp"]
+  },
+  {
+    "id": "kingdom-quartermaster",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/kingdom-quartermaster.webp"
+  },
+  {
+    "id": "kingdom-levy-spearman",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 1,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3,
+    "image": "v2/kingdom-levy-spearman.webp",
+    "alternateImages": ["v2/kingdom-levy-spearman-2.webp", "v2/kingdom-levy-spearman-3.webp"]
+  },
+  {
+    "id": "kingdom-raw-recruit",
+    "kind": "unit",
+    "faction": "kingdom",
+    "strength": 1,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/kingdom-raw-recruit.webp",
+    "alternateImages": ["v2/kingdom-raw-recruit-2.webp"]
+  },
+  {
+    "id": "vikings-leader-kinslayer",
+    "kind": "leader",
+    "faction": "vikings",
+    "maxCopies": 1,
+    "ability": {
+      "type": "playBondCopyFromDeck"
+    },
+    "image": "v2/vikings-leader-kinslayer.webp"
+  },
+  {
+    "id": "vikings-leader-high-jarl",
+    "kind": "leader",
+    "faction": "vikings",
+    "maxCopies": 1,
+    "ability": {
+      "type": "passive",
+      "passive": "stormHardened"
+    },
+    "image": "v2/vikings-leader-high-jarl.webp"
+  },
+  {
+    "id": "vikings-leader-sea-king",
+    "kind": "leader",
+    "faction": "vikings",
+    "maxCopies": 1,
+    "ability": {
+      "type": "playCardFromDeck",
+      "card": "neutral-thunderhead"
+    },
+    "image": "v2/vikings-leader-sea-king.webp"
+  },
+  {
+    "id": "vikings-leader-lame-chieftain",
+    "kind": "leader",
+    "faction": "vikings",
+    "maxCopies": 1,
+    "ability": {
+      "type": "playCardFromDeck",
+      "card": "vikings-bloodcap"
+    },
+    "image": "v2/vikings-leader-lame-chieftain.webp"
+  },
+  {
+    "id": "vikings-leader-old-sea-wolf",
+    "kind": "leader",
+    "faction": "vikings",
+    "maxCopies": 1,
+    "ability": {
+      "type": "shuffleDiscardsIntoDecks"
+    },
+    "image": "v2/vikings-leader-old-sea-wolf.webp"
+  },
+  {
+    "id": "vikings-shield-captain",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": ["muster"],
+    "maxCopies": 1,
+    "musterCalls": "shieldmaidens",
+    "image": "v2/vikings-shield-captain.webp"
+  },
+  {
+    "id": "vikings-shieldmaiden",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3,
+    "musterGroup": "shieldmaidens",
+    "image": "v2/vikings-shieldmaiden.webp",
+    "alternateImages": ["v2/vikings-shieldmaiden-2.webp", "v2/vikings-shieldmaiden-3.webp"]
+  },
+  {
+    "id": "vikings-bearskin-chieftain",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 12,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile", "moraleBoost"],
+    "maxCopies": 1,
+    "image": "v2/vikings-bearskin-chieftain.webp"
+  },
+  {
+    "id": "vikings-grove-druid",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 8,
+    "row": "ranged",
+    "hero": true,
+    "abilities": ["frenzy"],
+    "maxCopies": 1,
+    "image": "v2/vikings-grove-druid.webp"
+  },
+  {
+    "id": "vikings-berserker",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": ["berserker"],
+    "maxCopies": 1,
+    "transformsInto": "vikings-raging-bear",
+    "image": "v2/vikings-berserker.webp"
+  },
+  {
+    "id": "vikings-raging-bear",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 14,
+    "row": "close",
+    "hero": false,
+    "abilities": ["moraleBoost"],
+    "maxCopies": 1,
+    "sideDeck": true,
+    "image": "v2/vikings-raging-bear.webp"
+  },
+  {
+    "id": "vikings-young-berserker",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 2,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["berserker"],
+    "maxCopies": 3,
+    "transformsInto": "vikings-young-raging-bear",
+    "image": "v2/vikings-young-berserker.webp",
+    "alternateImages": ["v2/vikings-young-berserker-2.webp", "v2/vikings-young-berserker-3.webp"]
+  },
+  {
+    "id": "vikings-young-raging-bear",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 8,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3,
+    "sideDeck": true,
+    "image": "v2/vikings-young-raging-bear.webp",
+    "alternateImages": [
+      "v2/vikings-young-raging-bear-2.webp",
+      "v2/vikings-young-raging-bear-3.webp"
+    ]
+  },
+  {
+    "id": "vikings-crowing-rooster",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 0,
+    "row": "close",
+    "hero": false,
+    "abilities": ["summon"],
+    "maxCopies": 1,
+    "summons": "vikings-bridge-warden",
+    "image": "v2/vikings-crowing-rooster.webp"
+  },
+  {
+    "id": "vikings-bridge-warden",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 11,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "sideDeck": true,
+    "image": "v2/vikings-bridge-warden.webp"
+  },
+  {
+    "id": "vikings-wise-woman",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 1,
+    "image": "v2/vikings-wise-woman.webp"
+  },
+  {
+    "id": "vikings-fire-raider",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 6,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["battlefieldScorch"],
+    "maxCopies": 1,
+    "image": "v2/vikings-fire-raider.webp"
+  },
+  {
+    "id": "vikings-skald",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 2,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["horn"],
+    "maxCopies": 1,
+    "image": "v2/vikings-skald.webp"
+  },
+  {
+    "id": "vikings-war-longship",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 6,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3,
+    "image": "v2/vikings-war-longship.webp",
+    "alternateImages": ["v2/vikings-war-longship-2.webp", "v2/vikings-war-longship-3.webp"]
+  },
+  {
+    "id": "vikings-clan-warrior",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": ["tightBond"],
+    "maxCopies": 3,
+    "image": "v2/vikings-clan-warrior.webp",
+    "alternateImages": ["v2/vikings-clan-warrior-2.webp", "v2/vikings-clan-warrior-3.webp"]
+  },
+  {
+    "id": "vikings-light-longship",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 4,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "light-longships",
+    "image": "v2/vikings-light-longship.webp",
+    "alternateImages": ["v2/vikings-light-longship-2.webp", "v2/vikings-light-longship-3.webp"]
+  },
+  {
+    "id": "vikings-giant-slayer",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 10,
+    "row": "ranged",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/vikings-giant-slayer.webp"
+  },
+  {
+    "id": "vikings-mad-raider",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/vikings-mad-raider.webp",
+    "alternateImages": ["v2/vikings-mad-raider-2.webp"]
+  },
+  {
+    "id": "vikings-fjord-archer",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 6,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 3,
+    "image": "v2/vikings-fjord-archer.webp",
+    "alternateImages": ["v2/vikings-fjord-archer-2.webp", "v2/vikings-fjord-archer-3.webp"]
+  },
+  {
+    "id": "vikings-reaver",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 4,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 5,
+    "image": "v2/vikings-reaver.webp",
+    "alternateImages": [
+      "v2/vikings-reaver-2.webp",
+      "v2/vikings-reaver-3.webp",
+      "v2/vikings-reaver-4.webp",
+      "v2/vikings-reaver-5.webp"
+    ]
+  },
+  {
+    "id": "vikings-shipwright",
+    "kind": "unit",
+    "faction": "vikings",
+    "strength": 4,
+    "row": "siege",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/vikings-shipwright.webp"
+  },
+  {
+    "id": "vikings-bloodcap",
+    "kind": "special",
+    "faction": "vikings",
+    "maxCopies": 3,
+    "effect": {
+      "type": "frenzy"
+    },
+    "image": "v2/vikings-bloodcap.webp"
+  },
+  {
+    "id": "elves-leader-pureblood",
+    "kind": "leader",
+    "faction": "elves",
+    "maxCopies": 1,
+    "ability": {
+      "type": "playCardFromDeck",
+      "card": "neutral-black-ice"
+    },
+    "image": "v2/elves-leader-pureblood.webp"
+  },
+  {
+    "id": "elves-leader-valley-queen",
+    "kind": "leader",
+    "faction": "elves",
+    "maxCopies": 1,
+    "ability": {
+      "type": "scorchRow",
+      "row": "close"
+    },
+    "image": "v2/elves-leader-valley-queen.webp"
+  },
+  {
+    "id": "elves-leader-fair-one",
+    "kind": "leader",
+    "faction": "elves",
+    "maxCopies": 1,
+    "ability": {
+      "type": "hornRow",
+      "row": "ranged"
+    },
+    "image": "v2/elves-leader-fair-one.webp"
+  },
+  {
+    "id": "elves-leader-peoples-hope",
+    "kind": "leader",
+    "faction": "elves",
+    "maxCopies": 1,
+    "ability": {
+      "type": "moveAgileUnits"
+    },
+    "image": "v2/elves-leader-peoples-hope.webp"
+  },
+  {
+    "id": "elves-leader-wildflower",
+    "kind": "leader",
+    "faction": "elves",
+    "maxCopies": 1,
+    "ability": {
+      "type": "drawFromDeck"
+    },
+    "image": "v2/elves-leader-wildflower.webp"
+  },
+  {
+    "id": "elves-flame-sapper",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 8,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["scorch"],
+    "maxCopies": 1,
+    "image": "v2/elves-flame-sapper.webp"
+  },
+  {
+    "id": "elves-dwarven-skirmisher",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 3,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "dwarven-skirmishers",
+    "image": "v2/elves-dwarven-skirmisher.webp",
+    "alternateImages": ["v2/elves-dwarven-skirmisher-2.webp", "v2/elves-dwarven-skirmisher-3.webp"]
+  },
+  {
+    "id": "elves-mountain-smuggler",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "mountain-smugglers",
+    "image": "v2/elves-mountain-smuggler.webp",
+    "alternateImages": ["v2/elves-mountain-smuggler-2.webp", "v2/elves-mountain-smuggler-3.webp"]
+  },
+  {
+    "id": "elves-smugglers-healer",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 0,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["medic"],
+    "maxCopies": 3,
+    "image": "v2/elves-smugglers-healer.webp",
+    "alternateImages": ["v2/elves-smugglers-healer-2.webp", "v2/elves-smugglers-healer-3.webp"]
+  },
+  {
+    "id": "elves-keen-eyed-huntress",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 10,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["moraleBoost"],
+    "maxCopies": 1,
+    "image": "v2/elves-keen-eyed-huntress.webp"
+  },
+  {
+    "id": "elves-wildwood-commander",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 10,
+    "row": "ranged",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 3,
+    "image": "v2/elves-wildwood-commander.webp",
+    "alternateImages": ["v2/elves-wildwood-commander-2.webp", "v2/elves-wildwood-commander-3.webp"]
+  },
+  {
+    "id": "elves-grizzled-marshal",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 10,
+    "row": "close",
+    "hero": true,
+    "abilities": ["moraleBoost"],
+    "maxCopies": 1,
+    "image": "v2/elves-grizzled-marshal.webp"
+  },
+  {
+    "id": "elves-forest-scout",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile"],
+    "maxCopies": 6,
+    "image": "v2/elves-forest-scout.webp",
+    "alternateImages": [
+      "v2/elves-forest-scout-2.webp",
+      "v2/elves-forest-scout-3.webp",
+      "v2/elves-forest-scout-4.webp",
+      "v2/elves-forest-scout-5.webp",
+      "v2/elves-forest-scout-6.webp"
+    ]
+  },
+  {
+    "id": "elves-elven-skirmisher",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 2,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "elven-skirmishers",
+    "image": "v2/elves-elven-skirmisher.webp",
+    "alternateImages": ["v2/elves-elven-skirmisher-2.webp", "v2/elves-elven-skirmisher-3.webp"]
+  },
+  {
+    "id": "elves-dwarven-sergeant",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/elves-dwarven-sergeant.webp"
+  },
+  {
+    "id": "elves-moonlit-seer",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 6,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/elves-moonlit-seer.webp"
+  },
+  {
+    "id": "elves-woodland-brigade",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile"],
+    "maxCopies": 2,
+    "image": "v2/elves-woodland-brigade.webp",
+    "alternateImages": ["v2/elves-woodland-brigade-2.webp"]
+  },
+  {
+    "id": "elves-mountain-defender",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 5,
+    "image": "v2/elves-mountain-defender.webp",
+    "alternateImages": [
+      "v2/elves-mountain-defender-2.webp",
+      "v2/elves-mountain-defender-3.webp",
+      "v2/elves-mountain-defender-4.webp",
+      "v2/elves-mountain-defender-5.webp"
+    ]
+  },
+  {
+    "id": "elves-elven-archer",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 4,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 2,
+    "image": "v2/elves-elven-archer.webp",
+    "alternateImages": ["v2/elves-elven-archer-2.webp"]
+  },
+  {
+    "id": "elves-young-outrider",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 3,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile"],
+    "maxCopies": 1,
+    "image": "v2/elves-young-outrider.webp"
+  },
+  {
+    "id": "elves-bitter-bowman",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 2,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/elves-bitter-bowman.webp"
+  },
+  {
+    "id": "elves-wayfinder",
+    "kind": "unit",
+    "faction": "elves",
+    "strength": 1,
+    "row": "ranged",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/elves-wayfinder.webp"
+  },
+  {
+    "id": "neutral-black-ice",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "weather",
+      "rows": ["close"]
+    },
+    "image": "v2/neutral-black-ice.webp"
+  },
+  {
+    "id": "neutral-sea-mist",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "weather",
+      "rows": ["ranged"]
+    },
+    "image": "v2/neutral-sea-mist.webp"
+  },
+  {
+    "id": "neutral-mudslide",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "weather",
+      "rows": ["siege"]
+    },
+    "image": "v2/neutral-mudslide.webp"
+  },
+  {
+    "id": "neutral-thunderhead",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "weather",
+      "rows": ["ranged", "siege"]
+    },
+    "image": "v2/neutral-thunderhead.webp"
+  },
+  {
+    "id": "neutral-break-in-the-clouds",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "clearWeather"
+    },
+    "image": "v2/neutral-break-in-the-clouds.webp"
+  },
+  {
+    "id": "neutral-war-drum",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "horn"
+    },
+    "image": "v2/neutral-war-drum.webp"
+  },
+  {
+    "id": "neutral-straw-double",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "decoy"
+    },
+    "image": "v2/neutral-straw-double.webp"
+  },
+  {
+    "id": "neutral-wildfire",
+    "kind": "special",
+    "faction": "neutral",
+    "maxCopies": 3,
+    "effect": {
+      "type": "scorch"
+    },
+    "image": "v2/neutral-wildfire.webp"
+  },
+  {
+    "id": "neutral-silent-elder",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 0,
+    "row": "close",
+    "hero": true,
+    "abilities": ["spy"],
+    "maxCopies": 1,
+    "image": "v2/neutral-silent-elder.webp"
+  },
+  {
+    "id": "neutral-lone-hunter",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 15,
+    "row": "close",
+    "hero": true,
+    "abilities": ["muster"],
+    "maxCopies": 1,
+    "musterCalls": "mare",
+    "image": "v2/neutral-lone-hunter.webp"
+  },
+  {
+    "id": "neutral-wayfaring-heir",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 15,
+    "row": "close",
+    "hero": true,
+    "abilities": ["muster"],
+    "maxCopies": 1,
+    "musterCalls": "mare",
+    "image": "v2/neutral-wayfaring-heir.webp"
+  },
+  {
+    "id": "neutral-triss",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 7,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/neutral-triss.webp"
+  },
+  {
+    "id": "neutral-faithful-mare",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 3,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "musterGroup": "mare",
+    "image": "v2/neutral-faithful-mare.webp"
+  },
+  {
+    "id": "neutral-old-swordmaster",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/neutral-old-swordmaster.webp"
+  },
+  {
+    "id": "neutral-midnight-herbalist",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/neutral-midnight-herbalist.webp"
+  },
+  {
+    "id": "neutral-stout-axeman",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 5,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/neutral-stout-axeman.webp"
+  },
+  {
+    "id": "neutral-gilded-wyrm",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 7,
+    "row": "close",
+    "hero": false,
+    "abilities": ["scorch"],
+    "maxCopies": 1,
+    "image": "v2/neutral-gilded-wyrm.webp"
+  },
+  {
+    "id": "neutral-deathless-captain",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 6,
+    "row": "close",
+    "hero": false,
+    "abilities": ["agile", "moraleBoost"],
+    "maxCopies": 1,
+    "image": "v2/neutral-deathless-captain.webp"
+  },
+  {
+    "id": "neutral-travelling-minstrel",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 2,
+    "row": "close",
+    "hero": false,
+    "abilities": ["horn"],
+    "maxCopies": 1,
+    "image": "v2/neutral-travelling-minstrel.webp"
+  },
+  {
+    "id": "neutral-thornwood-sorceress",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 7,
+    "row": "ranged",
+    "hero": true,
+    "abilities": ["medic"],
+    "maxCopies": 1,
+    "image": "v2/neutral-thornwood-sorceress.webp"
+  },
+  {
+    "id": "neutral-smiling-stranger",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 2,
+    "row": "siege",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 1,
+    "musterCalls": "shadows",
+    "image": "v2/neutral-smiling-stranger.webp"
+  },
+  {
+    "id": "neutral-strangers-shadow",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 4,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["muster"],
+    "maxCopies": 3,
+    "musterGroup": "shadows",
+    "image": "v2/neutral-strangers-shadow.webp",
+    "alternateImages": ["v2/neutral-strangers-shadow-2.webp", "v2/neutral-strangers-shadow-3.webp"]
+  },
+  {
+    "id": "neutral-pasture-cow",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 2,
+    "row": "ranged",
+    "hero": false,
+    "abilities": ["summon"],
+    "maxCopies": 1,
+    "summons": "neutral-bovine-vanguard",
+    "image": "v2/neutral-pasture-cow.webp"
+  },
+  {
+    "id": "neutral-bovine-vanguard",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 8,
+    "row": "close",
+    "hero": false,
+    "abilities": [],
+    "maxCopies": 1,
+    "sideDeck": true,
+    "image": "v2/neutral-bovine-vanguard.webp"
+  }
+]

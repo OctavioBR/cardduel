@@ -210,6 +210,10 @@ export function MatchBoard({
     },
   });
 
+  const draggedCard = dragging.drag
+    ? view.you.hand.find((c) => c.uid === dragging.drag?.uid)
+    : undefined;
+
   const pass = () => {
     if (!canPass || locked) return;
     // Two steps while the hand is not empty: the button becomes "Confirm Pass" for 3 seconds.
@@ -474,7 +478,7 @@ export function MatchBoard({
               }}
               data-testid="hand-card"
             >
-              <Card cardId={card.cardId} size="hand" />
+              <Card cardId={card.cardId} artIndex={card.artIndex} size="hand" />
               <span className="visually-hidden" id={`hand-description-${card.uid}`}>
                 {(() => {
                   const definition = cardDef(card.cardId);
@@ -487,17 +491,14 @@ export function MatchBoard({
         })}
       </section>
 
-      {dragging.drag ? (
+      {dragging.drag && draggedCard ? (
         <div
           className="drag-ghost"
           style={{ left: dragging.drag.x, top: dragging.drag.y }}
           aria-hidden="true"
           data-testid="drag-ghost"
         >
-          <Card
-            cardId={view.you.hand.find((c) => c.uid === dragging.drag?.uid)?.cardId ?? ""}
-            size="hand"
-          />
+          <Card cardId={draggedCard.cardId} artIndex={draggedCard.artIndex} size="hand" />
         </div>
       ) : null}
       {view.phase === "redraw" ? (
@@ -522,7 +523,7 @@ export function MatchBoard({
               <p className="overlay-empty">{copy.noneAreLeftInTheirHand}</p>
             ) : null}
             {view.opponent.knownHand.map((c) => (
-              <Card key={c.uid} cardId={c.cardId} size="tile" />
+              <Card key={c.uid} cardId={c.cardId} artIndex={c.artIndex} size="tile" />
             ))}
           </div>
         </Overlay>

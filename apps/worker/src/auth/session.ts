@@ -1,6 +1,7 @@
 import { waitUntil } from "cloudflare:workers";
 import { createClerkClient } from "@clerk/backend";
 import { activityIsStale, recordActivity } from "../activity";
+import { FACTIONS } from "../decks";
 import { starterDeck } from "../starter-decks";
 
 // Intersect with generated bindings so local .dev.vars inference may also declare these keys.
@@ -82,7 +83,7 @@ export async function readSession(
           "INSERT INTO records (account_id) SELECT id FROM accounts WHERE clerk_user_id = ? ON CONFLICT(account_id) DO NOTHING",
         )
         .bind(userId),
-      ...(["swarm", "court"] as const).map((faction) => {
+      ...FACTIONS.map((faction) => {
         const deck = starterDeck(faction);
         return db
           .prepare(

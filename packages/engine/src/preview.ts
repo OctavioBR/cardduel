@@ -32,9 +32,13 @@ export interface PlayPreview {
   drawn: number;
 }
 
-/** Actions that get a Play Preview: plays, Leader abilities and Pending Choice options. */
+/**
+ * Actions that get a Play Preview: plays, Leader abilities and Pending Choice options, except
+ * who takes the first Turn.
+ */
 export function hasPreview(action: Action): boolean {
-  return action.type === "play" || action.type === "leader" || action.type === "choose";
+  if (action.type === "choose") return action.starter === undefined;
+  return action.type === "play" || action.type === "leader";
 }
 
 /**

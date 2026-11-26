@@ -7,8 +7,15 @@
   --cd-card-2: #33363f;
   --cd-text: #f3f4f6;
   --cd-muted: #9ca3af;
+  /* Faction colours (#33, #122): vermilion Swarm, black Court, blue Kingdom, purple Vikings,
+     green Elves (a forest green, apart from the mint used for raised Strength). */
   --cd-swarm: #f0662e;
-  --cd-court: #1d6fc2;
+  --cd-court: #050506;
+  /* Court's colour where it is text or must stand out on the dark ground. */
+  --cd-court-ink: #c4c8d0;
+  --cd-kingdom: #1d6fc2;
+  --cd-vikings: #a274f0;
+  --cd-elves: #3c9a46;
   --cd-neutral: #6b7280;
   --cd-raised: #34d399;
   --cd-lowered: #f87171;

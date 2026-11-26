@@ -1,7 +1,7 @@
 import type { CardDefinition } from "@card-duel/engine";
 import { describe, expect, it } from "vitest";
 import released from "../data/released.json";
-import { fingerprint, getCatalog } from "./index";
+import { fingerprint, getCatalog, starterDeckOf } from "./index";
 import { fixtureCatalog } from "./testing";
 import type { CatalogData } from "./types";
 import { validateCatalog } from "./validate";
@@ -36,7 +36,7 @@ describe("validateCatalog", () => {
           strength: -1,
           row: "middle" as "close",
           hero: false,
-          abilities: ["summon" as "spy", "muster"],
+          abilities: ["conjure" as "spy", "muster"],
           maxCopies: 0,
         },
         {
@@ -51,11 +51,11 @@ describe("validateCatalog", () => {
           maxCopies: 3,
         },
         {
-          id: "mardroeme",
+          id: "mirage",
           kind: "special",
           faction: "neutral",
           maxCopies: 3,
-          effect: { type: "mardroeme" as "horn" },
+          effect: { type: "mirage" as "horn" },
         },
         {
           id: "passive-lord",
@@ -68,19 +68,19 @@ describe("validateCatalog", () => {
       strings: { en: { ...data.strings.en, ghost: { name: "Ghost", text: "" } } },
       starterDecks: {
         ...data.starterDecks,
-        court: { ...data.starterDecks.court, cards: ["court-unit-1"] },
+        court: { ...starterDeckOf(data, "court"), cards: ["court-unit-1"] },
       },
     };
     const errors = validateCatalog(broken);
     expect(errors).toContain('Card "swarm-unit-1": duplicate id.');
     expect(errors).toContain('Card "summoner": strength must be a whole number.');
     expect(errors).toContain('Card "summoner": unknown Row "middle".');
-    expect(errors).toContain('Card "summoner": ability "summon" is not in v1.');
-    expect(errors).toContain('Card "summoner": a Muster card needs a musterGroup.');
+    expect(errors).toContain('Card "summoner": ability "conjure" is not a known ability.');
+    expect(errors).toContain('Card "summoner": a Muster card needs a musterGroup or musterCalls.');
     expect(errors).toContain('Card "summoner": maxCopies must be at least 1.');
-    expect(errors).toContain('Card "mardroeme": effect "mardroeme" is not in v1.');
+    expect(errors).toContain('Card "mirage": effect "mirage" is not a known effect.');
     expect(errors).toContain(
-      'Card "passive-lord": Leader passive "secondWind" is not an approved v1 kind.',
+      'Card "passive-lord": Leader passive "secondWind" is not an approved kind.',
     );
     expect(errors).toContain('Card "passive-lord": a Leader has maxCopies 1.');
     expect(errors).toContain(
@@ -91,12 +91,10 @@ describe("validateCatalog", () => {
     expect(errors.some((e) => e.includes("id must be lowercase"))).toBe(true);
   });
 
-  it("requires every Starter Deck to be a Competitive Deck", () => {
+  it("allows a Starter Deck that is not a Competitive Deck", () => {
     const data = fixtureCatalog();
-    data.starterDecks.court.cards.push("frost", "frost", "frost", "horn", "horn", "horn");
-    expect(validateCatalog(data)).toEqual([
-      "Starter Deck for court is not a Competitive Deck: Competitive Decks hold at most 5 Special Cards (has 6).",
-    ]);
+    starterDeckOf(data, "court").cards.push("frost", "frost", "frost", "horn", "horn", "horn");
+    expect(validateCatalog(data)).toEqual([]);
   });
 });
 

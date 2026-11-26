@@ -117,3 +117,89 @@ export async function fillAuthForm(
   await page.getByLabel("Display name", { exact: true }).fill(displayName);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
 }
+
+/**
+ * Competitive Decks for e2e: the current Starter Decks trimmed to the Competitive limits
+ * (Starter Decks need not be Competitive Decks). Playwright cannot load the catalog package.
+ * Court swaps in a Siege Mender and leads with it and Wildfire so the fixed E2E seed deals
+ * both into its opening hand (two-players.spec.ts).
+ */
+const COMPETITIVE_DECKS = {
+  swarm: {
+    faction: "swarm",
+    leader: "swarm-leader-storm-caller",
+    cards: [
+      "neutral-war-drum",
+      "neutral-war-drum",
+      "neutral-break-in-the-clouds",
+      "neutral-mudslide",
+      "neutral-sea-mist",
+      "neutral-faithful-mare",
+      "neutral-lone-hunter",
+      "neutral-silent-elder",
+      "swarm-coiled-leviathan",
+      "swarm-hollow-seer",
+      "swarm-bone-warlord",
+      "swarm-brood-crone",
+      "swarm-brood-crone",
+      "swarm-brood-crone",
+      "swarm-elder-night-feeder",
+      "swarm-night-feeder",
+      "swarm-night-feeder",
+      "swarm-night-feeder",
+      "swarm-night-feeder",
+      "swarm-web-crawler",
+      "swarm-web-crawler",
+      "swarm-web-crawler",
+      "swarm-webmother",
+      "swarm-burrow-gnawer",
+      "swarm-burrow-gnawer",
+      "swarm-burrow-gnawer",
+      "swarm-bloated-spitter",
+    ],
+  },
+  court: {
+    faction: "court",
+    leader: "court-leader-usurper",
+    cards: [
+      "neutral-wildfire",
+      "court-siege-mender",
+      "neutral-break-in-the-clouds",
+      "neutral-straw-double",
+      "neutral-straw-double",
+      "neutral-silent-elder",
+      "court-smiling-ambassador",
+      "court-outrider",
+      "court-outrider",
+      "court-outrider",
+      "court-young-courtier",
+      "court-young-courtier",
+      "court-imperial-legate",
+      "court-black-blade",
+      "court-field-marshal",
+      "court-lord-of-engines",
+      "court-great-fire-ballista",
+      "court-black-legion-archer",
+      "court-black-legion-archer",
+      "court-imperial-pikeman",
+      "court-imperial-pikeman",
+      "court-imperial-pikeman",
+      "court-imperial-pikeman",
+      "court-ebon-knight",
+      "court-court-sorceress",
+      "court-court-sorceress",
+    ],
+  },
+} as const;
+
+/** Saves "<Faction> Competitive" (see COMPETITIVE_DECKS), then reloads so pickers list it. */
+export async function saveCompetitiveDeck(page: Page, faction: "swarm" | "court"): Promise<string> {
+  const name = `${faction === "swarm" ? "Swarm" : "Court"} Competitive`;
+  const res = await page.request.post("/api/decks", {
+    data: { name, ...COMPETITIVE_DECKS[faction] },
+    headers: { Origin: new URL(page.url()).origin },
+  });
+  expect(res.status()).toBe(201);
+  await page.reload();
+  return name;
+}

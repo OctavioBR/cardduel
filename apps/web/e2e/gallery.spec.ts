@@ -19,9 +19,49 @@ for (const scale of [1, 2]) {
       for (const size of ["token", "hand", "tile", "detail"]) {
         expect(await page.locator(`.cd-${size}`).count()).toBeGreaterThanOrEqual(count);
       }
-      // Vector only: no raster card art that could blur at 2x.
-      expect(await page.locator(".cd-card img").count()).toBe(0);
+      await expect(rows.locator(".cd-detail img")).toHaveCount(count);
+      const art = rows.first().locator(".cd-detail img");
+      await expect
+        .poll(() => art.evaluate((img: HTMLImageElement) => img.naturalWidth))
+        .toBeGreaterThan(0);
       expect(errors).toEqual([]);
     });
   });
 }
+
+test("the gallery menu jumps to every Faction and Neutral Cards", async ({ page }) => {
+  await page.goto("/dev/cards");
+  const menu = page.getByRole("navigation", { name: "Jump to cards" });
+  await expect(menu.getByRole("link")).toHaveCount(6);
+  for (const [name, faction] of [
+    ["Swarm", "swarm"],
+    ["Court", "court"],
+    ["Kingdom", "kingdom"],
+    ["Vikings", "vikings"],
+    ["Elves", "elves"],
+    ["Neutral Cards", "neutral"],
+  ]) {
+    const group = page.getByRole("region", { name, exact: true });
+    const heading = group.getByRole("heading", { name });
+    await menu.getByRole("link", { name }).press("Enter");
+    await expect(heading).toBeFocused();
+    await expect(heading).toBeInViewport({ ratio: 1 });
+    await expect(menu).toBeInViewport({ ratio: 1 });
+    const cards = group.locator(".cd-detail");
+    expect(await cards.count()).toBeGreaterThan(0);
+    await expect(group.locator(`.cd-detail:not(.cd-f-${faction})`)).toHaveCount(0);
+  }
+});
+
+test("on narrow screens the gallery menu stays above the jump destination", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/dev/cards");
+  const menu = page.getByRole("navigation", { name: "Jump to cards" });
+  await menu.getByRole("link", { name: "Neutral Cards" }).click();
+  const heading = page.getByRole("heading", { name: "Neutral Cards" });
+  await expect(heading).toBeInViewport({ ratio: 1 });
+  await expect(menu).toBeInViewport({ ratio: 1 });
+  const menuBottom = await menu.evaluate((element) => element.getBoundingClientRect().bottom);
+  const headingTop = await heading.evaluate((element) => element.getBoundingClientRect().top);
+  expect(headingTop).toBeGreaterThan(menuBottom);
+});

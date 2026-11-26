@@ -25,6 +25,25 @@ test("keyboard: focus a hand card and press I; Esc closes", async ({ page }) => 
   await expect(detail).toBeHidden();
 });
 
+test("keyboard Card Detail keeps a Unit copy's illustration from Redraw", async ({ page }) => {
+  await page.goto("/dev/local?deck=elves&seed=1");
+  const card = page
+    .getByTestId("redraw")
+    .getByRole("button")
+    .filter({
+      has: page.locator("[data-art-index]"),
+    })
+    .first();
+  await card.focus();
+  const image = await card.locator("img").getAttribute("src");
+  expect(image).toBeTruthy();
+  await page.keyboard.press("i");
+  await expect(page.getByTestId("card-detail").locator("img")).toHaveAttribute(
+    "src",
+    image as string,
+  );
+});
+
 test("Discard Pile overlay cards open Card Detail too", async ({ page }) => {
   await page.goto("/dev/local?scenario=medic");
   await page.getByRole("button", { name: /Your Discard Pile/ }).click();

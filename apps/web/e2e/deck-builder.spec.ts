@@ -23,7 +23,7 @@ test("build a Valid Deck from scratch; Competitive warnings appear; saved change
 }) => {
   await newDeck(page);
   await expect(page.getByTestId("deck-error")).toContainText(["Choose a Leader."]);
-  await page.getByRole("radio", { name: "Queen of the Deep Hive" }).check();
+  await page.getByRole("radio", { name: "The Hive Mind" }).check();
 
   // The pool lists the strongest Units first: taking them breaks the 130 Strength cap.
   for (let i = 0; i < 40 && (await units(page)) < 22; i++) {
@@ -49,7 +49,7 @@ test("build a Valid Deck from scratch; Competitive warnings appear; saved change
   await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
   await page.reload();
   await expect(page.getByTestId("count-units")).toHaveText("22/22");
-  await expect(page.getByRole("radio", { name: "Queen of the Deep Hive" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "The Hive Mind" })).toBeChecked();
   await expect(page.getByTestId("deck-warning")).toBeVisible();
 });
 
@@ -80,7 +80,7 @@ test("drag adds a card from the pool and removes it back", async ({ page }) => {
   await expect(page.getByTestId("count-units")).toHaveText("0/22");
 });
 
-test("new players have a Competitive Starter Deck for each Faction after signing up", async ({
+test("new players have a Valid Starter Deck for each Faction after signing up", async ({
   page,
 }) => {
   await signUpVia(page, uniqueName("seeded"), "/decks");
@@ -88,18 +88,16 @@ test("new players have a Competitive Starter Deck for each Faction after signing
     await page.getByRole("tab", { name: faction, exact: true }).click();
     await expect(page.locator(".deck-list li")).toHaveCount(1);
     await page.getByRole("link", { name: `${faction} Starter`, exact: true }).click();
-    await expect(page.getByTestId("deck-status")).toHaveText("Competitive Deck");
+    await expect(page.getByTestId("deck-error")).toHaveCount(0);
     await page.goto("/decks");
   }
 });
 
-test("Copy a Starter Deck gives an additional Competitive Deck; filters narrow the pool", async ({
-  page,
-}) => {
+test("Copy a Starter Deck gives an additional Deck; filters narrow the pool", async ({ page }) => {
   await signUpVia(page, uniqueName("starter"), "/decks");
   await page.getByRole("tab", { name: "Court" }).click();
   await page.getByRole("button", { name: "Copy a Starter Deck" }).click();
-  await expect(page.getByTestId("deck-status")).toHaveText("Competitive Deck");
+  await expect(page.getByTestId("deck-error")).toHaveCount(0);
 
   await page.getByLabel("Type").selectOption("special");
   const tiles = page.getByTestId("pool-tile");
@@ -107,11 +105,12 @@ test("Copy a Starter Deck gives an additional Competitive Deck; filters narrow t
   expect(ids.length).toBeGreaterThan(0);
   for (const id of ids) expect(id.startsWith("neutral-")).toBe(true);
   await page.getByLabel("Type").selectOption("all");
-  await page.getByLabel("Ability").selectOption("spy");
+  await page.getByRole("combobox", { name: /^Ability/ }).selectOption("spy");
   const spies = await tiles.evaluateAll((els) => els.map((e) => e.getAttribute("data-card") ?? ""));
   expect(spies.sort()).toEqual([
-    "court-double-agent",
-    "court-masked-envoy",
-    "court-palace-informant",
+    "court-shadow-chamberlain",
+    "court-smiling-ambassador",
+    "court-turncoat-general",
+    "neutral-silent-elder",
   ]);
 });

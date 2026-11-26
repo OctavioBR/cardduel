@@ -1,4 +1,4 @@
-import { getCatalog } from "@card-duel/catalog";
+import { getCatalog, starterDeckOf } from "@card-duel/catalog";
 import {
   applyAction,
   type CardDefinition,
@@ -121,10 +121,12 @@ function leaderScenario(kind: LeaderAbility["type"]): Scenario {
 
 function starterSetup(seed: number, extraSwarm: string[] = []): MatchSetup {
   const v1 = getCatalog("v1");
+  const swarmStarter = starterDeckOf(v1, "swarm");
+  const courtStarter = starterDeckOf(v1, "court");
   const swarm = {
-    ...v1.starterDecks.swarm,
+    ...swarmStarter,
     cards: [
-      ...v1.starterDecks.swarm.cards,
+      ...swarmStarter.cards,
       "neutral-wildfire",
       "swarm-thornback-crawler",
       "swarm-siege-grub",
@@ -132,8 +134,8 @@ function starterSetup(seed: number, extraSwarm: string[] = []): MatchSetup {
     ],
   };
   const court = {
-    ...v1.starterDecks.court,
-    cards: [...v1.starterDecks.court.cards, "court-palace-champion"],
+    ...courtStarter,
+    cards: [...courtStarter.cards, "court-palace-champion"],
   };
   return { seed, decks: [swarm, court], cards: v1.cards };
 }

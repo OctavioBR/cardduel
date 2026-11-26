@@ -33,13 +33,14 @@ export function checkValidDeck(deck: DeckInput, catalog: Catalog): DeckProblem[]
   for (const id of deck.cards) {
     counts.set(id, (counts.get(id) ?? 0) + 1);
     const def = catalog.byId.get(id);
-    if (def?.kind === "unit") units++;
+    if (def?.kind === "unit" && !def.sideDeck) units++;
     if (def?.kind === "special") specials++;
   }
 
   for (const [id, count] of counts) {
     const def = catalog.byId.get(id);
-    if (!def || def.kind === "leader") {
+    // Leaders are chosen apart from the cards; Side Deck cards never go in a Deck.
+    if (!def || def.kind === "leader" || (def.kind === "unit" && def.sideDeck)) {
       problems.push({
         code: "unknown_card",
         message: formatCopy(copy.isNotACardYouCan, { p0: name(id) }),

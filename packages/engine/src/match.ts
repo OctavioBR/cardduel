@@ -8,6 +8,7 @@ import { draw, ref, resolvePlay, withStrengthEvents } from "./play";
 import { nextInt, shuffle, toSeed } from "./rng";
 import { afterTurn, beginTurn, endMatch } from "./round";
 import {
+  MATCH_STATE_VERSION,
   type MatchSetup,
   type MatchState,
   opponent,
@@ -31,7 +32,7 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
   for (const def of setup.cards) defs[def.id] = def;
 
   const state: MatchState = {
-    version: 1,
+    version: MATCH_STATE_VERSION,
     rng: toSeed(setup.seed),
     defs,
     cards: [],
@@ -57,7 +58,20 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
       state.cards.push({ cardId, owner: seat });
     }
   }
+  // Side Deck: one card for each Summon card and Berserker in the Deck, after every Deck
+  // card so v1 Matches keep their uids.
+  for (const seat of SEATS) {
+    for (const cardId of setup.decks[seat].cards) {
+      const def = defs[cardId];
+      const sideId = def?.kind === "unit" ? (def.summons ?? def.transformsInto) : undefined;
+      if (!sideId) continue;
+      if (!defs[sideId]) throw new Error(`No definition for card ${sideId}`);
+      state.sides[seat].sideDeck.push(state.cards.length);
+      state.cards.push({ cardId: sideId, owner: seat });
+    }
+  }
 
+  assignUnitArtwork(state, setup.seed);
   const events: MatchEvent[] = [];
   const starter: Seat = nextInt(state, 2) === 0 ? 0 : 1;
   state.roundStarter = starter;
@@ -69,6 +83,27 @@ export function createMatch(setup: MatchSetup): { state: MatchState; events: Mat
   }
   // Both Seats now Redraw privately; the first Turn starts when both have confirmed.
   return { state, events };
+}
+
+/** Deal from the full set of illustrations per Seat, independently of the gameplay shuffle.
+ * Seeing an illustration should not tell the opponent how many copies started in the Deck.
+ */
+function assignUnitArtwork(state: MatchState, seed: number): void {
+  const artRng = { rng: toSeed(~seed) };
+  const remaining = [new Map<string, number[]>(), new Map<string, number[]>()] as const;
+  for (const card of state.cards) {
+    const def = state.defs[card.cardId];
+    if (def?.kind !== "unit" || !def.alternateImages?.length) continue;
+    const byId = remaining[card.owner];
+    let indices = byId.get(card.cardId);
+    if (!indices?.length) {
+      indices = Array.from({ length: def.alternateImages.length + 1 }, (_, i) => i);
+      shuffle(artRng, indices);
+      byId.set(card.cardId, indices);
+    }
+    const index = indices.pop();
+    if (index) card.artIndex = index;
+  }
 }
 
 export interface ApplyOptions {
@@ -96,6 +131,8 @@ export function applyAction(
     endMatch(next, { outcome: "win", winner: opponent(seat), reason: "forfeit" }, events);
   } else if (action.type === "redraw" || action.type === "confirmRedraw") {
     applyRedraw(next, seat, action, events);
+  } else if (action.type === "choose" && action.starter !== undefined) {
+    chooseStarter(next, seat, action.starter, events);
   } else {
     resolve(next, seat, action, events, options.timedOut ? "turnTimer" : "player");
     // The Turn ends only once every Pending Choice it raised has been made.
@@ -167,9 +204,27 @@ function applyRedraw(
   }
   if (state.sides[0].redraw.done && state.sides[1].redraw.done) {
     state.phase = "turns";
+    // Elves decides who takes the first Turn, unless both players are Elves.
+    const elves = SEATS.filter((s) => state.sides[s].faction === "elves");
+    if (elves.length === 1) {
+      const chooser = elves[0] as Seat;
+      state.pending.push({ seat: chooser, kind: "firstTurn" });
+      state.turn = chooser;
+      events.push({ type: "choiceRequired", seat: chooser, kind: "firstTurn" });
+      return;
+    }
     events.push({ type: "roundStarted", round: 1, starter: state.roundStarter });
     beginTurn(state, state.roundStarter, events);
   }
+}
+
+/** Elves chose who takes the first Turn: the first Round starts with that Seat. */
+function chooseStarter(state: MatchState, seat: Seat, starter: Seat, events: MatchEvent[]): void {
+  state.pending.shift();
+  state.roundStarter = starter;
+  events.push({ type: "factionPassive", seat, faction: "elves", effect: "choseStarter", starter });
+  events.push({ type: "roundStarted", round: 1, starter });
+  beginTurn(state, starter, events);
 }
 
 /**
@@ -204,6 +259,7 @@ function cloneSide(side: SideState): SideState {
   return {
     ...side,
     deck: [...side.deck],
+    sideDeck: [...side.sideDeck],
     hand: [...side.hand],
     discard: [...side.discard],
     known: [...side.known],
@@ -256,6 +312,7 @@ function emptySide(setup: MatchSetup, seat: Seat): SideState {
     leader: deck.leader,
     leaderUsed: false,
     deck: [],
+    sideDeck: [],
     hand: [],
     discard: [],
     rows,

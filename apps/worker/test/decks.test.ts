@@ -31,16 +31,23 @@ describe("Deck API", () => {
   it("gives a new player one current Starter Deck per Faction", async () => {
     const me = await newPlayer();
     const { decks } = (await (await api(me, "")).json()) as { decks: DeckJson[] };
-    expect(decks).toHaveLength(2);
-    expect(new Set(decks.map((deck) => deck.id)).size).toBe(2);
+    expect(decks).toHaveLength(5);
+    expect(new Set(decks.map((deck) => deck.id)).size).toBe(5);
     if (!CURRENT_CATALOG_VERSION) throw new Error("No catalog version");
     const catalog = getCatalog(CURRENT_CATALOG_VERSION);
-    for (const faction of ["swarm", "court"] as const) {
+    const names = {
+      swarm: "Swarm Starter",
+      court: "Court Starter",
+      kingdom: "Kingdom Starter",
+      vikings: "Vikings Starter",
+      elves: "Elves Starter",
+    } as const;
+    for (const faction of ["swarm", "court", "kingdom", "vikings", "elves"] as const) {
       expect(decks.find((deck) => deck.faction === faction)).toMatchObject({
         ...catalog.starterDecks[faction],
-        name: faction === "swarm" ? "Swarm Starter" : "Court Starter",
+        name: names[faction],
         catalogVersion: CURRENT_CATALOG_VERSION,
-        problems: { valid: [], competitive: [] },
+        problems: { valid: [] },
       });
     }
     expect(((await (await api(me, "")).json()) as { decks: DeckJson[] }).decks).toEqual(decks);
@@ -50,11 +57,13 @@ describe("Deck API", () => {
     const me = await newPlayer();
     const { decks } = (await (await api(me, "")).json()) as { decks: DeckJson[] };
     const swarm = decks.find((deck) => deck.faction === "swarm") as DeckJson;
-    const court = decks.find((deck) => deck.faction === "court") as DeckJson;
+    const others = decks.filter((deck) => deck.faction !== "swarm");
     const edited = await deckOf(
       await api(me, `/${swarm.id}`, "PUT", { name: "My Swarm", cards: [] }),
     );
-    expect((await api(me, `/${court.id}`, "DELETE")).status).toBe(204);
+    for (const other of others) {
+      expect((await api(me, `/${other.id}`, "DELETE")).status).toBe(204);
+    }
     expect(((await (await api(me, "")).json()) as { decks: DeckJson[] }).decks).toEqual([edited]);
     expect((await api(me, `/${swarm.id}`, "DELETE")).status).toBe(204);
     expect(((await (await api(me, "")).json()) as { decks: DeckJson[] }).decks).toEqual([]);
@@ -85,18 +94,18 @@ describe("Deck API", () => {
       faction: "swarm",
       leader: null,
       cards: [],
-      catalogVersion: "v1",
+      catalogVersion: CURRENT_CATALOG_VERSION,
     });
     expect(deck.problems.valid.map((p) => p.code)).toEqual(["no_leader", "too_few_units"]);
   });
 
-  it("copies a Starter Deck into a new Deck with no problems", async () => {
+  it("copies a Starter Deck into a new Valid Deck", async () => {
     const me = await newPlayer();
     const deck = await deckOf(await api(me, "/copy-starter", "POST", { faction: "court" }));
     expect(deck.faction).toBe("court");
-    expect(deck.leader).toBe("court-leader-spymaster");
+    expect(deck.leader).toBe("court-leader-usurper");
     expect(deck.cards.length).toBeGreaterThanOrEqual(22);
-    expect(deck.problems).toEqual({ valid: [], competitive: [] });
+    expect(deck.problems.valid).toEqual([]);
   });
 
   it("keeps several Decks per Faction and lists them by Faction, newest first", async () => {
@@ -107,7 +116,7 @@ describe("Deck API", () => {
     const swarm = (await (await api(me, "?faction=swarm")).json()) as { decks: DeckJson[] };
     expect(swarm.decks.map((d) => d.name)).toEqual(["Two", "One", "Swarm Starter"]);
     const all = (await (await api(me, "")).json()) as { decks: DeckJson[] };
-    expect(all.decks).toHaveLength(5);
+    expect(all.decks).toHaveLength(8);
   });
 
   it("updates name, Leader and cards; reports Competitive problems as warnings", async () => {
@@ -116,12 +125,12 @@ describe("Deck API", () => {
     const extra = ["neutral-black-ice", "neutral-mudslide", "neutral-sea-mist"];
     const res = await api(me, `/${created.id}`, "PUT", {
       name: "Heavier",
-      leader: "swarm-leader-swarmlord",
+      leader: "swarm-leader-hive-mind",
       cards: [...created.cards, ...extra],
     });
     expect(res.status).toBe(200);
     const updated = await deckOf(res);
-    expect(updated).toMatchObject({ name: "Heavier", leader: "swarm-leader-swarmlord" });
+    expect(updated).toMatchObject({ name: "Heavier", leader: "swarm-leader-hive-mind" });
     expect(updated.problems.valid).toEqual([]);
     expect(updated.problems.competitive.map((p) => p.code)).toEqual(["competitive_specials"]);
     expect(await deckOf(await api(me, `/${created.id}`))).toMatchObject({ name: "Heavier" });
@@ -131,7 +140,7 @@ describe("Deck API", () => {
     const me = await newPlayer();
     const created = await deckOf(await api(me, "", "POST", { faction: "court" }));
     expect((await api(me, `/${created.id}`, "PUT", { faction: "swarm" })).status).toBe(400);
-    expect((await api(me, "", "POST", { faction: "elves" })).status).toBe(400);
+    expect((await api(me, "", "POST", { faction: "pirates" })).status).toBe(400);
     expect((await api(me, "", "POST", { faction: "swarm", name: "" })).status).toBe(400);
     expect((await api(me, "", "POST", { faction: "swarm", cards: "nope" })).status).toBe(400);
     expect(
@@ -154,7 +163,7 @@ describe("Deck API", () => {
     expect((await api(other, `/${deck.id}`, "PUT", { name: "Stolen" })).status).toBe(404);
     expect((await api(other, `/${deck.id}`, "DELETE")).status).toBe(404);
     const othersDecks = ((await (await api(other, "")).json()) as { decks: DeckJson[] }).decks;
-    expect(othersDecks).toHaveLength(2);
+    expect(othersDecks).toHaveLength(5);
     expect(othersDecks.map((d) => d.id)).not.toContain(deck.id);
     expect(await deckOf(await api(owner, `/${deck.id}`))).toMatchObject({ name: deck.name });
   });

@@ -57,6 +57,7 @@ describe("active Leader abilities", () => {
       cardId: "leader-clearWeather",
       used: true,
       passive: false,
+      cancelled: false,
     });
   });
 

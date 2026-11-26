@@ -117,6 +117,7 @@ describe("Steady Ground (passive Leader)", () => {
       cardId: STEADY.id,
       used: false,
       passive: true,
+      cancelled: false,
     });
     expect(legalActions(state, a).filter((x) => x.type === "leader")).toEqual([]);
     expect(applyAction(state, a, { type: "leader" }).ok).toBe(false);

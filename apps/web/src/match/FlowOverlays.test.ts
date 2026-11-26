@@ -34,12 +34,12 @@ describe("roundSummary", () => {
         seat: 0,
         faction: "swarm",
         effect: "keptUnit",
-        card: { uid: 3, cardId: "swarm-hive-drone" },
+        card: { uid: 3, cardId: "swarm-burrow-gnawer" },
       },
     ];
     expect(roundSummary(events, 0)?.passives).toEqual([
       "Your opponent's Court won the Tie.",
-      "Your Swarm kept Hive Drone on the battlefield.",
+      "Your Swarm kept Burrow Gnawer on the battlefield.",
     ]);
   });
 

@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { loadCatalog } from "./catalog";
+import { loadCatalog, starterDeckOf } from "./catalog";
 import { checkCompetitiveDeck, checkValidDeck, isCompetitiveDeck } from "./deck-checks";
 import { fixtureCatalog } from "./testing";
 import type { DeckInput } from "./types";
 
 const catalog = loadCatalog(fixtureCatalog());
 const starter = (): DeckInput => ({
-  ...catalog.starterDecks.swarm,
-  cards: [...catalog.starterDecks.swarm.cards],
+  ...starterDeckOf(catalog, "swarm"),
+  cards: [...starterDeckOf(catalog, "swarm").cards],
 });
 const codes = (problems: { code: string }[]) => problems.map((p) => p.code);
 

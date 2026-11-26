@@ -12,7 +12,7 @@ import { json } from "./http";
 import { starterDeck } from "./starter-decks";
 import copy from "./strings/en.json";
 
-const FACTIONS: FactionId[] = ["swarm", "court"];
+export const FACTIONS: readonly FactionId[] = ["swarm", "court", "kingdom", "vikings", "elves"];
 export const MAX_DECK_NAME = 40;
 /** A generous cap on stored card ids; a Valid Deck needs far fewer. */
 export const MAX_DECK_CARDS = 80;

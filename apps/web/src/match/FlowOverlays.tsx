@@ -2,12 +2,11 @@ import type { Action, MatchEvent, Seat, SeatView } from "@card-duel/engine";
 import { formatCopy } from "@card-duel/strings";
 import { Fragment, type ReactNode, useCallback, useState } from "react";
 import { Card } from "../cards/Card";
+import { FACTION_NAME } from "../cards/factions";
 import { cardName } from "../cards/strings";
 import roomStrings from "../room/strings/en.json";
 import copy from "../strings/en.json";
 import { Overlay } from "./Overlay";
-
-const FACTION_NAME = { swarm: copy.swarm, court: copy.court } as const;
 
 /** Fills a copy template's `{name}` slots with elements, for copy that colours a word. */
 function formatParts(template: string, values: Readonly<Record<string, ReactNode>>): ReactNode[] {
@@ -35,6 +34,17 @@ function useFocusOnMount<T extends HTMLElement>() {
   }, []);
 }
 
+/**
+ * Who chooses the first Turn instead of the coin flip: the only Elves player, if exactly one
+ * player is Elves (GLOSSARY.md: Elves).
+ */
+function elvesChooser(view: SeatView): "you" | "opponent" | null {
+  const you = view.you.faction === "elves";
+  const opponent = view.opponent.faction === "elves";
+  if (you === opponent) return null;
+  return you ? "you" : "opponent";
+}
+
 /** Faction and Leader reveal with the coin flip, then the private Redraw (GLOSSARY.md). */
 export function OpeningOverlay({
   view,
@@ -60,16 +70,31 @@ export function OpeningOverlay({
         <div className="reveal-vs">
           <strong>{copy.vs}</strong>
           <span data-testid="coin-flip">
-            {copy.coinFlip}{" "}
-            {view.roundStarter === "you" ? (
+            {elvesChooser(view) === "you" ? (
               <>
-                <span className="who-you">{copy.coinFlipYou}</span>
-                {copy.coinFlipYouTakeTheFirstTurn}
+                {copy.elvesChooses} <span className="who-you">{copy.coinFlipYou}</span>
+                {copy.elvesYouChooseWhoStarts}
+              </>
+            ) : elvesChooser(view) === "opponent" ? (
+              <>
+                {copy.elvesChooses}{" "}
+                <span className="who-opponent">{copy.coinFlipYourOpponent}</span>
+                {copy.elvesOpponentChoosesWhoStarts}
               </>
             ) : (
               <>
-                <span className="who-opponent">{copy.coinFlipYourOpponent}</span>
-                {copy.coinFlipOpponentTakesTheFirstTurn}
+                {copy.coinFlip}{" "}
+                {view.roundStarter === "you" ? (
+                  <>
+                    <span className="who-you">{copy.coinFlipYou}</span>
+                    {copy.coinFlipYouTakeTheFirstTurn}
+                  </>
+                ) : (
+                  <>
+                    <span className="who-opponent">{copy.coinFlipYourOpponent}</span>
+                    {copy.coinFlipOpponentTakesTheFirstTurn}
+                  </>
+                )}
               </>
             )}
           </span>
@@ -110,7 +135,7 @@ export function OpeningOverlay({
                 aria-label={formatCopy(copy.return, { p0: cardName(card.cardId) })}
                 onClick={() => send({ type: "redraw", card: card.uid })}
               >
-                <Card cardId={card.cardId} size="tile" />
+                <Card cardId={card.cardId} artIndex={card.artIndex} size="tile" />
               </button>
             ))}
           </div>
@@ -147,11 +172,29 @@ export function roundSummary(events: readonly MatchEvent[], seat: Seat): RoundSu
   for (const e of events) {
     if (e.type !== "factionPassive") continue;
     const whose = e.seat === seat ? copy.your : copy.yourOpponentS;
-    passives.push(
-      e.faction === "court"
-        ? formatCopy(copy.courtWonTheTie, { p0: whose })
-        : formatCopy(copy.swarmKeptOnTheBattlefield, { p0: whose, p1: cardName(e.card.cardId) }),
-    );
+    switch (e.faction) {
+      case "court":
+        passives.push(formatCopy(copy.courtWonTheTie, { p0: whose }));
+        break;
+      case "swarm":
+        passives.push(
+          formatCopy(copy.swarmKeptOnTheBattlefield, { p0: whose, p1: cardName(e.card.cardId) }),
+        );
+        break;
+      case "kingdom":
+        passives.push(formatCopy(copy.kingdomDrewACard, { p0: whose }));
+        break;
+      case "elves":
+        break;
+      case "vikings":
+        passives.push(
+          formatCopy(copy.vikingsPutFromDiscard, {
+            p0: whose,
+            p1: e.cards.map((c) => cardName(c.cardId)).join(copy.and),
+          }),
+        );
+        break;
+    }
   }
   return {
     round: ended.round,

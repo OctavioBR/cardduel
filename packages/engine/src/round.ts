@@ -1,7 +1,7 @@
-import { ROWS } from "./cards";
+import { ROWS, type RowId } from "./cards";
 import type { CardRef, MatchEvent } from "./events";
 import { leaderUsable } from "./leader";
-import { discardToOwner, ref } from "./play";
+import { discardToOwner, draw, ref, summonReplacement } from "./play";
 import { nextInt } from "./rng";
 import { type MatchResult, type MatchState, opponent, SEATS, type Seat, type Uid } from "./state";
 import { computeStrengths, defOf, totalScore } from "./strength";
@@ -80,13 +80,59 @@ function endRound(state: MatchState, events: MatchEvent[]): void {
     return;
   }
 
+  // (4) Kingdom draws a card for winning the Round.
+  if (winner !== null && state.sides[winner].faction === "kingdom") {
+    const before = state.sides[winner].hand.length;
+    draw(state, winner, 1, events);
+    if (state.sides[winner].hand.length > before) {
+      events.push({ type: "factionPassive", seat: winner, faction: "kingdom", effect: "drewCard" });
+    }
+  }
+
   // The Round winner starts the next Round; after a Tie, the Seat that did not start does.
   const starter: Seat = winner ?? opponent(state.roundStarter);
   state.round += 1;
   state.roundStarter = starter;
   for (const seat of SEATS) state.sides[seat].passed = false;
   events.push({ type: "roundStarted", round: state.round, starter });
+  if (state.round === VIKINGS_ROUND) {
+    for (const seat of [starter, opponent(starter)]) {
+      if (state.sides[seat].faction === "vikings") vikingsReturn(state, seat, events);
+    }
+  }
   beginTurn(state, starter, events);
+}
+
+/** The Round in which Vikings Puts Units from its Discard Pile. */
+export const VIKINGS_ROUND = 3;
+/** How many Units Vikings Puts. */
+export const VIKINGS_RETURN_COUNT = 2;
+
+/**
+ * Vikings: picks, with the seeded generator, two Unit Cards (Heroes included) from the
+ * Seat's Discard Pile and Puts each on its printed Row of the Seat's side.
+ */
+function vikingsReturn(state: MatchState, seat: Seat, events: MatchEvent[]): void {
+  const side = state.sides[seat];
+  const candidates = side.discard.filter((uid) => defOf(state, uid).kind === "unit");
+  const chosen: Uid[] = [];
+  while (chosen.length < VIKINGS_RETURN_COUNT && candidates.length > 0) {
+    chosen.push(...candidates.splice(nextInt(state, candidates.length), 1));
+  }
+  if (chosen.length === 0) return;
+  for (const uid of chosen) {
+    const def = defOf(state, uid);
+    if (def.kind !== "unit") continue;
+    side.discard.splice(side.discard.indexOf(uid), 1);
+    side.rows[def.row].units.push(uid);
+  }
+  events.push({
+    type: "factionPassive",
+    seat,
+    faction: "vikings",
+    effect: "putFromDiscard",
+    cards: chosen.map((uid) => ref(state, uid)),
+  });
 }
 
 /**
@@ -108,16 +154,16 @@ function swarmKeep(state: MatchState, seat: Seat): Uid | null {
  */
 function clearBattlefield(state: MatchState, events: MatchEvent[], keep: Set<Uid>): void {
   const discarded: CardRef[] = [];
+  const summoners: Array<{ seat: Seat; row: RowId; uid: Uid }> = [];
   for (const seat of SEATS) {
     const side = state.sides[seat];
     for (const row of ROWS) {
       const rowState = side.rows[row];
-      const leaving = [
-        ...rowState.units.filter((uid) => !keep.has(uid)),
-        ...(rowState.horn === null ? [] : [rowState.horn]),
-      ];
+      const units = rowState.units.filter((uid) => !keep.has(uid));
+      const leaving = [...units, ...(rowState.horn === null ? [] : [rowState.horn])];
       side.discard.push(...leaving);
       discarded.push(...leaving.map((uid) => ref(state, uid)));
+      summoners.push(...units.map((uid) => ({ seat, row, uid })));
       rowState.units = rowState.units.filter((uid) => keep.has(uid));
       rowState.horn = null;
       rowState.leaderHorn = false;
@@ -129,6 +175,8 @@ function clearBattlefield(state: MatchState, events: MatchEvent[], keep: Set<Uid
   }
   state.weather = [];
   if (discarded.length > 0) events.push({ type: "cardsDiscarded", cards: discarded });
+  // Summon cards are replaced at once, so their Side Deck cards stay for the next Round.
+  for (const { seat, row, uid } of summoners) summonReplacement(state, seat, row, uid, events);
 }
 
 export function endMatch(state: MatchState, result: MatchResult, events: MatchEvent[]): void {

@@ -31,15 +31,17 @@ export function LeaderDialog({
           <p>{cardText(leader.cardId)}</p>
           {uses.length === 0 ? (
             <p className="muted">
-              {leader.passive
-                ? copy.aPassiveLeaderItsRuleIs
-                : leader.used
-                  ? copy.alreadyUsedThisMatch
-                  : view.you.passed
-                    ? copy.youHavePassedThisRound
-                    : view.turn !== "you"
-                      ? copy.waitForYourTurn
-                      : copy.nothingToUseItOnRight}
+              {leader.cancelled
+                ? copy.yourOpponentsLeaderCancelsThis
+                : leader.passive
+                  ? copy.aPassiveLeaderItsRuleIs
+                  : leader.used
+                    ? copy.alreadyUsedThisMatch
+                    : view.you.passed
+                      ? copy.youHavePassedThisRound
+                      : view.turn !== "you"
+                        ? copy.waitForYourTurn
+                        : copy.nothingToUseItOnRight}
             </p>
           ) : null}
           {uses.map((use) =>
