@@ -78,7 +78,15 @@ export function DecksPage() {
             {decks?.map((d) => (
               <li key={d.id}>
                 <Link to={`/decks/${d.id}`}>{d.name}</Link>
-                <span className={d.problems.valid.length === 0 ? "status ok" : "status"}>
+                <span
+                  className={
+                    d.problems.valid.length === 0
+                      ? d.problems.competitive.length === 0
+                        ? "status competitive"
+                        : "status valid"
+                      : "status incomplete"
+                  }
+                >
                   {d.problems.valid.length === 0
                     ? d.problems.competitive.length === 0
                       ? copy.competitiveDeck

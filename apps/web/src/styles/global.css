@@ -471,7 +471,13 @@ input.turn-timer-input {
   font-size: 0.8rem;
   color: var(--cd-muted);
 }
-.status.ok {
+.status.incomplete {
+  color: var(--cd-lowered);
+}
+.status.valid {
+  color: var(--cd-warning);
+}
+.status.competitive {
   color: var(--cd-raised);
 }
 .editor-head {
