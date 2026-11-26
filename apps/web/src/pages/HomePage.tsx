@@ -196,7 +196,10 @@ export function HomePage() {
           </p>
         ) : (
           <div className="home-row">
-            <label htmlFor="home-deck">{en.deck}</label>
+            <label htmlFor="home-deck" className={`home-deck-icon f-${deck?.faction ?? "neutral"}`}>
+              <DeckIcon />
+              <span className="visually-hidden">{en.deck}</span>
+            </label>
             <select
               id="home-deck"
               value={deck?.id ?? ""}
@@ -306,6 +309,7 @@ export function HomePage() {
             </label>
             <input
               id="room-code"
+              className="room-code"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder={en.codePlaceholder}
@@ -343,6 +347,35 @@ export function HomePage() {
         </section>
       ) : null}
     </main>
+  );
+}
+
+/** A stack of card backs; the top one takes the selected Deck's Faction colour (`--tint`). */
+function DeckIcon() {
+  return (
+    <svg viewBox="0 0 34 32" width="36" height="34" aria-hidden="true" focusable="false">
+      {/* Fanned out from the bottom-left corner, so the cards beneath show to the right. */}
+      <rect
+        className="back"
+        x="4"
+        y="6"
+        width="16"
+        height="23"
+        rx="2.5"
+        transform="rotate(24 5 29)"
+      />
+      <rect
+        className="back"
+        x="4"
+        y="6"
+        width="16"
+        height="23"
+        rx="2.5"
+        transform="rotate(12 5 29)"
+      />
+      <rect className="top" x="4" y="6" width="16" height="23" rx="2.5" />
+      <rect className="top-inner" x="7" y="9" width="10" height="17" rx="1.5" />
+    </svg>
   );
 }
 
