@@ -14,6 +14,7 @@ import { DISCONNECT_GRACE_MS, ROOM_IDLE_MS } from "../src/room";
 import { ROOM_CODE_ALPHABET } from "../src/room-code";
 import {
   BASE,
+  competitiveDeck,
   createRoom,
   firstPlay,
   newPlayer,
@@ -42,7 +43,8 @@ async function seatBoth(
   { turnTimer = null, redraw = true }: { turnTimer?: number | null; redraw?: boolean } = {},
 ): Promise<Seated> {
   const cookies: [string, string] = [await newPlayer(), await newPlayer()];
-  const decks = [await starterDeck(cookies[0], "swarm"), await starterDeck(cookies[1], "court")];
+  const deckOf = competitive ? competitiveDeck : starterDeck;
+  const decks = [await deckOf(cookies[0], "swarm"), await deckOf(cookies[1], "court")];
   const code = await createRoom(cookies[0], competitive, turnTimer);
   const a = await TestSocket.open(code, cookies[0]);
   expect(await a.nextLobby()).toMatchObject({ code, seat: 0, opponent: { present: false } });

@@ -91,12 +91,10 @@ describe("validateCatalog", () => {
     expect(errors.some((e) => e.includes("id must be lowercase"))).toBe(true);
   });
 
-  it("requires every Starter Deck to be a Competitive Deck", () => {
+  it("allows a Starter Deck that is not a Competitive Deck", () => {
     const data = fixtureCatalog();
     starterDeckOf(data, "court").cards.push("frost", "frost", "frost", "horn", "horn", "horn");
-    expect(validateCatalog(data)).toEqual([
-      "Starter Deck for court is not a Competitive Deck: Competitive Decks hold at most 5 Special Cards (has 6).",
-    ]);
+    expect(validateCatalog(data)).toEqual([]);
   });
 });
 

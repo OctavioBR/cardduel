@@ -1,6 +1,6 @@
 import { type CardDefinition, ROWS, type UnitAbility } from "@card-duel/engine";
 import { loadCatalog } from "./catalog";
-import { checkCompetitiveDeck, checkValidDeck } from "./deck-checks";
+import { checkValidDeck } from "./deck-checks";
 import type { CatalogData } from "./types";
 
 /** Unit abilities a catalog version may use. */
@@ -173,8 +173,8 @@ export function validateCatalog(data: CatalogData): string[] {
       }
       if (deck.faction !== faction)
         errors.push(`Starter Deck for ${faction} has Faction ${deck.faction}.`);
-      for (const p of [...checkValidDeck(deck, catalog), ...checkCompetitiveDeck(deck, catalog)]) {
-        errors.push(`Starter Deck for ${faction} is not a Competitive Deck: ${p.message}`);
+      for (const p of checkValidDeck(deck, catalog)) {
+        errors.push(`Starter Deck for ${faction} is not a Valid Deck: ${p.message}`);
       }
     }
   }

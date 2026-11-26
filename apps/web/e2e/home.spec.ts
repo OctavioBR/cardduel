@@ -1,11 +1,15 @@
 import { expect, type Page, test } from "@playwright/test";
-import { keepHand, signUpVia, uniqueName } from "./board";
+import { keepHand, saveCompetitiveDeck, signUpVia, uniqueName } from "./board";
 
-/** Selects one of the player's seeded Starter Decks on Home. */
-async function starter(page: Page, faction: "swarm" | "court"): Promise<string> {
+/** Selects one of the player's seeded Starter Decks (or a saved "Competitive" Deck) on Home. */
+async function starter(
+  page: Page,
+  faction: "swarm" | "court",
+  kind: "Starter" | "Competitive" = "Starter",
+): Promise<string> {
   const picker = page.getByLabel("Deck", { exact: true });
   const name = faction === "swarm" ? "Swarm" : "Court";
-  await picker.selectOption({ label: `${name} Starter · ${name}` });
+  await picker.selectOption({ label: `${name} ${kind} · ${name}` });
   return picker.inputValue();
 }
 
@@ -36,7 +40,9 @@ for (const competitive of [false, true]) {
       await host.getByRole("main").getByRole("link", { name: "My Decks" }).click();
       await expect(host).toHaveURL(/\/decks$/);
       await host.goto("/");
-      await starter(host, "swarm");
+      const kind = competitive ? "Competitive" : "Starter";
+      if (competitive) await saveCompetitiveDeck(host, "swarm");
+      await starter(host, "swarm", kind);
       await expect(host.getByLabel("Deck", { exact: true })).toHaveValue(/.+/);
       await host.getByLabel("Competitive Room").setChecked(competitive);
       await host.getByRole("button", { name: "Create Room" }).click();
@@ -47,13 +53,14 @@ for (const competitive of [false, true]) {
       await expect(
         host.getByText(competitive ? "Competitive Room" : "Casual Room", { exact: true }),
       ).toBeVisible();
-      await expect(host.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
+      await expect(host.getByText(`You chose Swarm ${kind}`, { exact: false })).toBeVisible();
       await expect(host.getByText(/Waiting for your opponent. Share/)).toBeVisible();
       await host.getByRole("button", { name: "Copy link" }).click();
       await expect(host.getByRole("status")).toHaveText("Link copied");
       expect(await host.evaluate(() => navigator.clipboard.readText())).toBe(url);
       await signUpVia(guest, uniqueName("guest"));
-      await starter(guest, "court");
+      if (competitive) await saveCompetitiveDeck(guest, "court");
+      await starter(guest, "court", kind);
       await guest.getByLabel("Room code").fill(code.toLowerCase());
       await guest.getByRole("button", { name: "Join", exact: true }).click();
       await expect(guest).toHaveURL(url);
@@ -91,7 +98,8 @@ test("Competitive toggles turn off and stay off while the Deck is not a Competit
 }) => {
   await signUpVia(page, uniqueName("toggles"));
   const origin = new URL(page.url()).origin;
-  const starterDeck = await starter(page, "court");
+  await saveCompetitiveDeck(page, "court");
+  const starterDeck = await starter(page, "court", "Competitive");
   const { deck } = (await (await page.request.get(`/api/decks/${starterDeck}`)).json()) as {
     deck: { leader: string; cards: string[] };
   };
@@ -117,7 +125,7 @@ test("Competitive toggles turn off and stay off while the Deck is not a Competit
   await expect(room).toBeDisabled();
   await expect(page.getByText(/Not a Competitive Deck: .*at most 5 Special Cards/)).toBeVisible();
 
-  await picker.selectOption({ label: "Court Starter · Court" });
+  await picker.selectOption({ label: "Court Competitive · Court" });
   await queue.check();
   await room.check();
   await picker.selectOption({ label: "Heavy Court · Court" });
@@ -126,7 +134,7 @@ test("Competitive toggles turn off and stay off while the Deck is not a Competit
   await expect(queue).toBeDisabled();
   await expect(room).toBeDisabled();
   // Back on a Competitive Deck, the toggles are available again but start off.
-  await picker.selectOption({ label: "Court Starter · Court" });
+  await picker.selectOption({ label: "Court Competitive · Court" });
   await expect(queue).toBeEnabled();
   await expect(queue).not.toBeChecked();
   await expect(room).not.toBeChecked();
@@ -141,9 +149,11 @@ test("Find a Match pairs two players into a Matched Room with a Turn Timer", asy
     const alice = await first.newPage();
     const bob = await second.newPage();
     await signUpVia(alice, uniqueName("queuea"));
-    await starter(alice, "swarm");
+    await saveCompetitiveDeck(alice, "swarm");
+    await starter(alice, "swarm", "Competitive");
     await signUpVia(bob, uniqueName("queueb"));
-    await starter(bob, "court");
+    await saveCompetitiveDeck(bob, "court");
+    await starter(bob, "court", "Competitive");
     // Cancel leaves the Queue.
     await alice.getByRole("button", { name: "Find a Match" }).click();
     await expect(alice.getByRole("status").filter({ hasText: "Searching…" })).toBeVisible();

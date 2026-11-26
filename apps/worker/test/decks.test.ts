@@ -47,7 +47,7 @@ describe("Deck API", () => {
         ...catalog.starterDecks[faction],
         name: names[faction],
         catalogVersion: CURRENT_CATALOG_VERSION,
-        problems: { valid: [], competitive: [] },
+        problems: { valid: [] },
       });
     }
     expect(((await (await api(me, "")).json()) as { decks: DeckJson[] }).decks).toEqual(decks);
@@ -99,13 +99,13 @@ describe("Deck API", () => {
     expect(deck.problems.valid.map((p) => p.code)).toEqual(["no_leader", "too_few_units"]);
   });
 
-  it("copies a Starter Deck into a new Deck with no problems", async () => {
+  it("copies a Starter Deck into a new Valid Deck", async () => {
     const me = await newPlayer();
     const deck = await deckOf(await api(me, "/copy-starter", "POST", { faction: "court" }));
     expect(deck.faction).toBe("court");
-    expect(deck.leader).toBe("court-leader-whisper-master");
+    expect(deck.leader).toBe("court-leader-usurper");
     expect(deck.cards.length).toBeGreaterThanOrEqual(22);
-    expect(deck.problems).toEqual({ valid: [], competitive: [] });
+    expect(deck.problems.valid).toEqual([]);
   });
 
   it("keeps several Decks per Faction and lists them by Faction, newest first", async () => {

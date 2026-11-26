@@ -6,6 +6,7 @@ import {
   matchOver,
   passTurn,
   round,
+  saveCompetitiveDeck,
   settled,
   signUpVia,
   uniqueName,
@@ -13,7 +14,7 @@ import {
 
 /**
  * The whole product with two players. The local Worker runs with a fixed Match seed (see
- * `playwright.config.ts`): with the two Starter Decks it deals the second Seat (Court) a Siege
+ * `playwright.config.ts`): with the e2e Competitive Decks (board.ts) it deals the second Seat (Court) a Siege
  * Mender (a Medic) and Wildfire (Scorch) in the opening hand.
  */
 
@@ -27,10 +28,10 @@ interface Seen {
   scorch: boolean;
 }
 
-async function openStarterDeck(page: Page, faction: "Swarm" | "Court"): Promise<void> {
-  await page.goto("/decks");
+async function openCompetitiveDeck(page: Page, faction: "Swarm" | "Court"): Promise<void> {
+  await saveCompetitiveDeck(page, faction === "Swarm" ? "swarm" : "court");
   await page.getByRole("tab", { name: faction }).click();
-  await page.getByRole("link", { name: `${faction} Starter`, exact: true }).click();
+  await page.getByRole("link", { name: `${faction} Competitive`, exact: true }).click();
   await expect(page.getByTestId("deck-status")).toHaveText("Competitive Deck");
 }
 
@@ -129,23 +130,23 @@ test("two players: Decks, Competitive Room, Redraw, Scorch, Medic, Match end and
     const alice = await a.newPage();
     const bob = await b.newPage();
     await signUpVia(alice, uniqueName("alice"), "/decks");
-    await openStarterDeck(alice, "Swarm");
+    await openCompetitiveDeck(alice, "Swarm");
     await signUpVia(bob, uniqueName("bob"), "/decks");
-    await openStarterDeck(bob, "Court");
+    await openCompetitiveDeck(bob, "Court");
 
     await alice.goto("/");
     await alice.getByLabel("Competitive Room").check();
     await alice
       .getByLabel("Deck", { exact: true })
-      .selectOption({ label: "Swarm Starter · Swarm" });
+      .selectOption({ label: "Swarm Competitive · Swarm" });
     await alice.getByRole("button", { name: "Create Room" }).click();
     await expect(alice).toHaveURL(/\/r\/[2-9A-Z]{6}$/);
     const url = alice.url();
     await expect(alice.getByText("Competitive Room", { exact: true })).toBeVisible();
-    await expect(alice.getByText("You chose Swarm Starter", { exact: false })).toBeVisible();
+    await expect(alice.getByText("You chose Swarm Competitive", { exact: false })).toBeVisible();
     await bob.goto(url);
     await expect(bob.getByText("Competitive Room", { exact: true })).toBeVisible();
-    await bob.getByRole("button", { name: /Court Starter/ }).click();
+    await bob.getByRole("button", { name: /Court Competitive/ }).click();
     await expect(alice.getByTestId("board")).toBeVisible();
     await expect(bob.getByTestId("board")).toBeVisible();
 
@@ -167,8 +168,8 @@ test("two players: Decks, Competitive Room, Redraw, Scorch, Medic, Match end and
     await alice.getByRole("button", { name: "Rematch", exact: true }).click();
     await expect(bob.getByTestId("rematch-status")).toContainText("offered a Rematch");
     await bob.getByRole("button", { name: "Rematch", exact: true }).click();
-    await alice.getByRole("button", { name: /Swarm Starter/ }).click();
-    await bob.getByRole("button", { name: /Court Starter/ }).click();
+    await alice.getByRole("button", { name: /Swarm Competitive/ }).click();
+    await bob.getByRole("button", { name: /Court Competitive/ }).click();
     await expect(alice.getByTestId("redraw")).toBeVisible();
     await expect(bob.getByTestId("redraw")).toBeVisible();
     await expect(alice.getByTestId("result")).toHaveCount(0);

@@ -10,7 +10,7 @@ import {
 } from "@card-duel/engine";
 import { describe, expect, it } from "vitest";
 import { starterDeckOf } from "./catalog";
-import { checkCompetitiveDeck, checkValidDeck } from "./deck-checks";
+import { checkValidDeck } from "./deck-checks";
 import { validateCatalog } from "./validate";
 import { getCatalog } from "./versions";
 
@@ -29,11 +29,10 @@ describe("Card Catalog v2", () => {
     }
   });
 
-  it("has a Competitive Starter Deck for each of the four Factions", () => {
+  it("has a Valid Starter Deck for each Faction", () => {
     for (const faction of FACTIONS) {
       const deck = starterDeckOf(v2, faction);
       expect(checkValidDeck(deck, v2), faction).toEqual([]);
-      expect(checkCompetitiveDeck(deck, v2), faction).toEqual([]);
     }
   });
 

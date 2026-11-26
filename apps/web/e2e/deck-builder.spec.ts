@@ -80,7 +80,7 @@ test("drag adds a card from the pool and removes it back", async ({ page }) => {
   await expect(page.getByTestId("count-units")).toHaveText("0/22");
 });
 
-test("new players have a Competitive Starter Deck for each Faction after signing up", async ({
+test("new players have a Valid Starter Deck for each Faction after signing up", async ({
   page,
 }) => {
   await signUpVia(page, uniqueName("seeded"), "/decks");
@@ -88,18 +88,16 @@ test("new players have a Competitive Starter Deck for each Faction after signing
     await page.getByRole("tab", { name: faction, exact: true }).click();
     await expect(page.locator(".deck-list li")).toHaveCount(1);
     await page.getByRole("link", { name: `${faction} Starter`, exact: true }).click();
-    await expect(page.getByTestId("deck-status")).toHaveText("Competitive Deck");
+    await expect(page.getByTestId("deck-error")).toHaveCount(0);
     await page.goto("/decks");
   }
 });
 
-test("Copy a Starter Deck gives an additional Competitive Deck; filters narrow the pool", async ({
-  page,
-}) => {
+test("Copy a Starter Deck gives an additional Deck; filters narrow the pool", async ({ page }) => {
   await signUpVia(page, uniqueName("starter"), "/decks");
   await page.getByRole("tab", { name: "Court" }).click();
   await page.getByRole("button", { name: "Copy a Starter Deck" }).click();
-  await expect(page.getByTestId("deck-status")).toHaveText("Competitive Deck");
+  await expect(page.getByTestId("deck-error")).toHaveCount(0);
 
   await page.getByLabel("Type").selectOption("special");
   const tiles = page.getByTestId("pool-tile");
