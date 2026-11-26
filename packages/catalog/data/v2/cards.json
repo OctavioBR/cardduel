@@ -1679,6 +1679,17 @@
     "image": "v2/neutral-wayfaring-heir.webp"
   },
   {
+    "id": "neutral-triss",
+    "kind": "unit",
+    "faction": "neutral",
+    "strength": 7,
+    "row": "close",
+    "hero": true,
+    "abilities": [],
+    "maxCopies": 1,
+    "image": "v2/neutral-triss.webp"
+  },
+  {
     "id": "neutral-faithful-mare",
     "kind": "unit",
     "faction": "neutral",
